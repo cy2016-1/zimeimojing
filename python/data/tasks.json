@@ -1,0 +1,5 @@
+[
+{"id":1,"name":"扫描是否在家","begin":"7:00:00","end":"22:00:00","condition":"(s==10||s==15||s==22||s==31||s==45||s==52)","exeurl":"/var/www/server/python/plugin.py nmap","urltype":"2","kaiguan":"1"},
+{"id":2,"name":"设置动态域名","begin":"0:00:00","end":"23:59:59","condition":"(i%20==0)&(s==2)","exeurl":"/var/www/server/python/plugin.py ddns","urltype":"2","kaiguan":"1"},
+{"id":3,"name":"数据库备份","begin":"4:00:00","end":"4:05:00","condition":"(G==4)&(i==1)&(s==1)","exeurl":"/var/www/server/php/cli/databack/databack.sh","urltype":"2","kaiguan":"1"}
+]

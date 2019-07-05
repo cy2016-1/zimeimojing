@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>设备配网</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+	<style type="text/css">
+		.tab{width:100%;border: 1px solid #eee;border-bottom: none;}
+		.tab td{padding: 5px;border-bottom: 1px solid #eee;}
+		.tab td.no_bbr{border-bottom: none !important;}
+		.tab td.name{width:35%;}
+		.tab td.set_name{width:20%}
+		.qiandu div{height:30px;background-color:#00CC00;}
+		.refresh {text-align: center;display: none;margin-top: 20px;}
+		.button{display: block;margin-left: auto;margin-right: auto;padding-left: 14px;padding-right: 14px;box-sizing: border-box;font-size: 18px;text-align: center;text-decoration: none;color: #FFFFFF;background-color: #1AAD19;line-height: 2.55555556;border-radius: 5px;-webkit-tap-highlight-color: rgba(0, 0, 0, 0);overflow: hidden;}
+		.button:active{background-color: #179B16;color: rgba(255, 255, 255, 0.6);}
+		.button:disabled{background-color: #9ED99D;color: rgba(255, 255, 255, 0.6);}
+
+		#set_net{display: none;}
+		#set_net td{line-height:30px;}
+		.startnet{text-align: center;margin-top: 30px;}
+		#wifi_pass{width:90%;height:30px;font-size:16px;line-height:18px;}
+	</style>
+</head>
+<body>
+	<div id="select">
+		<h3>请选择您要连接的WiFi网络</h3>
+		<div id="wifilist"></div>
+		<div class="refresh">如果你要连接的网络不在上面列表<br/><a id="refresh" class="button" href="###">请点击这里刷新</a></div>
+	</div>
+	<div id="set_net" class="">
+		<h3>输入无线网络密码</h3>
+		<table class="tab" cellpadding="0" cellspacing="0">
+			<tr>
+				<td class="set_name">WiFi</td>
+				<td><span id="wifi_name"></span></td>
+			</tr>
+			<tr>
+				<td class="no_bbr">密码</td>
+				<td class="no_bbr">
+					<input type="password" name="wifi_pass" id="wifi_pass" value="" />
+					<br/>
+				</td>
+			<tr>
+				<td></td>
+				<td>
+					<input type="checkbox" id="showpass" />
+					<label for="showpass">显示密码</label>
+					<div>如果连接（无密码）公开网络请留空。</div>
+				</td>
+			</tr>
+		</table>
+		<div class="startnet">
+			<a href="###" id="start" class="button">开始连网</a>
+		</div>
+	</div>
+<script src="zepto.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	var select = $('#select');
+	var set_net = $('#set_net');
+	(load_list = function(){
+		select.show();
+		$.ajax({
+			url: '/getwifilist',
+			cache: false,
+			beforeSend: function(){
+				$("#wifilist").html('正在扫描当前位置可用网络……');
+			},
+			success: function(json) {
+				var arr = JSON.parse(json);
+				var html = '<table class="tab" cellpadding="0" cellspacing="0">';
+				$.each( arr, function(i, n){
+					html += '<tr data-name="'+n.wifi_name+'"><td class="name">'+ n.wifi_name +'</td><td class="qiandu"><div style="width:'+ n.wifi_qual+'%"></div></td></tr>';
+					//console.log( n );
+				});
+				html += '</table>';
+				$("#wifilist").html(html);
+				$('.refresh').show();
+
+				$('[data-name]').click(function(){
+					select.hide();
+					set_net.show();
+					var name = $(this).attr('data-name');
+					$('#wifi_name').text(name);
+				});
+			}
+		});
+	})();
+
+	$('#refresh').click(function(){
+		load_list();
+		$(this).hide();
+	});
+
+	//开始配置连网
+	$('#start').click(function(){
+		var _this = $(this);
+		var wifi_name = $('#wifi_name').text();
+		var wifi_pass = $('#wifi_pass').val();
+		if (wifi_pass.length<8){
+			alert('密码不能少于8位(字母、数字、符号)');
+			return;
+		}
+		var post_data = {'wifiname': wifi_name,'wifipass':wifi_pass};
+		$.ajax({
+			url: '/setwifi',
+			cache: false,
+			type: "POST",
+			data: post_data,
+			success: function(json) {
+				//console.log( json );
+				_this.attr({'disabled':'disabled'});
+				window.location="index_wait.html";
+			}
+		});
+	});
+
+	$('#showpass').click(function(){
+		var wifi_pass = $('#wifi_pass');
+		if($(this).is(':checked')){
+			wifi_pass.attr({'type':"text"});
+		}else{
+			wifi_pass.attr({'type':"password"});
+		}
+	})
+});
+</script>
+</body>
+</html>
