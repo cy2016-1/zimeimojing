@@ -9,9 +9,9 @@ module.exports = {
 	},
 	'screen_size':{			//设置屏幕留白：顶，右，底，左
 		'top':'10px',
-		'right':'0px',
+		'right':'10px',
 		'bottom':'10px',
-		'left':'0px'
+		'left':'10px'
 	},
 	'rootpath': rootpath,
 	'httpapi': 'https://hapi.16302.com',
