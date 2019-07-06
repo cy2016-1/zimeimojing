@@ -67,7 +67,7 @@ $(function(){
 	var micstate = mic_state.Init();
 
 	//接收主进程消息
-	var t1=[];
+	var timer1 = 0
 	require('electron').ipcRenderer.on('public',function(event, json){
 		if ( json.m ){
 			st = json.m;
@@ -108,8 +108,8 @@ $(function(){
 			$('#tishiText').append(duihua);
 
 			//$('#'+json_obj.obj).html(msg).fadeIn("slow");
-
-			//t1[json_obj.obj] = setTimeout(function(){$('#'+json_obj.obj).fadeOut(500);},timer);
+			window.clearTimeout(timer1);
+			timer1 = setTimeout(function(){$('#tishiText').empty();},30000);
 		}
 	});
 
