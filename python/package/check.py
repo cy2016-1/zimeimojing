@@ -5,7 +5,6 @@ import psutil       #检测内存
 from package.base import Base,log                       #基本类
 import package.include.skills.action.screens as screens
 
-
 class Check(Base):
     """设备检测类"""
 
@@ -19,6 +18,8 @@ class Check(Base):
         self.pin_pingmo_kg   = self.config['GPIO']['pingmo_kg']                 # 设置屏幕控制脚
         self.pin_pingmo_zt   = self.config['GPIO']['pingmo_zt']['pin']          # 获取屏幕开关状态脚
         self.pin_pingmo_open = self.config['GPIO']['pingmo_zt']['open']         # 获取屏幕开关状态 1 - 高电平，0 - 低电平
+        self.pin_fengshan_kg = self.config['GPIO']['fengshan_kg']               # 降温风扇开关 0 - 为关闭此功能
+        self.pin_fengshan_zt = 0
 
         self.pin_renti_tc    = self.config['GPIO']['renti_tc']['pin']           # 人体探测
         self.pin_renti_max_time = self.config['GPIO']['renti_tc']['max_time']
@@ -26,6 +27,7 @@ class Check(Base):
         GPIO.setup(self.pin_pingmo_kg,GPIO.OUT)                                 # 设置屏幕控制脚为输出
         GPIO.setup(self.pin_pingmo_zt,GPIO.IN)
         GPIO.setup(self.pin_renti_tc, GPIO.IN)
+        GPIO.setup(self.pin_fengshan_kg,GPIO.OUT)
 
         self.ren_nk_time = 0            # 人体离开时间
         self.is_op_screen = True        # 是否操作屏幕
@@ -91,11 +93,29 @@ class Check(Base):
         if int((psutil.virtual_memory()[1]/1000)/1000) < 200:
             print('内存过低')
 
+    #监控CPU温度
+    def detect_cpuwd(self):
+        res = os.popen('vcgencmd measure_temp').readline()
+        wdg = re.match( r"temp=(.+)\'C", res, re.M|re.I)
+        if wdg.group(1):
+            wd = float(wdg.group(1))
+            if wd >= 65:
+                if self.pin_fengshan_zt == 0:
+                    self.pin_fengshan_zt = 1
+                    GPIO.output( self.pin_fengshan_kg, GPIO.HIGH )
+
+            if wd < 55:
+                if self.pin_fengshan_zt == 1:
+                    self.pin_fengshan_zt = 0
+                    GPIO.output( self.pin_fengshan_kg, GPIO.LOW )
+        del res,wdg,wd
+
     #开始启动
     def start(self):
         while True:
             #print('检测进程已经启动',self.uid )
             self.detect_ren()
+            self.detect_cpuwd()
             time.sleep(3)
 
 

@@ -11,30 +11,6 @@ def cmd(permission , name):
     print(cmds)
     os.system(cmds)
 
-# 创建新表
-def CreateTables( db_arr = [] ):
-    if len(db_arr) <= 0 :
-        print( "创建失败" )
-        return "创建失败"
-
-    filename = time.strftime("%Y%m%d%H%M%S", time.localtime())
-    old_data = os.path.join(root_path, 'python/data/config.db')
-    mov_data = os.path.join(root_path, 'python/data/config_'+ str(filename) +'.db')
-    os.system( 'sudo mv '+ old_data +' '+ mov_data )
-
-    conn = sqlite3.connect(old_data)
-    cur = conn.cursor()
-
-    for item in db_arr:
-        try:
-            cur.execute(item)
-        except sqlite3.Error as e:
-            print( e )
-
-    conn.commit()
-    conn.close()
-    os.system("sudo chmod 777 "+ old_data)
-
 print("设置app目录下文件权限" )
 #该文件仅执行
 cmd("sudo chmod +x", 'app/moJing')
@@ -71,6 +47,31 @@ cmd('sudo chmod +x' , 'python/plugin.py')
 * 以下是创建数据库内容，下面注释信息为定界符，不能修改！
 ---------------------------------------------------------
 '''
+# 创建新表
+def CreateTables( db_arr = [] ):
+    if len(db_arr) <= 0 :
+        print( "创建失败" )
+        return "创建失败"
+
+    filename = time.strftime("%Y%m%d%H%M%S", time.localtime())
+    old_data = os.path.join(root_path, 'python/data/config.db')
+    mov_data = os.path.join(root_path, 'python/data/config_'+ str(filename) +'.db')
+    os.system( 'sudo mv '+ old_data +' '+ mov_data )
+
+    conn = sqlite3.connect(old_data)
+    cur = conn.cursor()
+
+    for item in db_arr:
+        try:
+            cur.execute(item)
+        except sqlite3.Error as e:
+            print( e )
+
+    conn.commit()
+    conn.close()
+    os.system("sudo chmod 777 "+ old_data)
+
+
 create_table = []
 
 #=[CreatedatabaseStart]=
@@ -82,6 +83,7 @@ if len(create_table) > 0:
 
 
 #设置新设备注册
+print('正在进行新设备注册……')
 cmd('sudo' , 'python/api.py online')
 
 '''
@@ -266,6 +268,8 @@ ban_screen_savers()
 def calibration_time():
     #需要安装包sudo apt-get install ntpdate
 
+    print("正在设置时间核对……")
+
     # 时区判断
     if os.popen("date -R").read().count("0800") == 1:
         pass
@@ -290,13 +294,18 @@ def set_js():
     fstr = f.read()
     f.close()
 
-    restr = r'const\s+rootpath\s*=\s*\'.+\';'
+    restr = r'\/*const\s+rootpath\s*=\s*[\'|\"]\/.+[\'|\"]\;?'
     matc = re.search( restr, fstr, re.M|re.I )
     if matc!=None:
         root_path2 = root_path
         if root_path2[-1:] != "/": root_path2 = root_path2 + "/"
         new_api = "const rootpath = '" +root_path2+ "';"
         fstr = re.sub(restr, new_api, fstr, 1, re.M|re.I )
+
+        #删除本地配置
+        redel = r'\/*const\s+rootpath\s*=\s*[\'|\"]python.+[\'|\"]\;?.*\n'
+        fstr = re.sub(redel, '', fstr, 1, re.M|re.I )
+
         fo = open(conf_path, "w")
         line = fo.write( fstr )
         fo.close()
@@ -305,7 +314,21 @@ def set_js():
     print("链接前后端完成")
 set_js()
 
-print("全部完成*_^")
+#重置WiFi网络
+def reset_wifi():
+
+    print("正在重置WiFi网络……")
+    restr = '''ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+'''
+    sys_supplicant = '/etc/wpa_supplicant/wpa_supplicant.conf';
+    fo = open(sys_supplicant, "w")
+    line = fo.write( restr )
+    fo.close()
+
+    print("重置WiFi网络完成")
+
+reset_wifi()
 
 '''
 ----------------系统扩容-------------------
@@ -366,3 +389,5 @@ if input("是否执行系统空间最大化？(y/n)") =="y":
     #赋予执行权限
     os.system("sudo chmod +x /kuorong.py")
     print("系统空间最大化执行完成，重启生效")
+
+print("全部完成*_^")

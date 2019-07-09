@@ -36,10 +36,17 @@ var control = {
 		var url = config.httpapi + '/raspberry/index.html';		// 测试网络是否通
 		var status = {'netstatus':0};
 		try{
+			var this_url = control.mainWindow.getURL();
+			var re = /\/html\/index\.html/;
 			request({url: url, timeout: 1500}, function(error, response, body) {
 			    if (!error && response.statusCode == 200){
 				    status.netstatus = 1
 				    control.is_net_ok = true;
+				    if ( !re.test(this_url) ){
+					    control.mainWindow.loadURL("file:///"+__dirname+"/html/index.html");
+				    }
+				    //发送网络状态到前端
+			    	control.mainWindow.webContents.send('public',status);
 			    }else{
 				    status.netstatus = 0
 				    control.is_net_ok = false;
@@ -56,8 +63,6 @@ var control = {
 					    }
 			    	}
 			    }
-			    //发送网络状态到前端
-			    control.mainWindow.webContents.send('public',status);
 			});
 		}catch(err){
 			control.mainWindow.webContents.send('public',status);

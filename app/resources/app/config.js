@@ -1,5 +1,5 @@
-const rootpath = '/keyicx/';
-//const rootpath = 'python E:/alidata/kxoa/mojing/raspberry/var/www/server/';
+//const rootpath = '/var/www/server/';
+const rootpath = 'python E:/alidata/kxoa/mojing/raspberry/var/www/server/';
 module.exports = {
 	'mqtt':{
 		'server': 'mqtt://mqtt.16302.com:1883',

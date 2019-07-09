@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
+import requests
 from package.base import Base,log
-import urllib.request,re,json,string
 
-
+#切记不要点开密钥，不然会有意想不到的情况
 class Tuling(Base):
 
     def __init__(self):
+        self.KEY     = self.config['TULING']['key']        #图灵KEY
+        self.apiUrl  = self.config['TULING']['url']
 
-        self.apiUrl  = self.config["QINYUIN"]["url"]
-
-    '''main# 对外调用接口
+    '''zhixing# 对外调用接口
     参数：
         name:需要输入图灵交流的文字。字符串类型'
     返回：
@@ -22,13 +22,11 @@ class Tuling(Base):
             if self.mylib.typeof(name) != 'str':
                 return {'state':False,'data': '我不知道你说了啥','type':'system', 'msg':'参数1，需要输入图灵交流的文字。字符串类型！'}
 
-            data = re.sub(
-            r'{.*}|网址.*', "", json.loads(urllib.request.urlopen(urllib.parse.quote(
-            #响应时间定为了25秒是应为该服务器不是那么快
-            self.apiUrl + name, safe=string.printable),timeout = 25).read().decode("utf-8"))['content'])
+            data = {'key': self.KEY,'info': name,'userid': '111111'}
 
-            if data == '': data = "不知道"
-            return {'state':True,'data':data ,'type':'tuling','msg':'图灵回复成功！'}
+            biangliang = requests.post(self.apiUrl,data=data,verify=True,timeout=2).json()['results'][0]['values']['text']
+            del data
+            return {'state':True,'data': biangliang,'type':'tuling','msg':'图灵回复成功！'}
 
         except Exception as bug:
             log.warning('超时s',bug)
@@ -37,4 +35,4 @@ class Tuling(Base):
 if __name__ == '__main__':
 
 
-    print( Tuling().main('520'))
+    print( Tuling().main('1314'))
