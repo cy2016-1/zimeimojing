@@ -4,7 +4,7 @@ from package.config import config           #导入固件配置
 
 class Light():
     '''灯控制类'''
-    def __init__(self):
+    def __init__(self, public_obj):
         #设置不显示警告
         GPIO.setwarnings(False)
 
@@ -44,8 +44,8 @@ class Light():
 
     # 打开灯
     def open_light(self,name):
-        return Light().main("on")
+        return self.main("on")
 
     # 关闭灯
     def cloes_light(self,name):
-        return Light().main("off")
+        return self.main("off")

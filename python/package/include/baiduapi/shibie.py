@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from package.base import Base,log
-import sys,os,json,base64,requests,urllib.request
+import os,re,json,base64,requests,urllib.request
 
 #参考资料https://www.cnblogs.com/Pond-ZZC/p/6718205.html
 #播放声音https://blog.csdn.net/xiongtiancheng/article/details/80577478
@@ -113,14 +113,14 @@ class Shibie(Base):
 
         except:
             log.warning('超时s2')
-            return {'state': False,'data':'','msg':'百度语音识别失败，可能是网络超时。'}
+            return {'enter':'voice','state': False,'data':'','msg':'百度语音识别失败，可能是网络超时。'}
             #return 'No_network'#没有网络
 
         if resp_data["err_no"] == 0:
-            return {'state': True,'data':resp_data["result"][0],'msg':'识别成功！'}
+            return {'enter':'voice','state': True,'data':resp_data["result"][0],'msg':'识别成功！'}
             #return resp_data["result"]  #返回识别出的文字
         else:
-            return {'state': False,'data':'','msg':'百度语音识别失败。'}
+            return {'enter':'voice','state': False,'data':'','msg':'百度语音识别失败。'}
             #return "识别失败"
 
     '''zhixing# 对外调用接口
@@ -131,16 +131,7 @@ class Shibie(Base):
         网络异常:返回No_network#没有网络   类型：字符串
     '''
     def main(self,audio_data):
-     #   if self.mylib.typeof(name) !='str':
-     #       resp = {'state': False,'data':'','msg':'参数1，需要输入被识别的录音的名字，str类型文件是WAV格式'}
-     #       return resp
-     #   if name[-4:] != '.wav':
-     #       resp = {'state': False,'data':'','msg':'参数1，录音文件格式.wav'}
-     #       return resp
         try:
-           # f = open(name, "rb")
-           # audio_data = f.read()
-           # f.close()
             resp = self.__yuyin_shibie_api(audio_data)
             del audio_data
             log.info('识别结果',resp)
@@ -150,7 +141,7 @@ class Shibie(Base):
                 log.info(resp)
                 return resp
         except :
-            resp = {'state': False,'data':'','msg':'识别失败。'}
+            resp = {'enter':'voice','state': False,'data':'','msg':'识别失败。'}
             return resp
 
 if __name__ == '__main__':

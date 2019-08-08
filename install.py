@@ -2,7 +2,9 @@
 # -*- coding: UTF-8 -*-
 import os,time,re
 import sqlite3
-
+if int(os.popen("id -u").read()) !=0:
+    print("请用root权限执行：sudo ./install.py")
+    exit()
 root_path = os.path.abspath(os.path.dirname(__file__))
 
 #文件夹授权执行方法  参数一 权限  参数二 位置
@@ -38,9 +40,8 @@ cmd('sudo chmod -R 0777', 'python/runtime/')
 
 #该目录下全部仅执行
 cmd('sudo chmod +x' , 'python/api.py')
-cmd('sudo chmod +x' , 'python/main.py')
 cmd('sudo chmod +x' , 'python/run.py')
-cmd('sudo chmod +x' , 'python/plugin.py')
+cmd('sudo chmod +x' , 'python/main.py')
 
 '''
 ---------------------------------------------------------
@@ -82,10 +83,6 @@ if len(create_table) > 0:
     CreateTables(create_table)
 
 
-#设置新设备注册
-print('正在进行新设备注册……')
-cmd('sudo' , 'python/api.py online')
-
 '''
 ------------------------------------------------------
 * 管理计划任务
@@ -97,7 +94,9 @@ def add_crontab():
     fstr = f.read()
     f.close()
 
-    run_file = os.path.join(root_path, 'python/run.py')
+    run_py = 'python/run.py'
+
+    run_file = os.path.join(root_path, run_py)
     run_cmd = '*/1 * * * * pi export DISPLAY=:0 && '+ run_file  + " &" #必须加 & 不然计划任务失效     #每隔5分钟检测一次
 
     time_file = 'ntpdate ntp.sjtu.edu.cn'
@@ -106,7 +105,7 @@ def add_crontab():
 
     wri_str = ''
     is_write = False
-    matc = re.search( run_file, fstr, re.M|re.I )
+    matc = re.search( run_py, fstr, re.M|re.I )
     if matc==None:
         wri_str = "\n" + run_cmd
         is_write = True
@@ -316,7 +315,6 @@ set_js()
 
 #重置WiFi网络
 def reset_wifi():
-
     print("正在重置WiFi网络……")
     restr = '''ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
@@ -376,7 +374,11 @@ desktop= '''[Desktop Entry]
 Type="Application"
 Exec="/kuorong.py"'''
 
-if input("是否执行系统空间最大化？(y/n)") =="y":
+#正则获取所有磁盘参数
+data = re.compile(r'\d+').findall(os.popen("sudo fdisk -l /dev/mmcblk0").read())
+#比较当前空间和实际空间
+if data[-3] != data[1]:
+    print("系统空间正在扩容")
     #创建执行脚本
     with open ("/guandao.py","w") as x:
         x.write(guandao)
@@ -389,5 +391,20 @@ if input("是否执行系统空间最大化？(y/n)") =="y":
     #赋予执行权限
     os.system("sudo chmod +x /kuorong.py")
     print("系统空间最大化执行完成，重启生效")
+else:
+    print("系统空间正常")
+
+'''
+----------清理所有__pycache__-------------
+'''
+#清理当前install位置和深层所有的__pycache__
+def file_name(file_dir = "./"):
+    for root, dirs, files in os.walk(file_dir):
+        for x in dirs:
+            if x == "__pycache__":
+                print("正在删除-->"+root+"/"+x)
+                os.system("sudo rm -r "+root+"/"+x)
+
+file_name()
 
 print("全部完成*_^")

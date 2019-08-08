@@ -157,7 +157,7 @@ class Hecheng(Base):
            # log.info('Web浏览器测试' + self.TTS_URL + '?' + data)
 
             req = Request(self.TTS_URL, data.encode('utf-8'))
-            del token,data
+  #          del token,data
 
             try:
                 f = urlopen(req,timeout=10)#合成时间不多，识别最耗时
@@ -171,7 +171,7 @@ class Hecheng(Base):
                 with open(save_file, 'wb') as of:
                     of.write(result_str)
 
-                del result_str
+      #          del result_str
 
                 self.success(position=save_file)
 
@@ -187,4 +187,4 @@ class Hecheng(Base):
 
 if __name__ == '__main__':
     lei=Hecheng()
-    lei.main('测试魔镜')
+    lei.main({'type': tuling,'data':'测试魔镜'})

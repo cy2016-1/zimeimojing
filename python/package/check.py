@@ -1,17 +1,22 @@
 import time,os,re
+from urllib.request import urlopen,Request
 import multiprocessing as mp                            #多进程
 import RPi.GPIO as GPIO
 import psutil       #检测内存
 from package.base import Base,log                       #基本类
+from package.device import device
+import package.setnet as setnet
 import package.include.skills.action.screens as screens
 
 class Check(Base):
     """设备检测类"""
 
     def __init__(self):
-        self.is_bind = False        #是否启动用户绑定提示窗口
+        self.is_bind = True        #是否启动用户绑定提示窗口
+        self.onnet_time = 0         #网络断开时间
+
         #设置不显示警告
-        #GPIO.setwarnings(False)
+        GPIO.setwarnings(False)
 
         #设置读取面板针脚模式
         GPIO.setmode(GPIO.BOARD)
@@ -32,18 +37,22 @@ class Check(Base):
         self.ren_nk_time = 0            # 人体离开时间
         self.is_op_screen = True        # 是否操作屏幕
 
-        #屏幕控制类
-        self.screens = screens.Screen()
-        self.screens.openclose_screen(1)        # 初始化打开屏幕
-
+        #计数器
+        self.jishuqi = {
+            'onnet_time': 0,            # 网络断开时间
+            'start_net': 0,             # 开始配网 0 -- 不启动，1 - 启动 2- 已启动
+            'ren_nk_time': 0,           # 人体离开时间
+        }
 
     #启用检测是否有用户
     def enable_bind(self):
         if self.is_bind == True:
-            clientid = self.config['MQTT']['clientid']
-            print( clientid )
-            nav_json = {"event":"open","size":{"width":380,"height":380},"url":"bind_user.html?qr="+ clientid }
-            self.Mqtt.send_nav( nav_json )
+            u_list = self.data.user_list_get()
+            print( u_list )
+            if self.mylib.is_empty(u_list):
+                clientid = self.config['httpapi']+'/'+ self.config['MQTT']['clientid']
+                nav_json = {"event":"open","size":{"width":380,"height":380},"url":"bind_user.html?qr="+ clientid }
+                self.public_obj.sw.send_nav( nav_json )
             self.is_bind = False
 
     #人体探测
@@ -99,27 +108,82 @@ class Check(Base):
         wdg = re.match( r"temp=(.+)\'C", res, re.M|re.I)
         if wdg.group(1):
             wd = float(wdg.group(1))
-            if wd >= 65:
+            if wd >= 55:
                 if self.pin_fengshan_zt == 0:
                     self.pin_fengshan_zt = 1
                     GPIO.output( self.pin_fengshan_kg, GPIO.HIGH )
 
-            if wd < 55:
+            if wd < 50:
                 if self.pin_fengshan_zt == 1:
                     self.pin_fengshan_zt = 0
                     GPIO.output( self.pin_fengshan_kg, GPIO.LOW )
         del res,wdg,wd
 
+    # 监控网络状态
+    def detect_netstate(self):
+        url = self.config['httpapi'] +'/raspberry/ping.html'
+        net_st = {'netstatus':0}
+        try:
+            req = Request(url)
+            f = urlopen(req, timeout = 2)
+            if f.getcode() == 200:
+                #print('通')
+                net_st = {'netstatus':1}
+                self.jishuqi['onnet_time'] = 0
+            else:
+                #print('不通')
+                self.jishuqi['onnet_time'] += 1
+                net_st = {'netstatus':0}
+            del req,f
+        except BaseException as e:
+            #print('不通')
+            self.jishuqi['onnet_time'] += 1
+            net_st = {'netstatus':0}
+
+        self.public_obj.sw.send_devstate( net_st )
+
+        if self.jishuqi['start_net']==True:
+            self.jishuqi['start_net'] = False
+            setnet.Setnet().main()
+
+        if self.jishuqi['onnet_time'] > 60:         #5秒 * 60 = 30分钟
+            self.jishuqi['start_net'] = True
+            self.jishuqi['onnet_time'] = 0
+
+
+    # 初始化默认配置
+    def default_config(self):
+        #屏幕控制类
+        self.screens = screens.Screen(self.public_obj)
+        self.screens.openclose_screen(1)        # 初始化打开屏幕
+
+        #设备上线
+        ret = device().online()
+        #print( type(ret) )
+
+
     #开始启动
     def start(self):
+        self.default_config()       #初始化默认配置
+
         while True:
-            #print('检测进程已经启动',self.uid )
-            self.detect_ren()
-            self.detect_cpuwd()
-            time.sleep(3)
+            ss = time.strftime("%S", time.localtime())
+            yu = int(ss) % 5
+            if yu == 0:
+                self.detect_ren()
+            elif yu == 1:
+                self.enable_bind()
+            elif yu == 2:
+                self.detect_cpuwd()
+            elif yu == 3:
+                self.detect_netstate()
+
+            time.sleep(1)
 
 
-    def main(self):
+    def main(self, public_obj):
+        log.info('启动监视进程')
+        self.public_obj = public_obj
         #启动监视进程
         mp.Process(target=self.start).start()
 

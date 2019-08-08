@@ -4,7 +4,7 @@ from package.config import config           #导入固件配置
 
 class Screen():
     '''显示器控制类'''
-    def __init__(self):
+    def __init__(self, public_obj):
         #设置不显示警告
         GPIO.setwarnings(False)
 
@@ -46,11 +46,11 @@ class Screen():
 
     # 打开屏幕
     def open_screen(self,name):
-        return Screen().main("on")
+        return self.main("on")
 
     # 关闭屏幕
     def cloes_screen(self,name):
-        return Screen().main("off")
+        return self.main("off")
 
 
 if __name__ == '__main__':

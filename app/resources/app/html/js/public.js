@@ -9,7 +9,7 @@ $(function(){
 	var network = $('#network');		// 网络状态
 	var tishiText = $('#tishiText');
 
-	//=================================================
+	//==================麦的状态动画=========================
 	var mic_state = {
 		Init: function(){
 			this.canvas = document.getElementById('canvas');
@@ -62,38 +62,39 @@ $(function(){
 			this.is_up_do = newst
 		}
 	};
-	//=================================================
+	//====================END==========================
 
 	var micstate = mic_state.Init();
 
 	//接收主进程消息
 	var timer1 = 0
 	require('electron').ipcRenderer.on('public',function(event, json){
-		if ( json.m ){
-			st = json.m;
-			if ( st == 'start'){$('#micro').show();}
-			if ( st == 'stop'){$('#micro').hide();}
-			if ( st=='1' || st=='0'){
-				micstate.main( st );
+		//麦的状态
+		if ( json.t=='m' ){
+			if ( json.m == 'start'){$('#micro').show();}
+			if ( json.m == 'stop'){$('#micro').hide();}
+			if ( json.m=='1' || json.m=='0'){
+				micstate.main( json.m );
 			}
 		}
-		//console.log( json );
-		if (json.netstatus){
+
+		//设备状态
+		if (json.t=='dev'){
 			if (json.netstatus==1){
 				network.html('&#xe6ae;');
 			}else{
 				network.html('&#xe726;');
 			}
 		}
-		if (json.obj){
+
+		//语音消息提示
+		if (json.t=='info'){
 			var json_obj = json;		//JSON.parse(json.tishitext);
 
 			var msg = json_obj.msg;
 			var timer = json_obj.timer * 1000;
 
-			if(json_obj.init==1){
-				$('#tishiText').empty();
-			}
+			if(json_obj.init==1) $('#tishiText').empty();
 
 			var ts_arr = $('#tishiText div');
 
@@ -107,7 +108,6 @@ $(function(){
 
 			$('#tishiText').append(duihua);
 
-			//$('#'+json_obj.obj).html(msg).fadeIn("slow");
 			window.clearTimeout(timer1);
 			timer1 = setTimeout(function(){$('#tishiText').empty();},30000);
 		}

@@ -39,6 +39,8 @@ class Yinliang(): #设置系统音量
         except:return {'state':True,'data': "没听清你说声音设置多少呢",'msg':'参数1，需要输入字符串类型！'}
 
 class Voices():  #分析是否控制音量的语句
+    def __init__(self, public_obj):
+        self.public_obj = public_obj
 
     def chushizhi(self):
         jieguo,jiance=str(),'['
@@ -65,16 +67,16 @@ class Voices():  #分析是否控制音量的语句
 
     #声音最大
     def voice_max(self,name):
-        return Voices().main("最大")
+        return self.main("最大")
     #声音最小
     def voice_mini(self,name):
-        return Voices().main("最小")
+        return self.main("最小")
     #声音大点
     def voice_larger(self,name):
-        return Voices().main("大点")
+        return self.main("大点")
     #声音大点
     def voice_small(self,name):
-        return Voices().main("小点")
+        return self.main("小点")
     #声音自定义
     def voice(self,name):
         # 取数字
@@ -82,7 +84,7 @@ class Voices():  #分析是否控制音量的语句
         ints = ''
         matchObj = re.findall( r'(\d+)', shuru, re.M|re.I)
         if len(matchObj)>0:ints = matchObj[0]
-        return Voices().main(ints)
+        return self.main(ints)
 
 if __name__ == '__main__':
     '''

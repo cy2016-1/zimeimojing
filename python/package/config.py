@@ -23,8 +23,8 @@ config = {
             'open': 1           #屏幕开的状态，电平值：1 高电平 0 低电平
         },
         'renti_tc': {
-            'pin': 15,          #人体探测脚
-            'max_time':0      #人体探测最大间隔时间（秒）, 如果设备为：0 则关闭人体探测
+            'pin': 16,          #人体探测脚
+            'max_time':300      #人体探测最大间隔时间（秒）, 如果设备为：0 则关闭人体探测
         },
         'fengshan_kg': 13,      #降温风扇开关控制脚，0 -- 为关闭此功能
         'deng_kg': 11           #装饰灯控制脚
@@ -32,15 +32,11 @@ config = {
 
     #语音唤醒
     'WAKEUP' :{
-
         'model': 'data/snowboy/xiaoduxiaodu.umdl',
         'sensit' : [0.5,0.50,0.5],
         #个人模型格式如下,记得#掉上面2行
-        #'model': 'data/snowboy/mojingmojing.pmdl',
+        #'model': 'data/snowboy/dai_mojing.pmdl',
         #'sensit' : [0.5]
-
-
-
     },
 
     #百度API接口
@@ -67,13 +63,20 @@ config = {
         }
     },
 
+    #摄像头
+    "CAMERA":{
+        'enable' : True        # 是否启用 ： True -- 启用，False -- 禁用
+    },
+
     #图灵机器人接口
     "TULING": {
         'url': 'http://www.tuling123.com/openapi/api',                #图灵URL
         'key': 'a138199bb9bc451981241259c4ecd909'                     #图灵KEY
     },
     #青云机器人接口
-    "QINYUIN":{"url": r'http://api.qingyunke.com/api.php?key=free&appid=0&msg='}
+    "QINYUIN":{
+        "url": r'http://api.qingyunke.com/api.php?key=free&appid=0&msg='
+    }
 }
 
 config['database'] = config['root_path'] + '/data/config.db';            #数据库
