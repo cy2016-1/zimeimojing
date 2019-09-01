@@ -8,6 +8,7 @@ from urllib.error import URLError
 from urllib.parse import urlencode
 from urllib.parse import quote_plus
 from package.base import Base,log
+import package.include.baiduapi.token as key
 
 class Hecheng(Base):
     '''百度语音合成'''
@@ -29,73 +30,10 @@ class Hecheng(Base):
         self.CUID    = self.config['BAIDUAPI']['CUID']
         self.TTS_URL = self.config['BAIDUAPI']['url']['hecheng_api_url']
 
-        self.token_file = os.path.join(self.config['root_path'], 'data/yuyin/baidu_token.txt')
         self.audio_file = os.path.join(self.config['root_path'], 'data/hecheng')
+        self.token_file = os.path.join(self.config['root_path'] , 'data/yuyin/baidu_token.txt')
+        self.huoqu_token = key.Token(self.token_file)
 
-
-    '''（私有方法）__lianwang_huoqutoken#联网获取token
-        返回：
-            正常： 返回token
-            网络异常;返回'No_network'
-    '''
-    def __lianwang_huoqutoken(self):
-        #获取token秘钥
-        url = self.config['BAIDUAPI']['url']['shibie_token_url']
-        body =self.config['BAIDUAPI']['yuyin_body']
-
-        try:
-            r = requests.post(url,data=body,verify=True,timeout=2)
-            respond = json.loads(r.text)
-            return {'state': True, 'access_token': respond["access_token"], 'msg':'获取access_token成功'}
-        except:
-            return {'state': False,'access_token':'','msg':'网络连接超时'}
-            #在这里无论是没有网络还是获取token秘钥失败和异常都返回没有网络
-
-
-
-    '''（私有方法）__huancun_token#缓存联网获取的token25天
-        返回：
-            正常： 返回token
-            网络异常;返回'No_network'
-    '''
-    def __huancun_token(self):
-
-        jiancha = os.path.exists(self.token_file)#检查
-        #log.info(jiancha)
-        if jiancha == False: #没有该文件的话，创建一下，并写入，在返回token
-
-            token=self.__lianwang_huoqutoken()
-            if token =='No_network':
-                return 'No_network'
-            with open(self.token_file, 'w',encoding='utf-8') as of:
-                of.write(token['access_token'])#初始化写入的是tokenk
-                return {'state': True, 'access_token': token["access_token"], 'msg':'获取access_token成功'}
-
-        else:#如果有的话,过滤获取得到tokenk在返回
-            log.info('正在读取缓存')
-            with open(self.token_file, encoding='utf-8') as of:
-                f_token = of.read()
-                return {'state': True, 'access_token': f_token, 'msg':'获取access_token成功'}
-
-    '''（私有方法）__huoqu_token #获取百度api的token的方法
-        参数：
-            无
-        返回：
-            正常：返回百度api的token
-            异常：返回 No_network#没有网  类型;字符串
-    '''
-    def __huoqu_token(self):
-        huancun = self.__huancun_token()
-        if huancun['state'] == False:
-            return huancun
-        if self.mylib.wenjian_guoqi(self.token_file)==True:
-            log.warning('本地缓存已过期')
-            #删除文件
-            os.remove(self.token_file)
-            return self.__lianwang_huoqutoken()#超过了25天就联网返回新token
-        else:
-            log.info('返回本地缓存')
-            return huancun
 
     def success(self,position):
         pass
@@ -144,7 +82,7 @@ class Hecheng(Base):
             if self.mylib.typeof(re_text) != 'str':
                 return '参数1，需要输入合成语音的文字。字符串类型'
 
-            token = self.__huoqu_token()
+            token = self.huoqu_token.main()
             if token['state'] == False:
                 return token
 

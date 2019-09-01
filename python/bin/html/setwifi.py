@@ -5,31 +5,15 @@ def application(env, start_response, response_state):
     headers = [("Content-Type", "application/json")]
     start_response(status, headers)
 
-    request_data = ''
-    if env['DATA']:
-        request_data = env['DATA']
+    print( env )
 
-    post_data = {}
-    if env['METHOD'] == 'POST':
-        entry = str(request_data)
-        entry = entry.strip("b'")
-        if type(entry) is str:
-            item = entry.split('&')
-            for x in item:
-                xitem = x.split('=')
-                if xitem:
-                    post_data[ str(xitem[0]) ] = str(xitem[1])
+    if type(env['DATA']) is dict:
+        set_json = env['DATA']
 
-    if len(post_data) > 0:
         wifico = wificore.Wificore()
         #初始化网络状态
-        wifico.config_wifi(post_data)
+        wifico.config_wifi(set_json)
 
-    ret_json = '{"code":"0000"}'
-    response_json = {
-        'env': env,
-        'return': ret_json
-    }
-    response_state(response_json)
-
-    return ret_json
+        return '{"code":"0000"}'
+    else:
+        return '{"code":"9999","msg":"数据格式错误！"}'

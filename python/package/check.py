@@ -5,8 +5,8 @@ import RPi.GPIO as GPIO
 import psutil       #检测内存
 from package.base import Base,log                       #基本类
 from package.device import device
-import package.setnet as setnet
-import package.include.skills.action.screens as screens
+from package.setnet import Setnet
+#import package.include.skills.action.screens as screens
 
 class Check(Base):
     """设备检测类"""
@@ -24,6 +24,7 @@ class Check(Base):
         self.pin_pingmo_zt   = self.config['GPIO']['pingmo_zt']['pin']          # 获取屏幕开关状态脚
         self.pin_pingmo_open = self.config['GPIO']['pingmo_zt']['open']         # 获取屏幕开关状态 1 - 高电平，0 - 低电平
         self.pin_fengshan_kg = self.config['GPIO']['fengshan_kg']               # 降温风扇开关 0 - 为关闭此功能
+        self.pin_setnet      = self.config['GPIO']['setnet_pin']                # 配网控制
         self.pin_fengshan_zt = 0
 
         self.pin_renti_tc    = self.config['GPIO']['renti_tc']['pin']           # 人体探测
@@ -34,14 +35,17 @@ class Check(Base):
         GPIO.setup(self.pin_renti_tc, GPIO.IN)
         GPIO.setup(self.pin_fengshan_kg,GPIO.OUT)
 
+        GPIO.setup(self.pin_setnet,GPIO.IN)                                     # 配网控制
+
         self.ren_nk_time = 0            # 人体离开时间
         self.is_op_screen = True        # 是否操作屏幕
 
         #计数器
         self.jishuqi = {
             'onnet_time': 0,            # 网络断开时间
-            'start_net': 0,             # 开始配网 0 -- 不启动，1 - 启动 2- 已启动
+            'start_net': True,          # 开始配网 0 -- 不启动，1 - 启动 2- 已启动
             'ren_nk_time': 0,           # 人体离开时间
+            'pin_setnet_st':0,          # 配网按键脚状态
         }
 
     #启用检测是否有用户
@@ -71,7 +75,7 @@ class Check(Base):
             self.is_op_screen = True
 
             if (NOW_TIME - ctime) > self.pin_renti_max_time:
-                self.screens.openclose_screen(1)
+                #self.screens.openclose_screen(1)
                 os.remove(is_face)
 
         else:
@@ -82,7 +86,7 @@ class Check(Base):
             else:
                 if (NOW_TIME - self.ren_nk_time) > self.pin_renti_max_time and self.is_op_screen:
                     self.is_op_screen = False
-                    self.screens.openclose_screen(0)
+                    #self.screens.openclose_screen(0)
 
     #检测声卡
     def detect_cards(self):
@@ -142,6 +146,7 @@ class Check(Base):
 
         self.public_obj.sw.send_devstate( net_st )
 
+        '''
         if self.jishuqi['start_net']==True:
             self.jishuqi['start_net'] = False
             setnet.Setnet().main()
@@ -149,13 +154,28 @@ class Check(Base):
         if self.jishuqi['onnet_time'] > 60:         #5秒 * 60 = 30分钟
             self.jishuqi['start_net'] = True
             self.jishuqi['onnet_time'] = 0
+        '''
+
+    #检测配网
+    def detect_setnet(self):
+        st = GPIO.input(self.pin_setnet)
+        if int( st )==1:
+            if self.jishuqi['pin_setnet_st'] >= 5:
+                if self.jishuqi['start_net']==True:
+                    self.jishuqi['start_net'] = False
+                    Setnet().main()
+            else:
+                self.jishuqi['pin_setnet_st'] +=1
+        else:
+            self.jishuqi['pin_setnet_st'] = 0
+
 
 
     # 初始化默认配置
     def default_config(self):
         #屏幕控制类
-        self.screens = screens.Screen(self.public_obj)
-        self.screens.openclose_screen(1)        # 初始化打开屏幕
+        #self.screens = screens.Screen(self.public_obj)
+        #self.screens.openclose_screen(1)        # 初始化打开屏幕
 
         #设备上线
         ret = device().online()
@@ -177,6 +197,8 @@ class Check(Base):
                 self.detect_cpuwd()
             elif yu == 3:
                 self.detect_netstate()
+
+            self.detect_setnet()
 
             time.sleep(1)
 

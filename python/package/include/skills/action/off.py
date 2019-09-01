@@ -1,30 +1,22 @@
-import re,os
-class Off():
+import os,time
+from package.include.skills.plugin import Plugin
+from package.config import config           #导入固件配置
+import multiprocessing as mp
+
+class Off(Plugin):
+    '''显示器控制类'''
     def __init__(self, public_obj):
-        pass
-    def stop( self ):
-        data = "./ga.py"
-        out = os.popen("ps ax | grep "+data).read()
-        pat = re.compile(r'(\d+).+('+data+')')
-        res = pat.findall(out)
-        if len(res) <=2:
-            pass
-           # print("音乐不存在")
-        else:
-            wfPath = "/p2"
-            try:
-                os.mkfifo(wfPath)
-            except OSError:
-                pass
+        print(public_obj)
 
-            wp = open(wfPath, 'w')
-            wp.write("停止")
-            wp.close()
+    def print_time(self):
+        while 1:
+            time.sleep(1)
+            print('停止插件：'+ str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) )
 
-    def main(self,name):
+    # 打开屏幕
+    def load(self,name):
+        pub = mp.Process(
+            target = self.print_time
+        )
+        pub.start()
 
-       # if re.search(name["cmd"],name["txt"]).span()[0] == 0:
-        try:
-            self.stop()
-        except:pass
-        return {'state':True,'data': "",'msg':'参数1，需要输入字典类型！','stop':True}

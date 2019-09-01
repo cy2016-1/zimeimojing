@@ -125,7 +125,7 @@ var weather = {
 			var n_date = n.date;
 			var n_date_obj = new Date(Date.parse(n_date.replace(/-/g, "/")));
 			var this_date = dateclass.daily_date[n_date_obj.getDate()];
-			if ( this_date.week != 'undefined' ){
+			if (  this_date.hasOwnProperty('week') ){
 				var week = dateclass.weeks[ this_date.week ];
 				var date_text = this_date.call;
 

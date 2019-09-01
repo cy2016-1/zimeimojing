@@ -10,7 +10,7 @@ class Mysocket():
 
     def connection(self):
         try:
-            self.ws = create_connection("ws://localhost:8103")
+            self.ws = create_connection("ws://127.0.0.1:8103")
         except Exception as e:
             self.ws = False
 
@@ -18,7 +18,7 @@ class Mysocket():
     def reconnect(self):
         print('重新连一下')
         try:
-            self.ws = self.ws.connect("ws://localhost:8103")
+            self.ws = self.ws.connect("ws://127.0.0.1:8103")
         except Exception as e:
             self.ws = False
 

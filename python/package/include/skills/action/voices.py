@@ -67,6 +67,7 @@ class Voices():  #分析是否控制音量的语句
 
     #声音最大
     def voice_max(self,name):
+        print('声音最大'*20)
         return self.main("最大")
     #声音最小
     def voice_mini(self,name):

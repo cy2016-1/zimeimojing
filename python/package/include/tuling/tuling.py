@@ -25,7 +25,7 @@ class Tuling(Base):
             data = {'key': self.KEY,'info': name,'userid': '111111'}
 
             biangliang = requests.post(self.apiUrl,data=data,verify=True,timeout=2).json()['results'][0]['values']['text']
-            biangliang = re.sub( r"http[s]?\/\/.+","", biangliang, re.M|re.I)
+            biangliang = re.sub( r"http[s]?\:\/\/.+","", biangliang, re.M|re.I)
             del data
             return {'state':True,'data': biangliang,'type':'tuling','msg':'图灵回复成功！'}
 
@@ -34,6 +34,4 @@ class Tuling(Base):
             return {'state':False,'data':'网络可能有点问题，请检查一下网络。','type':'system','msg':'连接图灵服务器超时！'}
 
 if __name__ == '__main__':
-
-
     print( Tuling().main('1314'))

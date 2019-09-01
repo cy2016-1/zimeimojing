@@ -1,8 +1,9 @@
 import os,time
 import RPi.GPIO as GPIO
+from package.include.skills.plugin import Plugin
 from package.config import config           #导入固件配置
 
-class Light():
+class Light(Plugin):
     '''灯控制类'''
     def __init__(self, public_obj):
         #设置不显示警告
@@ -43,7 +44,7 @@ class Light():
         return str( light_sw )
 
     # 打开灯
-    def open_light(self,name):
+    def load(self,name):
         return self.main("on")
 
     # 关闭灯

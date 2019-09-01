@@ -32,7 +32,7 @@
 <script type="text/javascript" src="js/static/jquery.qrcode.min.js"></script>
 <script type="text/javascript">
 $(function(){
-	var url = 'http://10.0.0.1';
+	var url = 'http://10.0.0.1:8088';
 	$('#code').qrcode({
 		render: "canvas",
 	    width: 200,
@@ -42,7 +42,7 @@ $(function(){
 	$(".url").text( url );
 
 	require('electron').ipcRenderer.on('public',function(event, json){
-		//console.log( json );
+		console.log( json );
 		if( json.t == 'setnet' ){
 			if ( parseInt(json.client) > 0){
 				$('.two').show()

@@ -333,8 +333,8 @@ reset_wifi()
 
 -------------------------------------------
 '''
-
-guandao ='''import os
+def disk():
+    guandao ='''import os
 print("d")
 print("2")
 print("n")
@@ -346,7 +346,7 @@ print("\\n",end='')
 print("w")'''
 
 
-kuorong = '''#!/usr/bin/python3
+    kuorong = '''#!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 import os
 
@@ -370,29 +370,32 @@ os.system('sudo rm -r /home/pi/.config/autostart/kuorong.desktop')
 #删除多余文件
 os.system('sudo rm -r /kuorong.txt')'''
 
-desktop= '''[Desktop Entry]
+    desktop= '''[Desktop Entry]
 Type="Application"
 Exec="/kuorong.py"'''
 
-#正则获取所有磁盘参数
-data = re.compile(r'\d+').findall(os.popen("sudo fdisk -l /dev/mmcblk0").read())
-#比较当前空间和实际空间
-if data[-3] != data[1]:
-    print("系统空间正在扩容")
-    #创建执行脚本
-    with open ("/guandao.py","w") as x:
-        x.write(guandao)
-    #创建执行脚本
-    with open ("/kuorong.py","w") as x:
-        x.write(kuorong)
-    #创建执行文件
-    with open ("/home/pi/.config/autostart/kuorong.desktop","w") as x:
-        x.write(desktop)
-    #赋予执行权限
-    os.system("sudo chmod +x /kuorong.py")
-    print("系统空间最大化执行完成，重启生效")
-else:
-    print("系统空间正常")
+    #正则获取所有磁盘参数
+    data = re.compile(r'\d+').findall(os.popen("sudo fdisk -l /dev/mmcblk0").read())
+    #比较当前空间和实际空间
+    if data[-3] != data[1]:
+        print("系统空间正在扩容")
+        #创建执行脚本
+        with open ("/guandao.py","w") as x:
+            x.write(guandao)
+        #创建执行脚本
+        with open ("/kuorong.py","w") as x:
+            x.write(kuorong)
+        #创建执行文件
+        with open ("/home/pi/.config/autostart/kuorong.desktop","w") as x:
+            x.write(desktop)
+        #赋予执行权限
+        os.system("sudo chmod +x /kuorong.py")
+        print("系统空间最大化执行完成，即将重启生效")
+        time.sleep(1)
+        os.system("sudo reboot")
+    else:
+        print("系统空间正常")
+
 
 '''
 ----------清理所有__pycache__-------------
@@ -407,4 +410,7 @@ def file_name(file_dir = "./"):
 
 file_name()
 
-print("全部完成*_^")
+print("全部完成*_^ ")
+time.sleep(1)
+disk()
+

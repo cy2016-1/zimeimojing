@@ -1,4 +1,4 @@
-import pyaudio,time,webrtcvad,collections,sys,signal,wave,os,random,gc,re
+import pyaudio,time,webrtcvad,collections,sys,signal,wave,os,random,gc,re,threading
 from array import array
 from struct import pack
 import multiprocessing as mp                            #多进程
@@ -19,8 +19,9 @@ class public_obj(Base):
         self.uid =  mp.Value("h",0)
         #前后端通讯
         self.sw = mysocket.Mysocket()
-        #定义唤醒成功内存变量：是否唤醒成功
-        self.is_snowboy  = mp.Value("h",0)
+        #定义插件间通讯的管道
+        self.plugin_conn, self.master_conn = mp.Pipe(False)
+
 
 '''初始化内部使用的对象（主要是导入到语音相关进程中）'''
 class pyaudio_obj(Base):
@@ -57,9 +58,6 @@ class pyaudio_obj(Base):
 class Master(Base):
 
     def __init__(self):
-        #当前用户ID
-       # self.uid = 0
-
         #设备检测
         self.check = check.Check()
 
@@ -74,42 +72,18 @@ class Master(Base):
         #全局对象类
         self.public_obj = public_obj()
 
-
-    '''命令动作执行
-    参数:
-        sbobj -- 语音识别成功返回的字典对象,格式体如下：
+    '''
+    命令动作执行_成功回调
+        reobj       --  成功返回 JSON 格式对象
         {
-        'enter': 'voice',               -- 入口（voice-语音、camera-摄像头、mqtt）
-        'type': 'system',               -- 操作类型（系统类型-合成语音会被缓存）
-        'state': False,                 -- 操作状态
-        'msg': '识别失败！',            -- 操作状态中文提示
-        'data': '我没听清你说了啥',     -- 返回文本（屏幕提示）
-        'body': {}                      -- 具体操作体
+            'state': True',                     返回状态：True 成功 / False 失败
+            'data': '想知道吗？你求我呀。',     返回提示语，会显示到前端
+            'type': 'tuling',                   返回类型：tuling 机器人应答 / system 系统应答（包含插件）
+            'msg': '图灵回复成功！'             返回类型中文提示语，仅供调试使用
         }
     '''
-    def command_execution(self, sbobj ):
-        log.info("进入主控：", sbobj )
-
-        #语音识别成功
-        if sbobj["state"]:
-
-            #发送到前面屏幕
-            if sbobj['data']:
-                send_txt = {'obj':'zhuren','msg': sbobj['data'] }
-                self.public_obj.sw.send_info( send_txt )
-
-            #从这里开始进入技能分析（得到最终返回文本）
-            #=========================================================================
-            reobj = self.skills.main( self.public_obj, sbobj )
-            #=========================================================================
-            log.info('技能返回：', reobj )
-
-        else:
-            self.public_obj.is_snowboy.value = 0
-            reobj = sbobj
-
-        if sbobj['enter'] != 'voice':
-            self.public_obj.is_snowboy.value = 0
+    def command_success(self, reobj = {} ):
+        log.info("命令动作执行_成功", reobj )
 
         #发送到前面屏幕
         send_txt = {'obj':'mojing','msg': reobj['data']}
@@ -117,7 +91,57 @@ class Master(Base):
         del send_txt
 
         #合成语音并播放
-        yuyin.Hecheng_bofang(self.public_obj.is_snowboy).main( reobj )
+        yuyin.Hecheng_bofang(self.is_snowboy).main( reobj )
+
+
+
+    '''命令动作执行
+    参数:
+        sbobj -- 语音识别成功返回的字典对象,格式体如下：
+        {
+            'state': True,                 -- 操作状态
+            'enter': 'voice',               -- 入口（voice-语音、camera-摄像头、mqtt）
+            'optype': 'action'              -- 操作类型（action动作 / snowboy唤醒）
+            'type': 'system',               -- 控制类型（系统类型-合成语音会被缓存）
+            'msg': '识别失败！',            -- 操作状态中文提示
+            'data': '我没听清你说了啥',     -- 返回文本（屏幕提示）
+        }
+    '''
+    def command_execution(self, sbobj ):
+        log.info("进入主控", sbobj )
+
+        #语音识别成功
+        if sbobj["state"]:
+
+            #发送到前面屏幕
+            if sbobj['data']:
+
+                if sbobj['enter'] =="mqtt":
+                    send_txt = {'obj':'zhuren','msg': "微信小程序控制" }
+                else:
+                    send_txt = {'obj':'zhuren','msg': sbobj['data'] }
+
+                self.public_obj.sw.send_info( send_txt )
+
+            #=========================================================================
+            #发送通知给技能
+            sbobj['optype'] = 'action'
+            self.public_obj.master_conn.send(sbobj)
+
+        else:
+            self.is_snowboy.value = 0
+
+        if sbobj['enter'] != 'voice':
+            self.is_snowboy.value = 0
+
+
+    #开始启动大脑（技能）模块
+    def start_skills(self):
+        self.p5 = mp.Process(
+            target = self.skills.main,
+            args = (self.command_success, self.public_obj)
+        )
+        self.p5.start()
 
 
     ''''
@@ -125,7 +149,10 @@ class Master(Base):
     参数：
         is_one - 是否为首次唤醒 1- 首次 / 2 - 第二次（不在播放唤醒应答声）
     '''
-    def enter_yuyin(self, is_one = 0):
+    def start_yuyin(self, is_one = 0):
+        if is_one == 2:
+            self.public_obj.master_conn.send({"optype":"snowboy"})
+
         log.info("开始进入语音进程")
         if self.hx_yuyinpid.value > 0:
             os.system("sudo kill -9 {}".format(self.hx_yuyinpid.value))
@@ -142,7 +169,9 @@ class Master(Base):
 
     #语音唤醒成功
     def snowboy_success(self):
-        self.public_obj.is_snowboy.value = 1
+        self.is_snowboy.value = 1
+        self.public_obj.master_conn.send({"optype":"snowboy"})
+
 
     #开始启动唤醒
     def start_snowboy(self):
@@ -161,10 +190,8 @@ class Master(Base):
         del model,sensit,resource
 
 
-
     #人脸识别
     def start_face(self):
-
         self.p3 = mp.Process(
             target = visual.Visual().main,
             args = (self.command_execution, )
@@ -172,7 +199,7 @@ class Master(Base):
         self.p3.start()
 
 
-    #---------------MQTT服务----------------------
+    #启动MQTT通信服务
     def start_mqtt(self):
         self.p4 = mp.Process(
             target = self.mqtt.main,
@@ -180,11 +207,11 @@ class Master(Base):
         )
         self.p4.start()
 
-    #---------------------------------------------
-
     def main(self):
         #定义唤醒成功内存变量：记录语音进程ID
         self.hx_yuyinpid = mp.Value("h",0)
+        #定义唤醒成功内存变量：是否唤醒成功
+        self.is_snowboy  = mp.Value("h",0)
 
         #启动MQTT服务
         self.start_mqtt()
@@ -194,6 +221,9 @@ class Master(Base):
 
         #启动唤醒
         self.start_snowboy()
+
+        #启动技能
+        self.start_skills()
 
         #是否启动人脸识别：文件不存在则启动人脸识别
         is_face = os.path.join(self.config['root_path'],'data/is_face')
@@ -209,9 +239,9 @@ class Master(Base):
                 time.sleep(3)
 
             #监听语音唤醒：是否唤醒
-            if self.public_obj.is_snowboy.value > 0:
-                self.enter_yuyin( self.public_obj.is_snowboy.value )
-                self.public_obj.is_snowboy.value = 0
+            if self.is_snowboy.value > 0:
+                self.start_yuyin( self.is_snowboy.value )
+                self.is_snowboy.value = 0
 
             #开始人脸识别
             if os.path.isfile(is_face) is False:

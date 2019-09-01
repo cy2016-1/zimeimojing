@@ -109,7 +109,7 @@ class Luyin_shibie(Base):
 
             send_txt = {'init':1, 'obj':'mojing','msg': filearr['text']}
             public_obj.sw.send_info( send_txt )
-            os.popen(play_cmd)
+            os.system(play_cmd)
 
             del send_txt,play_cmd,wozai,filearr
 

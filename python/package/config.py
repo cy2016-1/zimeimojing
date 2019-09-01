@@ -27,7 +27,8 @@ config = {
             'max_time':300      #人体探测最大间隔时间（秒）, 如果设备为：0 则关闭人体探测
         },
         'fengshan_kg': 13,      #降温风扇开关控制脚，0 -- 为关闭此功能
-        'deng_kg': 11           #装饰灯控制脚
+        'deng_kg': 11,          #装饰灯控制脚
+        'setnet_pin': 31,       #配网控制按钮脚
     },
 
     #语音唤醒
@@ -66,16 +67,6 @@ config = {
     #摄像头
     "CAMERA":{
         'enable' : True        # 是否启用 ： True -- 启用，False -- 禁用
-    },
-
-    #图灵机器人接口
-    "TULING": {
-        'url': 'http://www.tuling123.com/openapi/api',                #图灵URL
-        'key': 'a138199bb9bc451981241259c4ecd909'                     #图灵KEY
-    },
-    #青云机器人接口
-    "QINYUIN":{
-        "url": r'http://api.qingyunke.com/api.php?key=free&appid=0&msg='
     }
 }
 

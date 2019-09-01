@@ -52,41 +52,31 @@ def start(run_file, cmdtype ='system'):
         args = (run_file,cmdtype)
     ).start()
 
-#3秒后关闭等待动画,等待3秒是确保动画已经自启后我们在关闭
-def animation():
-    time.sleep(3)
-    os.system("sudo pkill -TERM bannerd")
-    time.sleep(5)
-    os.system("sudo pkill -TERM bannerd")
-    time.sleep(5)
-    os.system("sudo pkill -TERM bannerd")
-    time.sleep(20)
-    os.system("sudo pkill -TERM bannerd")
 
 #启动Mojing前端
-def start_mojing_app():
-    #关闭等待动画
-    main_animation= mp.Process(target = animation)
-    main_animation.start()
-
+def start_mojing_app(is_debug=""):
     #麦克风利用率100%
     os.system("sudo amixer set Capture 90%")
-    os.system("sudo ntpdate ntp.sjtu.edu.cn")
+    #os.system("sudo ntpdate ntp.sjtu.edu.cn")
 
     while True:
         is_task_mojing = ps_ax(task_mojing)
         if is_task_mojing == False:
             #start(task_mojing_cmd, 'system')
-            start(task_mojing_cmd + ' Debug', 'system')     #启动前端
+            start(task_mojing_cmd + is_debug, 'system')     #启动前端
 
             stop(task_main)
+
             time.sleep(3)
 
             start('sudo '+task_main_cmd, 'system')          #启动后端
 
         time.sleep(3)
 
+
 if __name__ == '__main__':
+
+    is_debug = ""
     if len(sys.argv)>1:
         argv = sys.argv[1]
     else:
@@ -100,6 +90,9 @@ if __name__ == '__main__':
         stop(task_main)
         stop(task_mojing)
 
+    if argv.lower() == 'debug':
+        is_debug = " Debug"
+
     #检测自己有没有运行
     runcmd = 'ps ax | grep ' + task_run
     out = os.popen(runcmd).read();               # 检测是否已经运行
@@ -108,4 +101,4 @@ if __name__ == '__main__':
     if len(runres) > 1:
         exit()
 
-    start_mojing_app()
+    start_mojing_app(is_debug)
