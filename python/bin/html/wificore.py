@@ -11,6 +11,7 @@ class Wificore():
         self.root_path = os.path.dirname(os.path.dirname(__file__))
         self.create_ap = os.path.join(self.root_path,'create_ap')
         self.conf_path = os.path.join(self.root_path,'conf/')
+        self.voice_path = os.path.join(self.root_path,'voice')
         self.sys_supplicant  = '/etc/wpa_supplicant/wpa_supplicant.conf'
         self.serverip  = '10.0.0.1'
         self.wifi_name = 'HTTP://' + self.serverip
@@ -111,9 +112,12 @@ class Wificore():
     '''
     def test_network(self):
         cmd = 'sudo wpa_cli -i '+ self.wlan +' status'
+        print('test_network',cmd)
         fdata = os.popen(cmd).read()
+        print('test_network',fdata)
+
         regExp = r'wpa_state\=COMPLETED'
-        res = re.search( regExp, fdata , re.M|re.I)
+        res = re.search( regExp, fdata, re.M|re.I)
         if res:
             return True
         else:
@@ -150,37 +154,62 @@ class Wificore():
     def config_wifi(self,set_json):
         self.init_network()
 
-         # supplicant WiFi 配置模板文件
+        # supplicant WiFi 配置模板文件
         temp_supplicant = os.path.join(self.conf_path,"wpa_supplicant.conf")
 
-        #========================【WiFi 配置重置】==================================
-        if self.file_diff(temp_supplicant, self.sys_supplicant)==False:
-            ##print('不同')
-            os.system('sudo mv '+ self.sys_supplicant+' '+ self.sys_supplicant+'_bak')
-            os.system('sudo cp -f '+temp_supplicant+ ' '+ self.sys_supplicant)
-            os.system('sudo chmod a+w '+ self.sys_supplicant)
+        #===========【判断sys_supplicant.conf文件是否存在】================
+        if os.path.isfile(self.sys_supplicant) is False:
+            os.system('sudo cp -f '+ temp_supplicant +' '+ self.sys_supplicant)
+        os.system('sudo chmod a+w '+ self.sys_supplicant)
 
-        pass_temp = '''
-network={
-    ssid="%s"
-    psk="%s"
-}
-'''
+        #读取文件内容
+        f = open(self.sys_supplicant,"r")
+        fstr = f.read()
+        f.close()
 
-        if str(set_json['wifipass']) == "":
-            set_json['wifipass'] = 'NONE'
+        wifiname = str(set_json['wifiname'])
+        if set_json['wifipass']=='':
+            wifipass = None
+        else:
+            wifipass = str(set_json['wifipass'])
 
-        formated_str = pass_temp%(str(set_json['wifiname']), str(set_json['wifipass']))
+        scanssid = set_json['scanssid']
+        scan_ssid = ''
+        if int(scanssid)==1:
+            scan_ssid = '\tscan_ssid=1\n'
 
-        fo = open(self.sys_supplicant, "a")
-        fo.seek(0, 2)
-        fo.write( str(formated_str) )
+        restr = r'network\s*=\s*{\n*\s*ssid\s*=\s*"'+ wifiname +'"\n+.*psk\s*=\s*"(.+)"\n[:ascii:\n]*\n*}'
+
+        matc = re.search(restr, fstr, flags=re.M|re.I )
+        #print( matc )
+        if matc!=None:
+            #已经存在
+            old_pass = str(matc.group(1))
+            new_pass = matc.group(0)
+            if old_pass != wifipass:
+                new_pass = re.sub(old_pass, wifipass, new_pass, count=1, flags=re.M|re.I )
+            if scan_ssid == '':
+                new_pass = re.sub(r'scan_ssid\s*=\s*\d\s*\n', '', new_pass, count=1, flags=re.M|re.I )
+            else:
+                matc2 = re.search(r'scan_ssid\s*=\s*\d\s*\n', new_pass, flags=re.M|re.I )
+                if matc2==None:
+                    new_pass = re.sub(r'\n}', '\n'+scan_ssid+'}', new_pass, count=1, flags=re.M|re.I )
+
+            fstr = re.sub(restr, "", fstr,  flags=re.M|re.I )
+            fstr = re.sub(r'update_config=1', 'update_config=1\n\n'+ new_pass +'\n', fstr,  flags=re.M|re.I )
+        else:
+            pass_temp = 'network={\n\tssid="%s"\n\tpsk="%s"\n'+scan_ssid+'}\n'
+            formated_str = pass_temp%(wifiname, wifipass)
+            fstr = re.sub(r'update_config=1', 'update_config=1\n\n'+ formated_str, fstr,  flags=re.M|re.I )
+
+        fstr = re.sub(r'\n+', '\n', fstr,  flags=re.M|re.I )
+        #print( fstr )
+
+        fo = open(self.sys_supplicant, "w")
+        fo.write( fstr )
         fo.close()
 
         #重新导入配置
         self.restart_network()
-
-        time.sleep(2)
-        os.system('sudo reboot')
 
         return True

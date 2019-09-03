@@ -57,7 +57,7 @@ class User(Base,Plugin):
             if is_succ:
                 postup = {'facepath':temp_photo}
                 res = self.data.user_up( uid, postup )
-                os.popen("sudo aplay "+ ding_wav )
+                os.popen("sudo aplay -q "+ ding_wav )
                 time.sleep(1)
                 cap.release()
                 cv2.destroyAllWindows()

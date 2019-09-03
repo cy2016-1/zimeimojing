@@ -83,7 +83,7 @@ var control = {
 
 		var server = ws.createServer(function(conn){
 		    conn.on("text", function (str) {
-			    console.log(str);
+			    //console.log(str);
 			    var json_str = JSON.parse(str);		//字符串转json
 
 		        if (json_str.t == 'nav'){			//如果是导航消息，直接在这里处理

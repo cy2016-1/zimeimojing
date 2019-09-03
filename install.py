@@ -97,30 +97,27 @@ def add_crontab():
     run_py = 'python/run.py'
 
     run_file = os.path.join(root_path, run_py)
-    run_cmd = '*/1 * * * * pi export DISPLAY=:0 && '+ run_file  + " &" #必须加 & 不然计划任务失效     #每隔5分钟检测一次
+    run_cmd = '*/5 * * * * pi export DISPLAY=:0 && '+ run_file  + " &" #必须加 & 不然计划任务失效     #每隔5分钟检测一次
 
     time_file = 'ntpdate ntp.sjtu.edu.cn'
     #每隔1小时检测一次
     times_cmd = "0 */1 * * * root "+ time_file + " &"
 
-    wri_str = ''
-    is_write = False
-    matc = re.search( run_py, fstr, re.M|re.I )
+    r_runfile = r'^\*.+pi export DISPLAY=:0 &&.+\&$'
+    matc = re.search( r_runfile, fstr, re.M|re.I )
     if matc==None:
-        wri_str = "\n" + run_cmd
-        is_write = True
+        fstr = "\n" + run_cmd
+    else:
+        fstr = re.sub(r_runfile, run_cmd, fstr, flags=re.M|re.I )
 
     time_matc = re.search( time_file , fstr, re.M|re.I )
     if time_matc==None:
-        wri_str += "\n" + times_cmd
-        is_write = True
+        fstr += "\n" + times_cmd
 
-    if is_write:
-        fo = open(crontab, "a+")
-        fo.seek(0, 2)
-        line = fo.write( "{0}{1}".format(wri_str,'\n') )
-        print( line )
-        fo.close()
+    fo = open(crontab, "w+")
+    line = fo.write(fstr)
+    print( line )
+    fo.close()
 
     #===================================
     autostart = '/home/pi/.config/autostart'
@@ -134,8 +131,6 @@ def add_crontab():
     mojing_str += 'Type="Application"\n'
     mojing_str += 'Exec="'+ run_file +'"'
 
-   # if os.path.isfile(start_mojing) is False:
-        #print("无文件")
     with open(start_mojing, 'w') as fso:
         fso.write(mojing_str)
 

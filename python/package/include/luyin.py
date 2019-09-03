@@ -40,7 +40,7 @@ class Luyin():
                 #wf.setframerate(p_self.RATE)
                 #wf.writeframes(data)
                 #wf.close()
-                #os.system("sudo aplay /var/www/server/python/data/yuyin/wo.wav")
+                #os.system("sudo aplay -q /var/www/server/python/data/yuyin/wo.wav")
                 return data
 
 

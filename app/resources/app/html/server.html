@@ -42,7 +42,6 @@ $(function(){
 	$(".url").text( url );
 
 	require('electron').ipcRenderer.on('public',function(event, json){
-		console.log( json );
 		if( json.t == 'setnet' ){
 			if ( parseInt(json.client) > 0){
 				$('.two').show()

@@ -105,7 +105,7 @@ class Luyin_shibie(Base):
             filearr = wozai[ random.randint(0,len(wozai)-1) ]
 
             #播放唤醒提示声
-            play_cmd = 'aplay '+ self.yuyin_path +'/{}'.format(filearr['wav'])
+            play_cmd = 'aplay -q '+ self.yuyin_path +'/{}'.format(filearr['wav'])
 
             send_txt = {'init':1, 'obj':'mojing','msg': filearr['text']}
             public_obj.sw.send_info( send_txt )

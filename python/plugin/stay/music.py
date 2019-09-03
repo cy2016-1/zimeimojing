@@ -1,15 +1,16 @@
-import requests,os,time,re,string,math,random,pygame,threading
+import requests,os,time,re,string,math,random,pygame,threading,random
 import multiprocessing as mp    #多进程
 from plugin import Plugin
 from package.base import Base       #基本类
 
-
-
-class Music(Base , Plugin ):
+class Music(Base, Plugin):
 
     def __init__(self,public_obj):
 
-        self.music_path = self.config['root_path']+"/runtime/music/"
+        self.music_path = '/music/'
+        #检查根目录下有没有音乐文件夹
+        if os.path.exists(self.music_path) ==False:
+            os.mkdir(self.music_path)
 
         self.public_obj = public_obj
 
@@ -30,10 +31,6 @@ class Music(Base , Plugin ):
 
         if self.voices() > 80:
             os.system("sudo amixer set Speaker 80%")
-
-        #检查根目录下有没有音乐文件夹
-        if os.path.exists(self.music_path) ==False:
-            os.mkdir(self.music_path)#创建
 
     #发送文字到屏幕
     def postmojing(self,data):
@@ -288,7 +285,12 @@ class Music(Base , Plugin ):
         #所有播放意图的触发指令后面没有歌曲名就我们自定义推荐
         #检测只是触发词和触发词+歌曲或者音乐
         if name["data"][path:]=="。" or name["data"][path:path+3]=="歌曲。" or name["data"][path:path+3]=="音乐。":
-            self.start_play("90后歌曲")
+
+            random_music = ["by2","林俊杰","刘德华","本兮","庄心妍"]
+            filearr = random_music[ random.randint(0,len(random_music)-1) ]
+            self.start_play(filearr)
+
+
             return {'state':True,'data':"我猜你是要听歌曲吧，一起来听",'msg':'','stop':True}
 
         else:
