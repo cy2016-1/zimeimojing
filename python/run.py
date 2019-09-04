@@ -4,7 +4,6 @@ import os,sys,re,time
 import multiprocessing as mp        #多进程
 
 this_path = os.path.dirname(os.path.dirname(__file__))
-
 task_main       = 'main.py'                         #后端任务
 task_main_cmd   = os.path.join(this_path,'python/'+task_main)
 
@@ -37,31 +36,47 @@ def ps_ax( task_name ):
     else:
         return False
 
+# 开始启动
 def start(run_file, cmdtype ='system'):
-    cmd = 'export DISPLAY=:0 && '+ run_file
-    if cmdtype == 'system':
-        os.system(cmd)
-    else:
-        os.popen(cmd)
 
+    #启动函数
+    def run_fund(run_file, cmdtype ='system'):
+        cmd = 'export DISPLAY=:0 && '+ run_file
+        if cmdtype == 'system':
+            os.system(cmd)
+        else:
+            os.popen(cmd)
 
-#启动Python
-def start_python( argv ):
-    while True:
-        is_task_main = ps_ax(task_main)
-        if is_task_main == False:
-            start('sudo '+task_main_cmd, 'system')
-        time.sleep(3)
+    mp.Process(
+        target = run_fund,
+        args = (run_file,cmdtype)
+    ).start()
+
 
 #启动Mojing前端
-def start_mojing_app( argv ):
+def start_mojing_app(is_debug=""):
+    #麦克风利用率100%
+    os.system("sudo amixer set Capture 90%")
+    #os.system("sudo ntpdate ntp.sjtu.edu.cn")
+
     while True:
         is_task_mojing = ps_ax(task_mojing)
         if is_task_mojing == False:
-            start(task_mojing_cmd, 'system')
+            #start(task_mojing_cmd, 'system')
+            start(task_mojing_cmd + is_debug, 'system')     #启动前端
+
+            stop(task_main)
+
+            time.sleep(3)
+
+            start('sudo '+task_main_cmd, 'system')          #启动后端
+
         time.sleep(3)
 
+
 if __name__ == '__main__':
+
+    is_debug = ""
     if len(sys.argv)>1:
         argv = sys.argv[1]
     else:
@@ -75,6 +90,9 @@ if __name__ == '__main__':
         stop(task_main)
         stop(task_mojing)
 
+    if argv.lower() == 'debug':
+        is_debug = " Debug"
+
     #检测自己有没有运行
     runcmd = 'ps ax | grep ' + task_run
     out = os.popen(runcmd).read();               # 检测是否已经运行
@@ -83,14 +101,4 @@ if __name__ == '__main__':
     if len(runres) > 1:
         exit()
 
-    app_p = mp.Process(
-        target = start_mojing_app,
-        args = (argv,)
-    )
-    app_p.start()
-
-    main_p = mp.Process(
-        target = start_python,
-        args = (argv,)
-    )
-    main_p.start()
+    start_mojing_app(is_debug)

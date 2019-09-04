@@ -71,6 +71,71 @@ var weather = {
 
 		life_obj.html( life_html )
 	},
+	//设置HTML显示
+	set_html: function( data ){
+		if (weather.timer) window.clearTimeout(weather.timer);
+		//城市信息
+		var cityInfo = data.basic;
+		$('#city_name').text( cityInfo.location );
+
+		//实时天气
+		var live = data.now;
+		var update = data.update.loc;
+		update = update.split(' ');
+		$('#uptime').text( '('+update[1]+')更新');			// 更新时间
+
+		$('#tq_ico').removeClass().addClass('ico_'+live.cond_code);
+
+		$('#tianqi').text(live.cond_txt);	// 天气情况
+		$('#tg_tigang').text(live.fl);		// 体感
+		$('#sw_wendu').text(live.tmp);		// 温度
+		$('#sw_shidu').text(live.hum);		// 相对湿度
+		$('#wind_dir').text(live.wind_dir)
+		$('#wind_sc').text(live.wind_sc + '级')
+
+
+		//生活指数
+		//console.log( data.lifestyle );
+		weather.lifestyle = data.lifestyle;
+		//weather.lifestyle[0]['brf'] = '非常不舒适'
+		weather.bianhuanzs();
+
+		//逐小时
+		var hourly = data.hourly;
+		var dt_html = '';
+		$.each(hourly, function(i, n){
+			var n_time_obj = new Date(Date.parse(n.time.replace(/-/g, "/")));
+			var dl = '<div class="hh"><ul><li>'+n_time_obj.getHours()+'点</li>';
+		    dl += '<li class="weatico"><i class="ico_'+n.cond_code+'"></i></li>';
+		    dl += '<li>'+n.tmp+'°</li></ul></div>';
+			dt_html += dl;
+		});
+		$('#hourly').html(dt_html);
+
+		//多天
+		var forecast = data.daily_forecast;
+		var dt_html = '';
+		$.each(forecast, function(i, n){
+			var high = n.tmp_max;
+			var low = n.tmp_min;
+			var icod = 'ico_' + n.cond_code_d;
+			var icon = 'ico_' + n.cond_code_n;
+			var cond_d = n.cond_txt_d;
+			var cond_n = n.cond_txt_n;
+			var n_date = n.date;
+			var n_date_obj = new Date(Date.parse(n_date.replace(/-/g, "/")));
+			var this_date = dateclass.daily_date[n_date_obj.getDate()];
+			if (  this_date.hasOwnProperty('week') ){
+				var week = dateclass.weeks[ this_date.week ];
+				var date_text = this_date.call;
+
+				var dl = '<dl><dt>'+date_text+' <span>(周'+ week +')</span></dt><dd class="weatico"><i class="'+icod+'"></i><i class="'+icon+'"></i>';
+				dl += '<ul><li>'+low+'° ~ '+high+'°</li></ul></dd></dl>';
+			}
+			dt_html += dl;
+		});
+		$('#doutian').html(dt_html);
+	},
 	Init: function(){
 		var chinese_date = ['今天','明天','后天'];
 		var _this = this;
@@ -84,68 +149,17 @@ var weather = {
 				data: postdata,
 				dataType: "json",
 				success: function(data) {
-					console.log( data );
+					//console.log( data );
 					if (data){
-						if (weather.timer) window.clearTimeout(weather.timer);
-						//城市信息
-						var cityInfo = data.basic;
-						$('#city_name').text( cityInfo.location );
-
-						//实时天气
-						var live = data.now;
-						var update = data.update.loc;
-						update = update.split(' ');
-						$('#uptime').text( '('+update[1]+')更新');			// 更新时间
-
-						$('#tq_ico').removeClass().addClass('ico_'+live.cond_code);
-
-						$('#tianqi').text(live.cond_txt);	// 天气情况
-						$('#tg_tigang').text(live.fl);		// 体感
-						$('#sw_wendu').text(live.tmp);		// 温度
-						$('#sw_shidu').text(live.hum);		// 相对湿度
-						$('#wind_dir').text(live.wind_dir)
-						$('#wind_sc').text(live.wind_sc + '级')
-
-
-						//生活指数
-						//console.log( data.lifestyle );
-						weather.lifestyle = data.lifestyle;
-						//weather.lifestyle[0]['brf'] = '非常不舒适'
-						_this.bianhuanzs();
-
-						//逐小时
-						var hourly = data.hourly;
-						var dt_html = '';
-						$.each(hourly, function(i, n){
-							var n_time_obj = new Date(Date.parse(n.time.replace(/-/g, "/")));
-							var dl = '<div class="hh"><ul><li>'+n_time_obj.getHours()+'点</li>';
-						    dl += '<li class="weatico"><i class="ico_'+n.cond_code+'"></i></li>';
-						    dl += '<li>'+n.tmp+'°</li></ul></div>';
-							dt_html += dl;
-						});
-						$('#hourly').html(dt_html);
-
-						//多天
-						var forecast = data.daily_forecast;
-						var dt_html = '';
-						$.each(forecast, function(i, n){
-							var high = n.tmp_max;
-							var low = n.tmp_min;
-							var icod = 'ico_' + n.cond_code_d;
-							var icon = 'ico_' + n.cond_code_n;
-							var cond_d = n.cond_txt_d;
-							var cond_n = n.cond_txt_n;
-							var n_date = n.date;
-							var n_date_obj = new Date(Date.parse(n_date.replace(/-/g, "/")));
-							var this_date = dateclass.daily_date[n_date_obj.getDate()];
-							var week = dateclass.weeks[ this_date.week ];
-							var date_text = this_date.call;
-
-							var dl = '<dl><dt>'+date_text+' <span>(周'+ week +')</span></dt><dd class="weatico"><i class="'+icod+'"></i><i class="'+icon+'"></i>';
-							dl += '<ul><li>'+low+'° ~ '+high+'°</li></ul></dd></dl>';
-							dt_html += dl;
-						});
-						$('#doutian').html(dt_html);
+						try{
+							_this.set_html(data)
+						}
+						catch(err){
+						   	//在此处理错误
+						   	setTimeout(function(){
+							   	_this.set_html(data)
+							},1000);
+						}
 					}
 				}
 			});
@@ -157,6 +171,7 @@ var weather = {
 var dateclass = {
 	is_re_date: true,	// 是否刷新日期
 	is_re_time: true,	// 是否刷新时，分
+	//weather_init: true,	// 首次初始化天气数据
 	weeks : ["日","一","二","三","四","五","六"],
 	chinese_date : ['今天','明天','后天'],
 	daily_date: {},		// 日常 日期称呼
@@ -200,8 +215,8 @@ var dateclass = {
 	    var month  = myDate.getMonth()+1; 	// 获取当前月
 	    var date   = myDate.getDate();     	// 获取当前日
 	    var week   = '星期' + this.weeks[myDate.getDay()];
-	    this.date_show({year: year,month: month,date: date,week: week});
 	    this.daily_func( myDate, 0 );
+	    this.date_show({year: year,month: month,date: date,week: week});
 	    this.is_re_date = false;
 	},
 	// 农历显示
@@ -242,7 +257,11 @@ var dateclass = {
 	    this.time_show({hours: h,minutes: m,seconds: s});
 
 	    if (h==0&&m==0&&s<=1) this.is_re_date = true;
-	    if (this.is_re_date){this.now_date();this.nongli_show();}
+	    if (this.is_re_date){
+		    this.now_date();
+		    this.nongli_show();
+		    weather.Init();
+		}
 	    if (m==30&&s<=1) weather.Init();
 	}
 }

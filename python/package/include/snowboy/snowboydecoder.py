@@ -5,7 +5,7 @@ import pyaudio
 import package.include.snowboy.snowboydetect as snowboydetect
 import time
 import wave
-import os
+import os,sys
 import logging
 
 logging.basicConfig()
@@ -85,8 +85,7 @@ class HotwordDetector(object):
             sensitivity = [sensitivity]
         model_str = ",".join(decoder_model)
 
-        self.detector = snowboydetect.SnowboyDetect(
-            resource_filename=resource.encode(), model_str=model_str.encode())
+        self.detector = snowboydetect.SnowboyDetect( resource_filename=resource.encode(), model_str=model_str.encode() )
         self.detector.SetAudioGain(audio_gain)
         #此代码用于测试通用模型
         self.detector.ApplyFrontend(True)#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -101,22 +100,20 @@ class HotwordDetector(object):
         if len(sensitivity) != 0:
             self.detector.SetSensitivity(sensitivity_str.encode())
 
-        self.ring_buffer = RingBuffer(
-            self.detector.NumChannels() * self.detector.SampleRate() * 5)
+        self.ring_buffer = RingBuffer( self.detector.NumChannels() * self.detector.SampleRate() * 5)
+
         self.audio = pyaudio.PyAudio()
         self.stream_in = self.audio.open(
-            input=True, output=False,
-            format=self.audio.get_format_from_width(
-                self.detector.BitsPerSample() / 8),
+            input=True,
+            output=False,
+            format=self.audio.get_format_from_width(self.detector.BitsPerSample() / 8),
             channels=self.detector.NumChannels(),
             rate=self.detector.SampleRate(),
             frames_per_buffer=2048,
-            stream_callback=audio_callback)
+            stream_callback=audio_callback
+        )
 
-
-    def start(self, detected_callback=play_audio_file,
-              interrupt_check=lambda: False,
-              sleep_time=0.03):
+    def start(self, detected_callback=play_audio_file,interrupt_check=lambda: False,sleep_time=0.03):
         """
         启动语音检测器。对于每'sleep_time'秒，它都会检查
         用于触发关键字的音频缓冲区。如果检测到，则调用

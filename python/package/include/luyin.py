@@ -30,15 +30,17 @@ class Luyin():
 
 
             def record_to_file( data, sample_width):
+                import os
                 #“从麦克风记录并输出结果数据到‘path’”
                 # sample_width, data = record()
                 data = p_self.pack('<' + ('h' * len(data)), *data)
-                #wf = p_self.wave.open(path, 'wb')
+                #wf = p_self.wave.open("/var/www/server/python/data/yuyin/wo.wav", 'wb')
                 #wf.setnchannels(1)
                 #wf.setsampwidth(sample_width)
                 #wf.setframerate(p_self.RATE)
                 #wf.writeframes(data)
                 #wf.close()
+                #os.system("sudo aplay -q /var/www/server/python/data/yuyin/wo.wav")
                 return data
 
 
@@ -120,11 +122,13 @@ class Luyin():
                         num_unvoiced = p_self.NUM_WINDOW_CHUNKS_END - sum(ring_buffer_flags_end)
 
                         if num_unvoiced > 0.90 * p_self.NUM_WINDOW_CHUNKS_END or TimeUse > Stop_time:     #录音时间
-                            #p_self.sys.stdout.write(' Close ')
-                            p_self.sw.sendmic('close')
+                            #录音时间必须大于2秒
+                            if TimeUse >2:
+                                #p_self.sys.stdout.write(' Close ')
+                                p_self.sw.sendmic('close')
 
-                            triggered = False
-                            got_a_sentence = True
+                                triggered = False
+                                got_a_sentence = True
 
                     #p_self.sys.stdout.flush()       #输出缓冲区内容
 

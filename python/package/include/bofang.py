@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import wave,time,sys,pyaudio
+import wave,time,sys,pyaudio,os,re
 import subprocess
 from package.base import Base,log
 
@@ -8,7 +8,7 @@ class Bofang(Base):
 
     # 命令行方式播放
     def __paly_linux_wav(self,name):
-        child = subprocess.Popen('aplay {}'.format(name),shell=True)
+        child = subprocess.Popen('aplay -q {}'.format(name),shell=True)
         return child
 
     # Windows 环境下播放

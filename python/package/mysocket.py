@@ -5,11 +5,12 @@ class Mysocket():
     """内部通信模块"""
 
     def __init__(self ):
+        self.connection()
         print("内部通信已经初始化")
 
     def connection(self):
         try:
-            self.ws = create_connection("ws://localhost:8103")
+            self.ws = create_connection("ws://127.0.0.1:8103")
         except Exception as e:
             self.ws = False
 
@@ -17,7 +18,7 @@ class Mysocket():
     def reconnect(self):
         print('重新连一下')
         try:
-            self.ws = self.ws.connect("ws://localhost:8103")
+            self.ws = self.ws.connect("ws://127.0.0.1:8103")
         except Exception as e:
             self.ws = False
 
@@ -26,7 +27,8 @@ class Mysocket():
     def send_info(self, txt= {}):
         if self.ws:
             info = {
-                'init':0,
+                't':'info',
+                'init':0,           # 是否为初始化唤醒
                 'obj':'mojing',     # 对象： zhuren / mojing  主人/魔镜
                 'emot':'',          # 情感：
                 'msg': txt['msg'],  # 消息体
@@ -49,7 +51,52 @@ class Mysocket():
     #发送麦的状态
     def sendmic(self, sendstr= ''):
         if self.ws:
-            self.ws.send('{"m":"'+str(sendstr)+'"}')
+            self.ws.send('{"t":"m","m":"'+str(sendstr)+'"}')
+
+    #发送设备状态
+    def send_devstate(self, sendjson ):
+        if self.ws:
+            info = sendjson
+            info['t'] = 'dev'
+            jsonstr = json.dumps(info)
+            self.ws.send(jsonstr)
+
+    #发送导航消息
+    def send_nav(self, navjson ):
+        if self.ws:
+            info = {
+                't':'nav',
+                'event':'',
+                'size':{
+                    "width":380,
+                    "height":380
+                },
+                'url':''          # 情感：
+            }
+            if 'event' in navjson.keys():
+                info['event'] = navjson['event']
+            else:
+                info['event'] = 'close'
+
+            if 'size' in navjson.keys():
+                info['size'] = navjson['size']
+            else:
+                info['size'] = {"width":500,"height":300}
+
+            if 'url' in navjson.keys():
+                info['url'] = navjson['url']
+
+            if info['event']=='open':
+                if info['url'] =='':
+                    return
+
+            jsonstr = json.dumps(info)
+            self.ws.send(jsonstr)
+
+    #发送其他消息体
+    def send(self, sendjson ):
+        jsonstr = json.dumps(sendjson)
+        self.ws.send(jsonstr)
 
     #接收消息
     def recv(self):
