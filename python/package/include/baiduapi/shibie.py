@@ -48,12 +48,12 @@ class Shibie(Base):
 
         except:
             log.warning('超时s2')
-            return {'enter':'voice','state': False,'data':'','msg':'百度语音识别失败，可能是网络超时。'}
+            return {'enter':'voice','state': False,'data':'网络可能有点问题，请检查网络。','msg':{'errtype':'neterror'}}
 
         if resp_data["err_no"] == 0:
             return {'enter':'voice','state': True,'data':resp_data["result"][0],'msg':'识别成功！'}
         else:
-            return {'enter':'voice','state': False,'data':'','msg':'百度语音识别失败。'}
+            return {'enter':'voice','state': False,'data':'','msg':'语音识别失败。'}
 
     '''zhixing# 对外调用接口
     参数：

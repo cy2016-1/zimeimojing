@@ -303,7 +303,6 @@ def set_js():
         fo = open(conf_path, "w")
         line = fo.write( fstr )
         fo.close()
-        print(fstr)
 
     print("链接前后端完成")
 set_js()

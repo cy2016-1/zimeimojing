@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os,random,re
 from package.base import Base,log
-
 import package.include.luyin as luyin                   #录音
 import package.include.bofang as bofang                 #播放
 import package.include.baiduapi.hecheng as hecheng      #百度语音合成（文字转语音）
@@ -33,13 +32,17 @@ class Hecheng_bofang(Base):
         else:
             self.is_snowboy.value = 2       # 启动第二次唤醒状态
 
-    def error(self,bug):
-        self.bofang.paly_wav( os.path.join(self.yuyin_path, "meiyou_wangluo.wav") )
+    def error(self, errtype = ''):
+        if errtype == 'neterror':        #网络错误
+            self.bofang.paly_wav( os.path.join(self.yuyin_path, "meiyou_wangluo.wav") )
 
     def main(self, reobj ):
         self.reobj = reobj
-        #合成语音并播放
-        self.hecheng.main( reobj )
+        if self.reobj["state"]==False:
+            self.error( reobj )
+        else:
+            #合成语音并播放
+            self.hecheng.main( reobj )
 
 
 '''
@@ -62,14 +65,7 @@ class Luyin_shibie(Base):
     #录音成功 -> 进入百度识别
     def luyin_success(self,results):
         json = shibie.Shibie().main(results)
-        #json = shibie.Shibie().main(self.noise.main(results))
-        if json['state']==True:
-            self.success( json )
-        else:
-            #err_tishi = ["我没听清你说了啥","哎呀，你刚刚说了什么？我没听清","您确认刚才是跟我再说话吗？"]
-           # filearr = err_tishi[ random.randint(0,len(err_tishi)-1) ]
-            self.success({'enter':'voice','state': False,'data': '','type':'system','msg': '识别失败！','body':{}})
-
+        self.success( json )
 
     #录音失败 -> 递归自己，继续调用自己工作
     def luyin_error(self,bug):

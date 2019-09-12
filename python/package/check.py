@@ -6,7 +6,6 @@ import psutil       #检测内存
 from package.base import Base,log                       #基本类
 from package.device import device
 from package.setnet import Setnet
-#import package.include.skills.action.screens as screens
 
 class Check(Base):
     """设备检测类"""
@@ -52,11 +51,10 @@ class Check(Base):
     def enable_bind(self):
         if self.is_bind == True:
             u_list = self.data.user_list_get()
-            print( u_list )
             if self.mylib.is_empty(u_list):
                 clientid = self.config['httpapi']+'/'+ self.config['MQTT']['clientid']
                 nav_json = {"event":"open","size":{"width":380,"height":380},"url":"bind_user.html?qr="+ clientid }
-                self.public_obj.sw.send_nav( nav_json )
+                #self.public_obj.sw.send_nav( nav_json )            #### 小程序还没有发布，暂时给这个屏蔽
             self.is_bind = False
 
     #人体探测

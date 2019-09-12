@@ -33,10 +33,10 @@ class Light(Plugin):
     def main(self,txt):
         if txt == "off":
             self.openclose_light(0)
-            return {'state':True,'data': "灯已关闭",'msg':'操作成功！'}
+            return {'state':True,'data': "灯已关闭",'msg':'操作成功！','stop':True}
         elif txt == 'on':
             self.openclose_light(1)
-            return {'state':True,'data': "灯已打开",'msg':'操作成功！'}
+            return {'state':True,'data': "灯已打开",'msg':'操作成功！','stop':True}
 
     #灯当前状态
     def init_light(self):
@@ -45,7 +45,14 @@ class Light(Plugin):
 
     # 打开灯
     def start(self,name):
-        if name['action'] == 'open':
+
+        if name["data"].count("开") >= 1:
             return self.main("on")
-        else:
+        elif name["data"].count("关") >= 1:
             return self.main("off")
+        else:
+            return {'state':True,'data': "开关灯没有执行，触发词有误",'msg':'操作成功！','stop':True}
+
+
+
+

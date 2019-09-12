@@ -76,7 +76,7 @@ class Master(Base):
     命令动作执行_成功回调
         reobj       --  成功返回 JSON 格式对象
         {
-            'state': True',                     返回状态：True 成功 / False 失败
+            'state': True,                     返回状态：True 成功 / False 失败
             'data': '想知道吗？你求我呀。',     返回提示语，会显示到前端
             'type': 'tuling',                   返回类型：tuling 机器人应答 / system 系统应答（包含插件）
             'msg': '图灵回复成功！'             返回类型中文提示语，仅供调试使用
@@ -90,8 +90,16 @@ class Master(Base):
         self.public_obj.sw.send_info( send_txt )
         del send_txt
 
-        #合成语音并播放
-        yuyin.Hecheng_bofang(self.is_snowboy).main( reobj )
+        if type( reobj['msg'] ) is dict and reobj['state'] is False:
+            msg = reobj['msg']
+            if 'errtype' in msg.keys():
+                yuyin.Hecheng_bofang(self.is_snowboy).error( msg['errtype'] )
+        else:
+
+            #reobj= {'state': True,'data': '我已经准备好啦，现在你可以与我互动啦！','type': 'system','msg': ''}
+
+            #合成语音并播放
+            yuyin.Hecheng_bofang(self.is_snowboy).main( reobj )
 
 
 
@@ -130,6 +138,7 @@ class Master(Base):
 
         else:
             self.is_snowboy.value = 0
+            self.command_success(sbobj)
 
         if sbobj['enter'] != 'voice':
             self.is_snowboy.value = 0
@@ -227,6 +236,10 @@ class Master(Base):
 
         #是否启动人脸识别：文件不存在则启动人脸识别
         is_face = os.path.join(self.config['root_path'],'data/is_face')
+
+        #已经准备好啦
+        yuyin_path = os.path.join(self.config['root_path'], 'data/yuyin')
+        os.system('aplay -q {0}'.format(os.path.join(yuyin_path, "zunbeihaola.wav")))
 
         #计时变量
         timeing = 0

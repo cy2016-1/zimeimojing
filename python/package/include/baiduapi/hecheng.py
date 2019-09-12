@@ -92,10 +92,7 @@ class Hecheng(Base):
                 'lan': 'zh', 'ctp': 1}  # lan ctp 固定参数
             data = urlencode(params)
 
-           # log.info('Web浏览器测试' + self.TTS_URL + '?' + data)
-
             req = Request(self.TTS_URL, data.encode('utf-8'))
-  #          del token,data
 
             try:
                 f = urlopen(req,timeout=10)#合成时间不多，识别最耗时
@@ -108,8 +105,6 @@ class Hecheng(Base):
                 log.info('保存地址：', save_file )
                 with open(save_file, 'wb') as of:
                     of.write(result_str)
-
-      #          del result_str
 
                 self.success(position=save_file)
 
