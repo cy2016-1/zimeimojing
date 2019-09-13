@@ -18,7 +18,25 @@ UPDATE_DIR = os.path.join( SYSTEM_ROOT, 'update')
 #升级库URL
 GITEE_URL = 'https://gitee.com/kxdev/zimeimojing.git'
 
-print(THIS_DIR, SYSTEM_ROOT, UPDATE_DIR)
+'''
+富文本提示
+    tistr   --  提示字符串
+    status  --  状态码
+        w --  警告（红底白字）
+        n --  正常（黑底白字）
+        p --  提示（绿底白字）
+    ln      -- 是否换行（不为空则不换行，默认空，换行）
+'''
+def print_str( tistr = '', status = 'n', ln = ''):
+    ti_str = tistr
+    if status=='w':
+        ti_str = '\033[41m{0}\033[0m'.format(ti_str)
+    elif status=='p':
+        ti_str = '\033[42m{0}\033[0m'.format(ti_str)
+    if len(ln)>0:
+        print(ti_str, end='')
+    else:
+        print(ti_str)
 
 def menu():
     tishi  = "┏━━━━━━☆ ★ ☆ 欢迎使用自美系统在线升级工具 ☆ ★ ☆ ━━━━━━┓\n"
@@ -76,6 +94,7 @@ def versionCompare(v1="1.1.1", v2="1.2"):
 def run_gitcmd( cmd, osrun='popen' ):
     cmd = 'cd '+ UPDATE_DIR +'\n'+cmd
     if osrun == 'system':
+        cmd += ' > /dev/null 2>&1'
         os.system( cmd )
     else:
         out = os.popen(cmd).read()
@@ -101,19 +120,10 @@ def get_local_ver():
 
 #下载新的文件
 def down_newfile():
-    print('\033[42m正在获取远程系统文件……\033[0m')
+    print_str('正在获取远程系统文件……','n','n')
     git_cmd = ''
     if os.path.exists( os.path.join( UPDATE_DIR, '.git') ):
-
-        git_log = 'git log --oneline -1'
-        local_ver = run_gitcmd( git_log )
-
-        git_log = 'git log --oneline -1 remotes/origin/master'
-        origin_ver = run_gitcmd( git_log )
-
-        if (local_ver != origin_ver):
-            git_cmd = 'git pull'        #拉取
-
+        git_cmd = 'git pull'        #拉取
     else:
         git_cmd = 'git clone '+ GITEE_URL +' '+ UPDATE_DIR
 
@@ -133,7 +143,7 @@ def down_newfile():
     fo.write(git_newver)
     fo.close()
 
-    print('\033[41m获取远程系统文件[完成]\033[0m')
+    print_str('[完成]','p')
 
 
 #迁移目录
@@ -142,16 +152,18 @@ def move_dir():
         datetime = time.strftime("%Y%m%d%H%M%S", time.localtime())
         back_path = THIS_DIR +'_'+str(datetime)
 
-        print('\033[41m备份原系统至'+back_path+'\033[0m')
+        print_str('备份原系统至'+back_path,'n','n')
 
         cmd = 'sudo mv '+ THIS_DIR +' '+ back_path
-        print( cmd )
         os.system( cmd )
 
-        print('\033[42m开始更新系统\033[0m')
+        print_str('[完成]','p')
+
+        print_str('开始部署新系统，请稍候……（这里可能需要几分钟时间）','n','n')
         cmd = 'sudo cp -rf '+ UPDATE_DIR +' '+ THIS_DIR
-        print( cmd )
         os.system( cmd )
+
+        print_str('[完成]','p')
 
         return True
     else:
@@ -169,18 +181,18 @@ def diff_ver():
     file_ver = get_local_ver()      #获取本地版本号
 
     if file_ver:
-        print('当前系统版本号[\033[41m'+ file_ver +'\033[0m]')
-        print('官方最新版本号[\033[42m'+ git_newver +'\033[0m]')
+        print_str('当前系统版本号-->'+ file_ver)
+        print_str('官方最新版本号-->'+ git_newver)
 
         diffver = versionCompare( file_ver, git_newver )
         if diffver > 0:
-            print('\033[31m远程版本高于当前系统版本，可能升级！\033[0m')
+            print_str('官方最新版本高于当前版本，需要升级！','w')
             return True
         else:
-            print('\033[31m当前系统版本已经是最新版本，无需升级！\033[0m')
+            print_str('当前系统版本已经是最新版本，无需升级！','p')
             return False
     else:
-        print('\033[31m当前系统版本文件丢失，需更新升级！\033[0m')
+        print_str('当前系统版本文件丢失，需更新升级！','w')
         #没有版本文件，默认即将更新的版本大于当前版本
         return True
 
@@ -190,10 +202,10 @@ def menu_ckver( ty = 'git' ):
 
     if ty=='git':
         git_newver = get_new_ver()      #获取最新的发行版本
-        print('官方最新版本号：\033[42m'+ git_newver +'\033[0m')
+        print_str('官方最新版本号-->'+ git_newver,'w')
     if ty=='local':
         file_ver = get_local_ver()      #获取本地版本号
-        print('当前系统版本号：\033[41m'+ file_ver +'\033[0m')
+        print_str('当前系统版本号-->'+ file_ver,'p')
     time.sleep(5)
 
 
@@ -204,18 +216,13 @@ def menu_startup():
     if is_up is True:
         opis = move_dir()
         if opis:
-            print('\033[31m新版本文件环境部署完成！\033[0m')
-            print('\033[32m开始准备安装！\033[0m')
+            print_str('新版本文件环境部署完成！','p')
+            print_str('开始准备安装！')
 
-            os.system('sudo python3 '+ THIS_DIR +'/install.py')
+            os.system('sudo python3 '+ THIS_DIR +'/install.py update')
 
-            print('\033[41m新系统安装成功，即将重启设备！\033[0m')
-
-            time.sleep(3)
-
-            os.system('sudo reboot')
+            print_str('新系统安装成功，即将重启设备！','p')
 
     time.sleep(5)
-
 
 menu()

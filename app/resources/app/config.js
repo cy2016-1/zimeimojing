@@ -1,4 +1,4 @@
-const rootpath = '/var/www/keyicx/';
+const rootpath = '/var/www/server/';
 module.exports = {
 	'mqtt':{
 		'server': 'mqtt://mqtt.16302.com:1883',

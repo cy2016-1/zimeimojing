@@ -1,47 +1,119 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-import os,time,re
+import os,time,re,sys
+import hashlib
 import sqlite3
 if int(os.popen("id -u").read()) !=0:
     print("请用root权限执行：sudo ./install.py")
     exit()
+
+#接收参数
+argv = ""
+if len(sys.argv)>1:
+    argv = sys.argv[1]
+
 root_path = os.path.abspath(os.path.dirname(__file__))
 
 #文件夹授权执行方法  参数一 权限  参数二 位置
 def cmd(permission , name):
     cmds = permission + " " + os.path.join(root_path, name)
-    print(cmds)
     os.system(cmds)
 
-print("设置app目录下文件权限" )
-#该文件仅执行
-cmd("sudo chmod +x", 'app/moJing')
+'''
+富文本提示
+    tistr   --  提示字符串
+    status  --  状态码
+        w --  警告（红底白字）
+        n --  正常（黑底白字）
+        p --  提示（绿底白字）
+    ln      -- 是否换行（不为空则不换行，默认空，换行）
+'''
+def print_str( tistr = '', status = 'n', ln = ''):
+    ti_str = tistr
+    if status=='w':
+        ti_str = '\033[41m{0}\033[0m'.format(ti_str)
+    elif status=='p':
+        ti_str = '\033[42m{0}\033[0m'.format(ti_str)
+    if len(ln)>0:
+        print(ti_str, end='')
+    else:
+        print(ti_str)
 
-print('设置python目录下文件权限')
-#该目录下全部仅执行
-cmd('sudo chmod +x' , 'python/bin/*')
 
-#创建所需目录
-cmd('sudo mkdir -p','python/data/hecheng')
-cmd('sudo mkdir -p','python/data/shijue')
-cmd('sudo mkdir -p','python/data/yuyin')
-cmd('sudo mkdir -p','python/data/conf')
-cmd('sudo mkdir -p','python/data/snowboy')
+def md5_file(path):
+    if not os.path.isfile(path):
+        return None
+    try:
+        hash = hashlib.md5()
+        f = open(path, "rb")
+        while True:
+            b = f.read(1024)
+            if not b:
+                break
+            hash.update(b)
+        f.close()
+        return hash.hexdigest()
+    except:
+        return None
 
-cmd('sudo mkdir -p','python/runtime/log')
+'''
+比较文件差异
+return：
+    True    --  相同
+    False   --  不同
+'''
+def diff_file(file1, file2):
+    hash1 = md5_file(file1)
+    hash2 = md5_file(file2)
 
-#该目录下全部权限
-cmd('sudo chown -R pi.pi','python/data/')
-cmd('sudo chmod -R 0777', 'python/data/')
+    print( hash1, hash2 )
 
-#该目录下全部不可执行，可读可写
-cmd('sudo chown -R pi.pi','python/runtime/')
-cmd('sudo chmod -R 0777', 'python/runtime/')
+    if hash1 is None:
+        if hash2 is None:
+            return True
+        else:
+            return False
+    else:
+        if hash2 is None:
+            return False
+    if hash1 == hash2:
+        return True
+    else:
+        return False
+#--------------------------------------------
 
-#该目录下全部仅执行
-cmd('sudo chmod +x' , 'python/api.py')
-cmd('sudo chmod +x' , 'python/run.py')
-cmd('sudo chmod +x' , 'python/main.py')
+#设置目录权限
+def set_path_chmod():
+    print_str("设置目录下文件权限" ,'n','n')
+
+    cmd("sudo chmod +x", 'app/moJing')
+    cmd('sudo chmod +x' , 'python/bin/*')
+
+    #创建所需目录
+    cmd('sudo mkdir -p','python/data/hecheng')
+    cmd('sudo mkdir -p','python/data/shijue')
+    cmd('sudo mkdir -p','python/data/yuyin')
+    cmd('sudo mkdir -p','python/data/conf')
+    cmd('sudo mkdir -p','python/data/snowboy')
+    cmd('sudo mkdir -p','python/runtime/log')
+
+    #该目录下全部权限
+    cmd('sudo chown -R pi.pi','python/data/')
+    cmd('sudo chmod -R 0777', 'python/data/')
+
+    #该目录下全部不可执行，可读可写
+    cmd('sudo chown -R pi.pi','python/runtime/')
+    cmd('sudo chmod -R 0777', 'python/runtime/')
+
+    #该目录下全部仅执行
+    cmd('sudo chmod +x' , 'python/api.py')
+    cmd('sudo chmod +x' , 'python/run.py')
+    cmd('sudo chmod +x' , 'python/main.py')
+
+    print_str('[完成]','p')
+
+
+set_path_chmod()
 
 '''
 ---------------------------------------------------------
@@ -50,9 +122,10 @@ cmd('sudo chmod +x' , 'python/main.py')
 '''
 # 创建新表
 def CreateTables( db_arr = [] ):
+    print_str("创建系统默认数据库" ,'n','n')
     if len(db_arr) <= 0 :
-        print( "创建失败" )
-        return "创建失败"
+        print_str("跳过",'p')
+        return
 
     filename = time.strftime("%Y%m%d%H%M%S", time.localtime())
     old_data = os.path.join(root_path, 'python/data/config.db')
@@ -66,11 +139,13 @@ def CreateTables( db_arr = [] ):
         try:
             cur.execute(item)
         except sqlite3.Error as e:
-            print( e )
+            print_str( e, 'w')
 
     conn.commit()
     conn.close()
     os.system("sudo chmod 777 "+ old_data)
+
+    print_str("[完成]",'p')
 
 
 create_table = []
@@ -89,6 +164,8 @@ if len(create_table) > 0:
 ------------------------------------------------------
 '''
 def add_crontab():
+    print_str("设置计划任务" ,'n','n')
+
     crontab = '/etc/crontab'
     f = open(crontab,"r")
     fstr = f.read()
@@ -116,10 +193,13 @@ def add_crontab():
 
     fo = open(crontab, "w+")
     line = fo.write(fstr)
-    print( line )
     fo.close()
 
+    print_str("[完成]",'p')
+
     #===================================
+    print_str("设置开机启动" ,'n','n')
+
     autostart = '/home/pi/.config/autostart'
     if os.path.exists(autostart) is False:
         #print('目录不存在')
@@ -134,6 +214,8 @@ def add_crontab():
     with open(start_mojing, 'w') as fso:
         fso.write(mojing_str)
 
+    print_str("[完成]",'p')
+
 
 add_crontab()
 
@@ -143,6 +225,7 @@ add_crontab()
 ------------------------------------------------------
 '''
 def set_soundcard():
+    print_str("设置默认声卡" ,'n','n')
     alsa_conf = '/usr/share/alsa/alsa.conf'
     f = open(alsa_conf,"r")
     fstr = f.read()
@@ -164,8 +247,9 @@ def set_soundcard():
     if is_write:
         fo = open(alsa_conf, "w")
         line = fo.write( fstr )
-        print( line )
         fo.close()
+
+    print_str("[完成]",'p')
 
 set_soundcard()
 
@@ -175,6 +259,8 @@ set_soundcard()
 ------------------------------------------------------
 '''
 def set_camera():
+    print_str("设置摄像头" ,'n','n')
+
     config = '/boot/config.txt'
     f = open(config,"r")
     fstr = f.read()
@@ -196,7 +282,6 @@ def set_camera():
     if is_write:
         fo = open(config, "w")
         line = fo.write( fstr )
-        print( line )
         fo.close()
 
 
@@ -213,8 +298,9 @@ def set_camera():
         fo = open(conf, "a+")
         fo.seek(0, 2)
         line = fo.write('bcm2835-v4l2')
-        print( line )
         fo.close()
+
+    print_str("[完成]",'p')
 
 set_camera()
 
@@ -227,6 +313,8 @@ set_camera()
 -------------------------------------------
 '''
 def vacuuming():
+    print_str("开始清理工作" ,'n')
+
     new = { os.path.join(root_path, "python/data/yuyin"):[
     "baidu_token.txt","baidu_renlian_shibie_token.txt",
     ]}
@@ -234,12 +322,13 @@ def vacuuming():
     for x in  new:
         for y in new[x]:
             A = x + "/" + y
-            print("正在删除--->",A)
+            print_str("正在删除--->"+ str(A),'n','n')
             try:
                 os.remove(A)
-            except:print("不存在")
+            except:
+                print_str('不存在','w')
             else:
-                print("删除完成--->ok")
+                print_str('[完成]','p')
 
 vacuuming()
 
@@ -249,9 +338,10 @@ vacuuming()
 -------------------------------------------
 '''
 def ban_screen_savers():
+    print_str("禁止屏幕保护事件" ,'n','n')
     with open("/etc/profile.d/Screen.sh","w") as x :
         x.write("xset dpms 0 0 0\nxset s off")
-        print("关闭屏保完成")
+    print_str("完成",'p')
 
 ban_screen_savers()
 '''
@@ -262,7 +352,7 @@ ban_screen_savers()
 def calibration_time():
     #需要安装包sudo apt-get install ntpdate
 
-    print("正在设置时间核对……")
+    print_str("正在设置时间核对……",'n','n')
 
     # 时区判断
     if os.popen("date -R").read().count("0800") == 1:
@@ -273,7 +363,8 @@ def calibration_time():
             x.write('Asia/Shanghai')
      #在继续修改时间
     os.system("sudo ntpdate ntp.sjtu.edu.cn")
-    print("核对时间完成")
+
+    print_str('[完成]','p')
 
 calibration_time()
 '''
@@ -282,6 +373,8 @@ calibration_time()
 -------------------------------------------
 '''
 def set_js():
+    print_str("设置显示端基本配置",'n','n')
+
     conf_path = os.path.join( root_path,"app/resources/app/config.js")
 
     f = open(conf_path,"r")
@@ -304,12 +397,12 @@ def set_js():
         line = fo.write( fstr )
         fo.close()
 
-    print("链接前后端完成")
+    print_str('[完成]','p')
 set_js()
 
 #重置WiFi网络
 def reset_wifi():
-    print("正在重置WiFi网络……")
+    print_str("正在重置WiFi网络……",'n','n')
     restr = '''ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 '''
@@ -318,14 +411,53 @@ update_config=1
     line = fo.write( restr )
     fo.close()
 
-    print("重置WiFi网络完成")
+    print_str('[完成]','p')
 
-reset_wifi()
+if argv != 'update':reset_wifi()
+
+#设置开机动画
+def set_bootimg():
+    print_str("设置开机动画",'n','n')
+
+    #桌面图片地址
+    bootimg = os.path.join(root_path, 'app/resources/app/html/img/system/splash.png')
+    #开机动画
+    default_splash = '/usr/share/plymouth/themes/pix/splash.png'
+
+    #改桌面
+    desktop_conf = '/home/pi/.config/pcmanfm/LXDE-pi/desktop-items-0.conf';
+    f = open(desktop_conf,"r")
+    fstr = f.read()
+    f.close()
+
+    restr = r'wallpaper\=(.+)\n'
+    matc = re.search( restr, fstr, re.M|re.I )
+
+    is_write = False
+    if matc!=None:
+        if str(bootimg) != str(matc.group(1)):
+            new_api = 'wallpaper='+str(bootimg)+'\n'
+            fstr = re.sub(restr, new_api, fstr, 1, re.M|re.I )
+            is_write = True
+
+    if is_write:
+        fo = open(desktop_conf, "w")
+        line = fo.write( fstr )
+        fo.close()
+    del fstr
+
+    is_diff = diff_file( default_splash, bootimg )
+    if is_diff is False:
+        cmd = 'cp -f '+ bootimg + ' '+ default_splash
+        os.system( cmd )
+
+    print_str('[完成]','p')
+
+set_bootimg()
+
 
 '''
 ----------------系统扩容-------------------
-
--------------------------------------------
 '''
 def disk():
     guandao ='''import os
@@ -395,16 +527,21 @@ Exec="/kuorong.py"'''
 ----------清理所有__pycache__-------------
 '''
 #清理当前install位置和深层所有的__pycache__
-def file_name(file_dir = "./"):
+def del_pycache(file_dir = "./"):
+    print_str("开始清理__pycache__" ,'n')
     for root, dirs, files in os.walk(file_dir):
         for x in dirs:
             if x == "__pycache__":
-                print("正在删除-->"+root+"/"+x)
+                print_str("正在删除-->"+root+"/"+x, 'n', 'n')
                 os.system("sudo rm -r "+root+"/"+x)
+                print_str('[完成]','p')
 
-file_name()
+del_pycache()
 
-print("全部完成*_^ ")
-time.sleep(1)
+print_str("安装工作全部完成*_^ ",'p')
+print_str("系统将在3秒钟后重启",'w')
+time.sleep(3)
 disk()
+os.system('sudo reboot')
+
 
