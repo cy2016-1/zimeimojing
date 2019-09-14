@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import os,time,re
-import subprocess
+import os,time,re,sys
+import threading
 
 if int(os.popen("id -u").read()) !=0:
     print("请用root权限执行：sudo ./update.py")
@@ -37,8 +37,47 @@ def print_str( tistr = '', status = 'n', ln = ''):
         print(ti_str, end='')
     else:
         print(ti_str)
+    sys.stdout.flush()
+
+
+exitFlag = 0
+is_print = 0
+class myThread(threading.Thread):
+    def __init__(self, threadID, name):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+
+    def run(self):
+        print_time(self.name)
+
+def print_time(threadName):
+    global exitFlag, is_print
+    while True:
+        if exitFlag:
+            exit()
+        if is_print:
+            print ('■',end='')
+            sys.stdout.flush()
+        time.sleep(0.5)
+
+#进度条
+th_ress = myThread(1,"Thprog")
+th_ress.start()
+
+def progress( is_show ):
+    global is_print
+    if th_ress.isAlive() is False:
+        th_ress.start()
+    if is_show:
+        print("\033[?25l")
+        is_print = 1
+    else:
+        print("\033[?25h")
+        is_print = 0
 
 def menu():
+    global exitFlag
     tishi  = "┏━━━━━━☆ ★ ☆ 欢迎使用自美系统在线升级工具 ☆ ★ ☆ ━━━━━━┓\n"
     tishi += "┃1、查看官方最新版本号                                ┃\n"
     tishi += "┃2、查看本地版本号                                    ┃\n"
@@ -59,6 +98,8 @@ def menu():
         menu_startup()
         return menu()
     elif a == "4":
+        exitFlag = 1
+        th_ress.join()
         exit()
     else:
         return menu()
@@ -105,7 +146,7 @@ def get_new_ver():
     git_tag = 'git tag -l'      #显示标签
     git_ver_line = run_gitcmd( git_tag )
     git_newver = git_ver_line.splitlines()[-1]
-    return git_newver
+    return git_newver.strip()
 
 #获取本地版本号
 def get_local_ver():
@@ -116,19 +157,21 @@ def get_local_ver():
         file_ver = fo.read(-1)
         fo.close()
 
-    return file_ver
+    return file_ver.strip()
 
 #下载新的文件
 def down_newfile():
     print_str('正在获取远程系统文件……','n','n')
+    progress(1)
     git_cmd = ''
     if os.path.exists( os.path.join( UPDATE_DIR, '.git') ):
         git_cmd = 'git pull'        #拉取
+        run_gitcmd( git_cmd, 'system' )
+        time.sleep(1)
     else:
         git_cmd = 'git clone '+ GITEE_URL +' '+ UPDATE_DIR
-
-    if git_cmd:
-        run_gitcmd( git_cmd, 'system' )
+        cmd = git_cmd +' > /dev/null 2>&1'
+        os.system( cmd )
         time.sleep(1)
 
     git_newver = get_new_ver()      #获取最新的发行版本
@@ -144,6 +187,7 @@ def down_newfile():
     fo.close()
 
     print_str('[完成]','p')
+    progress(0)
 
 
 #迁移目录
@@ -152,18 +196,22 @@ def move_dir():
         datetime = time.strftime("%Y%m%d%H%M%S", time.localtime())
         back_path = THIS_DIR +'_'+str(datetime)
 
-        print_str('备份原系统至'+back_path,'n','n')
+        print_str('正在备份原系统，请稍候……','n')
+        progress(1)
 
         cmd = 'sudo mv '+ THIS_DIR +' '+ back_path
         os.system( cmd )
+        progress(0)
 
-        print_str('[完成]','p')
+        print_str('开始部署新系统，请稍候……（这里可能需要几分钟时间）','n')
+        progress(1)
+        time.sleep(1)
 
-        print_str('开始部署新系统，请稍候……（这里可能需要几分钟时间）','n','n')
         cmd = 'sudo cp -rf '+ UPDATE_DIR +' '+ THIS_DIR
         os.system( cmd )
 
         print_str('[完成]','p')
+        progress(0)
 
         return True
     else:
