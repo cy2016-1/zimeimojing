@@ -38,6 +38,7 @@ def print_str( tistr = '', status = 'n', ln = ''):
         print(ti_str, end='')
     else:
         print(ti_str)
+    sys.stdout.flush()
 
 
 def md5_file(path):
@@ -65,8 +66,6 @@ return：
 def diff_file(file1, file2):
     hash1 = md5_file(file1)
     hash2 = md5_file(file2)
-
-    print( hash1, hash2 )
 
     if hash1 is None:
         if hash2 is None:
