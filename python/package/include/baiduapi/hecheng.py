@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-#IS_PY3 = sys.version_info.major == 3
-#if IS_PY3:
-import requests,os,sys,json,hashlib
-from urllib.request import urlopen
-from urllib.request import Request
+import hashlib
+import json
+import os
+import sys
 from urllib.error import URLError
-from urllib.parse import urlencode
-from urllib.parse import quote_plus
-from package.base import Base,log
+from urllib.parse import quote_plus, urlencode
+from urllib.request import Request, urlopen
+
+import requests
+
 import package.include.baiduapi.token as key
+from package.base import Base, log
+
 
 class Hecheng(Base):
     '''百度语音合成'''
@@ -28,11 +31,17 @@ class Hecheng(Base):
         self.FORMATS = {3: "mp3", 4: "pcm", 5: "pcm", 6: "wav"}
         self.FORMAT  = self.FORMATS[self.AUE]
         self.CUID    = self.config['BAIDUAPI']['CUID']
-        self.TTS_URL = self.config['BAIDUAPI']['url']['hecheng_api_url']
 
-        self.audio_file = os.path.join(self.config['root_path'], 'data/hecheng')
-        self.token_file = os.path.join(self.config['root_path'] , 'data/yuyin/baidu_token.txt')
-        self.huoqu_token = key.Token(self.token_file)
+        self.audio_file = os.path.join(self.config['root_path'], 'runtime/hecheng')
+
+        token_file = os.path.join(self.config["root_path"],'runtime/token/yuyin_token.txt')
+
+        self.yuyin_conf = self.config['BAIDUAPI']['yuyin_conf']     #读取配置里人脸识别参数
+        self.yuyin_conf['token_file'] = token_file
+
+        self.TTS_URL = self.yuyin_conf['hecheng_api_url']
+
+        self.huoqu_token = key.Token(self.yuyin_conf)
 
 
     def success(self,position):
@@ -100,7 +109,7 @@ class Hecheng(Base):
                 if re_type == 'system' :
                     save_file = audio_fill_
                 else:
-                    save_file = os.path.join(self.config['root_path'],'data/yuyin/','result.' + self.FORMAT )
+                    save_file = os.path.join(self.audio_file,'result.' + self.FORMAT )
 
                 log.info('保存地址：', save_file )
                 with open(save_file, 'wb') as of:
@@ -114,10 +123,3 @@ class Hecheng(Base):
 
         except:
             return {'state': False,'data':'','msg':'可能是网络超时。'}
-
-
-
-
-if __name__ == '__main__':
-    lei=Hecheng()
-    lei.main({'type': tuling,'data':'测试魔镜'})

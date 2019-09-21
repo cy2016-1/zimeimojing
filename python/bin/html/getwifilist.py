@@ -1,6 +1,11 @@
 import time,os,re,json
+import math
 
-def application(env, start_response, response_state):
+def takeSecond(elem):
+    return int(elem['wifi_qual'])
+
+
+def application(env, start_response, response_state ):
 
     status = "200 OK"
     headers = [("Content-Type", "text/plain")]
@@ -16,7 +21,7 @@ def application(env, start_response, response_state):
 
     re_name = r'ESSID:"(.+)"'
     re_pass = r'IE:\s+IEEE\s+(.+)\s+Version'
-    re_qual = r'\=(\d+)\/\d+'
+    re_qual = r'\=(\d+)\/(\d+)'
 
     wifi_list = []
     for x in res:
@@ -24,7 +29,10 @@ def application(env, start_response, response_state):
         o_n = re.search( re_name, x, re.M|re.I)
         if o_n:
             wifi_name = o_n.group(1)
-            wifi_name = re.sub(r'\\x00','',wifi_name)
+            rem = re.search(r'\\x', wifi_name, re.M|re.I)
+            if rem != None:
+                wifi_name = wifi_name.encode('raw_unicode_escape').decode()
+
             if wifi_name:
                 item_obj['wifi_name'] = wifi_name
             else:
@@ -40,8 +48,10 @@ def application(env, start_response, response_state):
         o_l = re.search( re_qual, x, re.M|re.I)
         if o_l:
             #print('pass:', o_l.group(1))
-            item_obj['wifi_qual'] = o_l.group(1)
+            item_obj['wifi_qual'] = math.floor( (int(o_l.group(1)) / int(o_l.group(2)))*100 )
         if len(item_obj)>0:
             wifi_list.append( item_obj )
+
+    wifi_list.sort(key=takeSecond,reverse=True)
 
     return json.dumps( wifi_list )

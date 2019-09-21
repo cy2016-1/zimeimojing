@@ -6,11 +6,13 @@ import package.include.snowboy.snowboydetect as snowboydetect
 import time
 import wave
 import os,sys
+'''
 import logging
-
 logging.basicConfig()
 logger = logging.getLogger("snowboy")
 logger.setLevel(logging.INFO)
+'''
+
 TOP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 RESOURCE_FILE = os.path.join(TOP_DIR, "resources/common.res")
@@ -127,7 +129,7 @@ class HotwordDetector(object):
         :return: None
         """
         if interrupt_check():
-            logger.debug("detect voice return")
+            #logger.debug("detect voice return")
             return
 
         tc = type(detected_callback)
@@ -140,11 +142,10 @@ class HotwordDetector(object):
             "错误: 你的模型中的关键词 (%d) 不匹配的数字是多少 " \
             "回调 (%d)" % (self.num_hotwords, len(detected_callback))
 
-        logger.debug("detecting...")
+        #logger.debug("detecting...")
 
         while True:
             if interrupt_check():
-                logger.debug(u"检测到的中止命令")
                 break
             data = self.ring_buffer.get()
             if len(data) == 0:
@@ -153,17 +154,18 @@ class HotwordDetector(object):
 
             ans = self.detector.RunDetection(data)
             if ans == -1:
-                logger.warning(u"错误：初始化流或读取音频数据")
+                return
+                #logger.warning(u"错误：初始化流或读取音频数据")
             elif ans > 0:
                 message = "唤醒词:" + str(ans) + " 被检测到，时间: "
                 message += time.strftime("%Y-%m-%d %H:%M:%S",
                                          time.localtime(time.time()))
-                logger.info(message)
+                #logger.info(message)
                 callback = detected_callback[ans-1]
                 if callback is not None:
                     callback()
 
-        logger.debug("finished.")
+        #logger.debug("finished.")
 
     def terminate(self):
         """

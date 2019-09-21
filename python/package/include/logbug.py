@@ -13,7 +13,8 @@ class log():
 
     @classmethod
     def info(self,*a):
-        logger.info(' '.join([str(i) for i in a]))
+        return
+        #logger.info(' '.join([str(i) for i in a]))
 
     @classmethod
     def debug(self,*a):

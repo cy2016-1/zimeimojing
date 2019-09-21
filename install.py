@@ -89,12 +89,11 @@ def set_path_chmod():
     cmd('sudo chmod +x' , 'python/bin/*')
 
     #创建所需目录
-    cmd('sudo mkdir -p','python/data/hecheng')
-    cmd('sudo mkdir -p','python/data/shijue')
-    cmd('sudo mkdir -p','python/data/yuyin')
     cmd('sudo mkdir -p','python/data/conf')
-    cmd('sudo mkdir -p','python/data/snowboy')
     cmd('sudo mkdir -p','python/runtime/log')
+    cmd('sudo mkdir -p','python/runtime/hecheng')
+    cmd('sudo mkdir -p','python/runtime/shijue')
+    cmd('sudo mkdir -p','python/runtime/token')
 
     #该目录下全部权限
     cmd('sudo chown -R pi.pi','python/data/')
@@ -225,22 +224,32 @@ add_crontab()
 '''
 def set_soundcard():
     print_str("设置默认声卡" ,'n','n')
+
+    cardtext = os.popen("aplay -l").read()
+    restr = r'card\s(\d)\:\swm8960soundcard'
+    matc = re.search( restr, cardtext, re.M|re.I )
+    cardnum = 0
+    if matc!=None:
+        cardnum = matc.group(1)
+    else:
+        return
+
     alsa_conf = '/usr/share/alsa/alsa.conf'
     f = open(alsa_conf,"r")
     fstr = f.read()
     f.close()
 
     is_write = False
-    restr = r'^defaults.ctl.card\s+0\s*$'
+    restr = r'^defaults.ctl.card\s+\d\s*$'
     matc = re.search( restr, fstr, re.M|re.I )
     if matc!=None:
-        fstr = re.sub(restr, "defaults.ctl.card 1", fstr, 1, re.M|re.I )
+        fstr = re.sub(restr, "defaults.ctl.card "+ str(cardnum), fstr, 1, re.M|re.I )
         is_write = True
 
-    restr = r'^defaults.pcm.card\s+0\s*$'
+    restr = r'^defaults.pcm.card\s+\d\s*$'
     matc = re.search( restr, fstr, re.M|re.I )
     if matc!=None:
-        fstr = re.sub(restr, "defaults.pcm.card 1", fstr, 1, re.M|re.I )
+        fstr = re.sub(restr, "defaults.pcm.card "+ str(cardnum), fstr, 1, re.M|re.I )
         is_write = True
 
     if is_write:
@@ -312,22 +321,9 @@ set_camera()
 -------------------------------------------
 '''
 def vacuuming():
-    print_str("开始清理工作" ,'n')
-
-    new = { os.path.join(root_path, "python/data/yuyin"):[
-    "baidu_token.txt","baidu_renlian_shibie_token.txt",
-    ]}
-
-    for x in  new:
-        for y in new[x]:
-            A = x + "/" + y
-            print_str("正在删除--->"+ str(A),'n','n')
-            try:
-                os.remove(A)
-            except:
-                print_str('不存在','w')
-            else:
-                print_str('[完成]','p')
+    print_str("开始清理工作" ,'n','n')
+    os.system('rm -f '+ os.path.join(root_path, "python/runtime/token") +'/*')
+    print_str("[完成]",'p')
 
 vacuuming()
 
@@ -538,9 +534,9 @@ def del_pycache(file_dir = "./"):
 del_pycache()
 
 print_str("安装工作全部完成*_^ ",'p')
-print_str("系统将在3秒钟后重启",'w')
-time.sleep(3)
-disk()
-os.system('sudo reboot')
 
-
+if argv != 'release':
+    print_str("系统将在3秒钟后重启",'w')
+    time.sleep(3)
+    disk()
+    os.system('sudo reboot')

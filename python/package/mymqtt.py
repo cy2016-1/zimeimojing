@@ -1,8 +1,12 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+import json
+import sys
+import time
+
 import package.include.paho.mqtt.client as mqtt
 import package.include.paho.mqtt.publish as publish
-import time,sys,json
+
 
 class Mymqtt():
     """MQTT操作类"""
@@ -20,6 +24,7 @@ class Mymqtt():
         self.__mqtt_pass = self.bao["mqttpass"]     # 密码
 
     def client_connect(self):
+        #print( self.__clientid, self.__mqtt_name, self.__mqtt_pass)
         client = mqtt.Client(self.__clientid)    # ClientId不能重复，所以使用当前时间
         client.username_pw_set(self.__mqtt_name, self.__mqtt_pass)  # 必须设置，否则会返回「Connected with result code 4」
         client.on_connect = self.on_connect             #连接成功回调
@@ -60,12 +65,12 @@ class Mymqtt():
             port = self.__port,
             client_id = self.__clientid +'_py',
             auth = {'username':self.__mqtt_name,'password':self.__mqtt_pass}
-        );
+        )
 
     #发送导航消息
     def send_nav(self, txtjson ):
         if type(txtjson) is dict:
-            topic = '/'+ self.__clientid +'/sys/nav';
+            topic = '/'+ self.__clientid +'/sys/nav'
             jsonstr = json.dumps(txtjson)
             self.on_publish( topic, jsonstr )
 
@@ -77,7 +82,7 @@ class Mymqtt():
     * data      --      消息体
     '''
     def send_admin(self, receive, event, data):
-        topic = '/'+ self.__clientid +'/sys/admin';
+        topic = '/'+ self.__clientid +'/sys/admin'
         info = {
             'sender': 'equipm',     #设备
             'receive': receive,     #接收者

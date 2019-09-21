@@ -1,18 +1,33 @@
-import pyaudio,time,webrtcvad,collections,sys,signal,wave,os,random,gc,re,threading
+import collections
+import gc
+import multiprocessing as mp  # 多进程
+import os
+import random
+import re
+import signal
+import sys
+import threading
+import time
+import wave
 from array import array
 from struct import pack
-import multiprocessing as mp                            #多进程
-from package.base import Base,log                       #基本类
-import package.check as check                           #设备检测模块
-import package.mymqtt as mymqtt                         #mqtt服务（神经网络）
-import package.mysocket as mysocket                     #发送websocket
-import package.include.snowboy.snowboy as snowboy       #语音唤醒
-import package.include.yuyin as yuyin                   #语音相关操作（语音转文字：录音、识别）
-import package.include.visual as visual                 #视觉相关（人脸识别）
-import package.skills as skills                         #技能类（大脑）
 
-#全局对象（主要是导入到插件相关进程中）
+import numpy as np
+import package.check as check  # 设备检测模块
+import package.include.snowboy.snowboy as snowboy  # 语音唤醒
+import package.include.visual as visual  # 视觉相关（人脸识别）
+import package.include.yuyin as yuyin  # 语音相关操作（语音转文字：录音、识别）
+import package.mymqtt as mymqtt  # mqtt服务（神经网络）
+import package.mysocket as mysocket  # 发送websocket
+import package.skills as skills  # 技能类（大脑）
+import pyaudio
+import webrtcvad
+from package.base import Base, log  # 基本类
+from package.device import device  # 设备管理类
+
+
 class public_obj(Base):
+    '''全局对象（主要是导入到插件相关进程中）'''
 
     def __init__(self):
         #当前用户ID,人脸识别内存变量
@@ -23,47 +38,37 @@ class public_obj(Base):
         self.plugin_conn, self.master_conn = mp.Pipe(False)
 
 
-'''初始化内部使用的对象（主要是导入到语音相关进程中）'''
 class pyaudio_obj(Base):
+    '''初始化内部使用的对象（主要是导入到语音相关进程中）'''
 
     def __init__(self):
         self.yuyin_path = os.path.join(self.config['root_path'], 'data/yuyin')
-        self.time,self.collections,self.sys,self.signal,self.wave,self.array,self.pack,self.so = time,collections,sys,signal,wave,array,pack,os
+        self.time,self.collections,self.sys,self.signal,self.wave,self.array,self.pack,self.so,self.np = time,collections,sys,signal,wave,array,pack,os,np
 
-        FORMAT = pyaudio.paInt16
-        CHANNELS = 1
-        CHUNK_DURATION_MS = 30                              # supports 10, 20 and 30 (ms)
-        PADDING_DURATION_MS = 1500                          # 1 sec jugement
+        self.CHUNK = 512
+        FORMAT     = pyaudio.paInt16
+        CHANNELS   = 1
+        RATE       = 16000
 
-        self.RATE = 16000
-        self.CHUNK_SIZE = int(self.RATE * CHUNK_DURATION_MS / 1000)   # chunk to read
-        self.NUM_PADDING_CHUNKS = int(PADDING_DURATION_MS / CHUNK_DURATION_MS)
-        self.NUM_WINDOW_CHUNKS = int(400 / CHUNK_DURATION_MS)    # 400 ms/ 30ms  ge
-        self.NUM_WINDOW_CHUNKS_END = self.NUM_WINDOW_CHUNKS * 2
-
-        pa = pyaudio.PyAudio()
-        self.stream = pa.open(format= FORMAT,
-                    channels = CHANNELS,
-                    rate = self.RATE,
-                    input = True,
-                    start = False,
-                    # input_device_index=2,
-                    frames_per_buffer = self.CHUNK_SIZE)
-
-        #0: Normal，1：low Bitrate， 2：Aggressive；3：Very Aggressive
-        self.vad = webrtcvad.Vad(3)
-
-'''主控制类'''
+        self.p = pyaudio.PyAudio()
+        self.stream = self.p.open(format=FORMAT,
+                        channels=CHANNELS,
+                        rate=RATE,
+                        input=True,
+                        #start = False,
+                        frames_per_buffer=self.CHUNK)
 
 class Master(Base):
+    '''主控制类'''
 
     def __init__(self):
+        #设备上线&上线状态
+        self.online = device().online()
+
         #设备检测
         self.check = check.Check()
 
-        #初始化录音和识别
-        self.Luyin_shibie =  yuyin.Luyin_shibie()
-
+        #远程控制模块
         self.mqtt = mymqtt.Mymqtt(self.config)
 
         #技能总控
@@ -71,6 +76,9 @@ class Master(Base):
 
         #全局对象类
         self.public_obj = public_obj()
+
+        #初始化录音和识别
+        self.Luyin_shibie =  yuyin.Luyin_shibie()
 
     '''
     命令动作执行_成功回调
@@ -93,13 +101,12 @@ class Master(Base):
         if type( reobj['msg'] ) is dict and reobj['state'] is False:
             msg = reobj['msg']
             if 'errtype' in msg.keys():
-                yuyin.Hecheng_bofang(self.is_snowboy).error( msg['errtype'] )
+                yuyin.Hecheng_bofang(self.is_snowboy, self.public_obj).error( msg['errtype'] )
         else:
-
-            #reobj= {'state': True,'data': '我已经准备好啦，现在你可以与我互动啦！','type': 'system','msg': ''}
-
             #合成语音并播放
-            yuyin.Hecheng_bofang(self.is_snowboy).main( reobj )
+            #reobj = {'state': True,'data': '咋啦……','type': 'system','msg': '这段只用于生成录音用，不用的时候需要给注释掉'}
+
+            yuyin.Hecheng_bofang(self.is_snowboy, self.public_obj).main( reobj )
 
 
 
@@ -108,9 +115,9 @@ class Master(Base):
         sbobj -- 语音识别成功返回的字典对象,格式体如下：
         {
             'state': True,                 -- 操作状态
-            'enter': 'voice',               -- 入口（voice-语音、camera-摄像头、mqtt）
-            'optype': 'action'              -- 操作类型（action动作 / snowboy唤醒）
-            'type': 'system',               -- 控制类型（系统类型-合成语音会被缓存）
+            'enter': 'voice',              -- 入口（voice-语音、camera-摄像头、mqtt）
+            'optype': 'action'             -- 操作类型（action动作 / snowboy唤醒）
+            'type': 'system',              -- 控制类型（系统类型-合成语音会被缓存）
             'msg': '识别失败！',            -- 操作状态中文提示
             'data': '我没听清你说了啥',     -- 返回文本（屏幕提示）
         }
@@ -125,7 +132,7 @@ class Master(Base):
             if sbobj['data']:
 
                 if sbobj['enter'] =="mqtt":
-                    send_txt = {'obj':'zhuren','msg': "微信小程序控制" }
+                    send_txt = {'obj':'zhuren','msg': "移动端控制模块已启动" }
                 else:
                     send_txt = {'obj':'zhuren','msg': sbobj['data'] }
 
@@ -159,19 +166,12 @@ class Master(Base):
         is_one - 是否为首次唤醒 1- 首次 / 2 - 第二次（不在播放唤醒应答声）
     '''
     def start_yuyin(self, is_one = 0):
-        if is_one == 2:
-            self.public_obj.master_conn.send({"optype":"snowboy"})
-
         log.info("开始进入语音进程")
-        if self.hx_yuyinpid.value > 0:
-            os.system("sudo kill -9 {}".format(self.hx_yuyinpid.value))
-
-        self.hx_yuyinpid.value = 0
 
         #启动新进程开始录音+识别
         self.p2 = mp.Process(
             target = self.Luyin_shibie.main,
-            args = (self.hx_yuyinpid, is_one, self.command_execution, pyaudio_obj(), self.public_obj )
+            args = ( is_one, self.command_execution, pyaudio_obj(), self.public_obj )
         )
         self.p2.start()
 
@@ -217,13 +217,8 @@ class Master(Base):
         self.p4.start()
 
     def main(self):
-        #定义唤醒成功内存变量：记录语音进程ID
-        self.hx_yuyinpid = mp.Value("h",0)
         #定义唤醒成功内存变量：是否唤醒成功
         self.is_snowboy  = mp.Value("h",0)
-
-        #启动MQTT服务
-        self.start_mqtt()
 
         #启动设备检测
         self.check.main(self.public_obj)
@@ -237,9 +232,19 @@ class Master(Base):
         #是否启动人脸识别：文件不存在则启动人脸识别
         is_face = os.path.join(self.config['root_path'],'data/is_face')
 
-        #已经准备好啦
         yuyin_path = os.path.join(self.config['root_path'], 'data/yuyin')
-        os.system('aplay -q {0}'.format(os.path.join(yuyin_path, "zunbeihaola.wav")))
+
+        if str(self.online['code'])=='0000':
+            #启动MQTT服务
+            self.start_mqtt()
+
+            #播报我已经准备好啦语音
+            self.public_obj.sw.send_info( {'init':1, 'obj':'mojing','msg': '我已经准备好啦，现在你可以与我互动啦。'} )
+            os.system('aplay -q {0}'.format(os.path.join(yuyin_path, "zunbeihaola.wav")))
+        else:
+            self.public_obj.sw.send_info( {'init':1, 'obj':'mojing','msg': '您的设备可能还没有初始化，请配置网络后初始化设备。'} )
+            os.system('aplay -q {0}'.format(os.path.join(yuyin_path, "chushihua.wav")))
+
 
         #计时变量
         timeing = 0

@@ -78,7 +78,7 @@ def progress( is_show ):
 
 def menu():
     global exitFlag
-    tishi  = "┏━━━━━━☆ ★ ☆ 欢迎使用自美系统在线升级工具 ☆ ★ ☆ ━━━━━━┓\n"
+    tishi  = "┏━━━━━━☆★☆ 欢迎使用自美系统在线升级工具 V2.0 ☆★☆━━━━━━┓\n"
     tishi += "┃1、查看官方最新版本号                                ┃\n"
     tishi += "┃2、查看本地版本号                                    ┃\n"
     tishi += "┃3、一键检测并升级系统                                ┃\n"

@@ -1,24 +1,16 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-from .config import config
-from .include.mylib import mylib
-from .include.model import model
+from package.config import config
+from package.include.mylib import mylib
+from package.include.model import model
 import json                         #库模块类型转换
 
-class data:
+class data():
     """数据库接口"""
+
     def __init__(self):
         self.db = model(config['database'])
-        temp_conf = self.getconfig()
-        conf = {"clientid" :"","mqttname" :"","mqttpass" : ""}
-        if temp_conf:
-            conf = {
-                "clientid" : temp_conf['clientid'],
-                "mqttname" : temp_conf['mqtt_name'],
-                "mqttpass" : mylib.mqtt_encode(temp_conf['mqtt_pass'], str(temp_conf['mqtt_devid']) )
-            }
-        #将新配置更新到全局配置中
-        config['MQTT'].update(conf)
+
 
     #关闭数据库
     def close(self):
@@ -31,7 +23,6 @@ class data:
         if res:
             for v in res:
                 conf[v['key']] = v['value']
-       # self.close()#xu
         return conf
 
     #修改数据库
@@ -39,17 +30,15 @@ class data:
         if type(tab) == type([1]):
             for x in tab:
                 self.db.table('config').add(x)
-       # self.close()#xu
 
     #更新状态
     def up_config(self, st):
         where={'key':st['key']}                                 #得到st字典里st的'new_dev'值。where={key:'new_dev"}
-        newcx = self.db.table('config').where(where).find();    #在数据库config里检测有没有找到{key:'new_dev"}
+        newcx = self.db.table('config').where(where).find()     #在数据库config里检测有没有找到{key:'new_dev"}
         if (newcx):                                             #如果是False或者None时则else
-            self.db.table('config').where(where).save({'value':st['value']});   #
+            self.db.table('config').where(where).save({'value':st['value']})   #
         else:
-            self.db.table('config').add(st);
-        #self.close();
+            self.db.table('config').add(st)
 
 
     #保存必要参数
@@ -60,57 +49,66 @@ class data:
         except:
             print('表存在')
 
+        ret_dict = {}
+
         where = {'key':'clientid'}
         cx = self.db.table('config').where(where).find()
         if(cx):
-            up = self.db.table('config').where(where).setField('value',jsonstr['clientid'])
+            self.db.table('config').where(where).setField('value',jsonstr['clientid'])
         else:
-            up = self.db.table('config').add({'key':'clientid','value':jsonstr['clientid'],'nona':'设备ID'})
+            self.db.table('config').add({'key':'clientid','value':jsonstr['clientid'],'nona':'设备ID'})
 
         where = {'key':'mqtt_name'}
-        cx = self.db.table('config').where(where).find();
+        cx = self.db.table('config').where(where).find()
         if(cx):
             self.db.table('config').where(where).setField('value',jsonstr['clientid'])
         else:
             self.db.table('config').add({'key':'mqtt_name','value':jsonstr['clientid'],'nona':'MQTT用户名'})
 
         where = {'key':'mqtt_pass'}
-        cx = self.db.table('config').where(where).find();
+        cx = self.db.table('config').where(where).find()
         if(cx):
             self.db.table('config').where(where).setField('value',jsonstr['skey'])
         else:
             self.db.table('config').add({'key':'mqtt_pass','value':jsonstr['skey'],'nona':'MQTT密钥'})
 
         where = {'key':'mqtt_devid'}
-        cx = self.db.table('config').where(where).find();
+        cx = self.db.table('config').where(where).find()
         if(cx):
             self.db.table('config').where(where).setField('value',jsonstr['devid'])
         else:
             self.db.table('config').add({'key':'mqtt_devid','value':jsonstr['devid'],'nona':'MQTT密钥ID'})
 
+        ret_dict = {
+            'clientid'   : jsonstr['clientid'],
+            'mqttname'  : jsonstr['clientid'],
+            'mqttpass'  : jsonstr['skey']
+        }
+        return ret_dict
+
 
     ##是否为新设备
     def	get_newdev(self,deviceid):
         where = {'key':'clientid'}
-        cx = self.db.table('config').where(where).find();                            #检测{'key':'clientid'}
+        cx = self.db.table('config').where(where).find()                            #检测{'key':'clientid'}
         is_new = '0'
         if (cx):
-            cx = cx[0];
+            cx = cx[0]
             if (str(deviceid)==str(cx['value'])):       #mac地址和数据库mac地址对比
-                newcx = self.db.table('config').where({'key':'new_dev'}).find();    #读取数据库的key的new_dev值=newcx变量
+                newcx = self.db.table('config').where({'key':'new_dev'}).find()    #读取数据库的key的new_dev值=newcx变量
                 if (newcx):
-                    is_new = newcx[0]['value']#0或1
+                    is_new = str(newcx[0]['value'])      #0或1
                 else:
-                    is_new = '1';
+                    is_new = '1'
                     self.db.table('config').add({'key':'new_dev','value':'1','nona':'是否为新设备'})
             else:
-                is_new = '1';
+                is_new = '1'
                 self.db.table('config').add({'key':'new_dev','value':'1','nona':'是否为新设备'})
         else:
-            is_new = '1';
+            is_new = '1'
             self.db.table('config').add({'key':'clientid','value':deviceid,'nona':'设备ID'})
             self.db.table('config').add({'key':'new_dev','value':'1','nona':'是否为新设备'})
-        self.db.close();
+        self.db.close()
 
         ret = {'code':'9999','msg':'未知错误','data':''}
         if (is_new=='1'):
@@ -170,9 +168,9 @@ class data:
                 return {'state':0,'data':'','msg':'绑定新用户信息失败！','stop':True}
 
     '''
-    * 更新用户表数据
-    * uid       --  用户uid
-    * updata    --  更新数据(字典)
+    更新用户表数据
+    uid       --  用户uid
+    updata    --  更新数据(字典)
     '''
     def user_up(self,uid, update):
         mmap = {'uid':uid}
@@ -181,9 +179,10 @@ class data:
             return {'state':True,'data': "更新用户信息完成",'msg':'','type':'system','stop':True}
         else:
             return {'state':False,'data': "更新用户信息失败",'msg':'','type':'system','stop':True}
+
     '''
-    * 删除用户的方法
-    * uid       --  用户uid
+    删除用户的方法
+    uid       --  用户uid
     '''
     def user_del(self,uid):
         mmap = {"uid":uid}

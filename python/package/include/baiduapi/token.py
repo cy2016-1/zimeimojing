@@ -5,8 +5,8 @@ import os,json,requests,time
 class Token(Base):
     '''百度语音识别'''
 
-    def __init__(self,token_file):
-        self.token_file = token_file
+    def __init__(self, conf_info ):
+        self.conf_info = conf_info
 
     '''wenjian_guoqi#文件过期，指的是该文件修改时间距离现在没有超过25天
         参数 :
@@ -35,8 +35,8 @@ class Token(Base):
     def __lianwang_huoqutoken(self):
         log.info('正在网络请求：access_token')
         #获取token秘钥
-        url  = self.config['BAIDUAPI']['url']['shibie_token_url']
-        body = self.config['BAIDUAPI']['yuyin_body']
+        url  = self.conf_info['token_url']
+        body = self.conf_info['body']
 
         try:
             r = requests.post(url,data=body,verify=True,timeout=5)
@@ -53,33 +53,38 @@ class Token(Base):
             网络异常;返回'No_network'
     '''
     def __huancun_token(self):
-        jiancha = os.path.exists( self.token_file )#检查
+        token_file = self.conf_info['token_file']
+        jiancha = os.path.exists( token_file )#检查
 
         log.info('是否存在本地缓存access_token', jiancha)
 
         if jiancha == False:        #没有该文件的话，创建一下，并写入，在返回token
+            p_path = os.path.dirname(token_file)
+            if os.path.isdir(p_path)==False:
+                os.system('sudo mkdir -p '+ p_path)
+                
             token = self.__lianwang_huoqutoken()
             if token['state']==False:
                 return token
-            with open(self.token_file,'w',encoding='utf-8') as of:
+            with open(token_file,'w',encoding='utf-8') as of:
                 of.write(token['access_token'])         #初始化写入的是tokenk
                 return {'state': True, 'access_token': token["access_token"], 'msg':'获取access_token成功'}
 
         else:       #如果有的话,过滤获取得到tokenk在返回
-            if self.wenjian_guoqi(self.token_file)==True:
+            if self.wenjian_guoqi(token_file)==True:
                 log.warning('本地缓存已过期')
-                os.remove(self.token_file)
-                time.sleep(1)
+                os.remove(token_file)
+                #time.sleep(1)
                 return self.__huancun_token()
             else:
                 log.info('正在读取本地缓存access_token')
                 f_token = ''
-                with open(self.token_file,'r', encoding='utf-8') as of:
+                with open(token_file,'r', encoding='utf-8') as of:
                     f_token = of.read()
 
                 if f_token == '':
-                    os.remove(self.token_file)
-                    time.sleep(1)
+                    os.remove(token_file)
+                    #time.sleep(1)
                     return self.__huancun_token()
                 else:
                     return {'state': True, 'access_token': f_token, 'msg':'获取access_token成功'}

@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
-from package.base import Base,log
+import base64
+import json
+import os
+import re
+import urllib.request
+
+import requests
+
 import package.include.baiduapi.token as key
-import os,re,json,base64,requests,urllib.request
+from package.base import Base, log
 
 #参考资料https://www.cnblogs.com/Pond-ZZC/p/6718205.html
 #播放声音https://blog.csdn.net/xiongtiancheng/article/details/80577478
@@ -10,8 +17,11 @@ class Shibie(Base):
     '''百度语音识别'''
 
     def __init__(self):
-        self.token_file = os.path.join(self.config['root_path'] , 'data/yuyin/baidu_token.txt')
-        self.huoqu_token = key.Token(self.token_file)
+        token_file  = os.path.join(self.config["root_path"],'runtime/token/yuyin_token.txt')
+        self.yuyin_conf = self.config['BAIDUAPI']['yuyin_conf']     #读取配置里人脸识别参数
+        self.yuyin_conf['token_file'] = token_file
+        self.huoqu_token = key.Token(self.yuyin_conf)
+
 
     '''（私有方法）__yuyin_shibie_api#   链接百度语音识别的api方法
     参数：
@@ -22,7 +32,6 @@ class Shibie(Base):
         网络异常:返回No_network#没有网络
     '''
     def __yuyin_shibie_api(self,audio_data):
-
         token = self.huoqu_token.main()
         if token['state'] == False:
             return token
@@ -34,7 +43,7 @@ class Shibie(Base):
         "channel": 1,"cuid":self.config['BAIDUAPI']['CUID'],
         "token": token['access_token'], "speech": speech_data,"len": speech_length}
 
-        url = self.config['BAIDUAPI']['url']['shibie_api_url']
+        url = self.yuyin_conf['shibie_api_url']
         json_data = json.dumps(post_data).encode("utf-8")
         json_length = len(json_data)
 

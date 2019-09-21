@@ -1,18 +1,22 @@
-import time,os,re
-from urllib.request import urlopen,Request
-import multiprocessing as mp                            #多进程
+import multiprocessing as mp  # 多进程
+import os
+import re
+import time
+from urllib.request import Request, urlopen
+
+import psutil  # 检测内存
 import RPi.GPIO as GPIO
-import psutil       #检测内存
-from package.base import Base,log                       #基本类
-from package.device import device
+from package.base import Base, log  # 基本类
 from package.setnet import Setnet
+
 
 class Check(Base):
     """设备检测类"""
 
     def __init__(self):
-        self.is_bind = True        #是否启动用户绑定提示窗口
+        self.is_bind = True         #是否启动用户绑定提示窗口
         self.onnet_time = 0         #网络断开时间
+        self.netstatus  = False     #网络状态，True -- 通，False -- 不通
 
         #设置不显示警告
         GPIO.setwarnings(False)
@@ -49,13 +53,16 @@ class Check(Base):
 
     #启用检测是否有用户
     def enable_bind(self):
-        if self.is_bind == True:
+        if self.is_bind == True and self.netstatus is True:
             u_list = self.data.user_list_get()
             if self.mylib.is_empty(u_list):
-                clientid = self.config['httpapi']+'/'+ self.config['MQTT']['clientid']
-                nav_json = {"event":"open","size":{"width":380,"height":380},"url":"bind_user.html?qr="+ clientid }
-                #self.public_obj.sw.send_nav( nav_json )            #### 小程序还没有发布，暂时给这个屏蔽
-            self.is_bind = False
+                if self.config['MQTT']['clientid']:
+                    clientid = self.config['httpapi'] +'/'+ self.config['MQTT']['clientid']
+                    nav_json = {"event":"open","size":{"width":380,"height":380},"url":"bind_user.html?qr="+ clientid }
+                    self.public_obj.sw.send_nav( nav_json )
+                    self.is_bind = False
+            else:
+                self.is_bind = False
 
     #人体探测
     def detect_ren(self):
@@ -110,7 +117,7 @@ class Check(Base):
         wdg = re.match( r"temp=(.+)\'C", res, re.M|re.I)
         if wdg.group(1):
             wd = float(wdg.group(1))
-            if wd >= 55:
+            if wd >= 70:
                 if self.pin_fengshan_zt == 0:
                     self.pin_fengshan_zt = 1
                     GPIO.output( self.pin_fengshan_kg, GPIO.HIGH )
@@ -130,29 +137,23 @@ class Check(Base):
             f = urlopen(req, timeout = 2)
             if f.getcode() == 200:
                 #print('通')
+                self.netstatus = True
                 net_st = {'netstatus':1}
                 self.jishuqi['onnet_time'] = 0
             else:
                 #print('不通')
+                self.netstatus = False
                 self.jishuqi['onnet_time'] += 1
                 net_st = {'netstatus':0}
             del req,f
-        except BaseException as e:
+        except:
             #print('不通')
+            self.netstatus = False
             self.jishuqi['onnet_time'] += 1
             net_st = {'netstatus':0}
 
         self.public_obj.sw.send_devstate( net_st )
 
-        '''
-        if self.jishuqi['start_net']==True:
-            self.jishuqi['start_net'] = False
-            setnet.Setnet().main()
-
-        if self.jishuqi['onnet_time'] > 60:         #5秒 * 60 = 30分钟
-            self.jishuqi['start_net'] = True
-            self.jishuqi['onnet_time'] = 0
-        '''
 
     #检测配网
     def detect_setnet(self):
@@ -171,14 +172,10 @@ class Check(Base):
 
     # 初始化默认配置
     def default_config(self):
+        pass
         #屏幕控制类
         #self.screens = screens.Screen(self.public_obj)
         #self.screens.openclose_screen(1)        # 初始化打开屏幕
-
-        #设备上线
-        ret = device().online()
-        #print( type(ret) )
-
 
     #开始启动
     def start(self):
@@ -206,4 +203,3 @@ class Check(Base):
         self.public_obj = public_obj
         #启动监视进程
         mp.Process(target=self.start).start()
-

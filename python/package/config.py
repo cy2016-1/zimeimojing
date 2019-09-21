@@ -51,22 +51,31 @@ config = {
             "duibi_api_url"   : "https://aip.baidubce.com/rest/2.0/face/v3/match",  # 百度人脸对比请求网址
         },
 
-        'yuyin_body':{
-            "grant_type"    : "client_credentials",
-            "client_id"     : "8IUGBKypHccENIUzCeggIZt1",
-            "client_secret" : "kj0fIVYFe4BSjSkA0TBzyPWhcnqkwnu1"
+        'yuyin_conf':{
+            "token_url"       : "https://openapi.baidu.com/oauth/2.0/token",      # 百度语音识别获取token的网址
+            "shibie_api_url"  : "http://vop.baidu.com/server_api",                # 百度语音识别的网址
+            "hecheng_api_url" : "http://tsn.baidu.com/text2audio",                # 百度语音合成的网址
+            "body":{
+                "grant_type"      : "client_credentials",
+                "client_id"       : "8IUGBKypHccENIUzCeggIZt1",
+                "client_secret"   : "kj0fIVYFe4BSjSkA0TBzyPWhcnqkwnu1"
+            }
         },
 
-        'renlian_body':{
-            "grant_type"    : "client_credentials",
-            "client_id"     : "YwtrR3YSTCHRrOP0bOmGwVSS",
-            "client_secret" : "RDOdZUF3KXawMAKWgMgrrGqrl9FKeAvG"
+        'renlian_conf':{
+            "token_url"     : "https://aip.baidubce.com/oauth/2.0/token?",        # 人脸对比token地址
+            "api_url"       : "https://aip.baidubce.com/rest/2.0/face/v3/match",  # 百度人脸对比请求网址
+            "body":{
+                "grant_type"    : "client_credentials",
+                "client_id"     : "YwtrR3YSTCHRrOP0bOmGwVSS",
+                "client_secret" : "RDOdZUF3KXawMAKWgMgrrGqrl9FKeAvG"
+            }
         }
     },
 
     #摄像头
     "CAMERA":{
-        'enable' : True        # 是否启用 ： True -- 启用，False -- 禁用
+        'enable' : False        # 是否启用 ： True -- 启用，False -- 禁用
     }
 }
 

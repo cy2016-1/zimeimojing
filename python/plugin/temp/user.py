@@ -1,16 +1,27 @@
-import urllib,os
-from package.base import Base       #基本类
-from plugin import Plugin
+import os
+import re
+import urllib
+
 import package.mymqtt as mymqtt
+from package.base import Base  # 基本类
+from plugin import Plugin
+
 
 class User(Base,Plugin):
     def __init__(self, public_obj):
         self.public_obj = public_obj
         self.Mqtt = mymqtt.Mymqtt(self.config)
 
+    #打开绑定信息
+    def user_openbind(self, postjson):
+        clientid = self.config['httpapi']+'/'+ self.config['MQTT']['clientid']
+        nav_json = {"event":"open","size":{"width":380,"height":380},"url":"bind_user.html?qr="+ clientid }
+        self.public_obj.sw.send_nav( nav_json )
+        return {'state':True,'data': "设备绑定功能已启动，你现在可以打开微信小程序开始绑定设备了",'msg':'','type':'system','stop':True}
+
+
     #用户绑定操作
     def user_bind(self, postjson):
-
         postjson = postjson['data']
         re_json = {"code":'9999',"msg":"绑定操作失败，请重新操作"}
         if not type(postjson) is dict:
@@ -33,11 +44,18 @@ class User(Base,Plugin):
         if int(info['state']) >= 1:
             uid = info['data']['uid']
             self.user_face_bind(uid)
-            return {'state':False,'data': "注册完成",'msg':'','type':'system','stop':True}
+            return {'state':True,'data': "恭喜您，注册绑定成功！",'msg':'','type':'system','stop':True}
 
 
     #用户人脸绑定
     def user_face_bind(self, uid ):
+        import os
+        ls_str = os.popen("sudo ls -al /dev/ | grep video").read()
+        if re.search("video0", ls_str) == None:
+            self.public_obj.sw.send_nav({"event" : "close"})                 #取消显示二维码导航消息
+            re_json = {"code":'0003', "msg":'未检测到摄像头'}
+            self.Mqtt.send_admin('xiaocx', 'USER_REG', re_json )
+            return
 
         if self.config['CAMERA']['enable']==False:
             '''系统配置为不启用摄像头'''
@@ -46,17 +64,17 @@ class User(Base,Plugin):
             self.Mqtt.send_admin('xiaocx', 'USER_REG', re_json )
             return
 
-        import os,time
+        import time
         from package.include.eyes.opencv import Opencv        #人脸离线识别
 
         #保存用户图像成功
-        temp_photo = os.path.join(self.config['root_path'], "data/shijue/photos_"+ str(uid) +".jpg")
+        temp_photo = os.path.join(self.config['root_path'], "runtime/shijue/photos_"+ str(uid) +".jpg")
         ding_wav = os.path.join(self.config['root_path'], "data/snowboy/ding.wav")
 
         def success( is_succ, cap, cv2 ):
             if is_succ:
                 postup = {'facepath':temp_photo}
-                res = self.data.user_up( uid, postup )
+                self.data.user_up( uid, postup )
                 os.popen("sudo aplay -q "+ ding_wav )
                 time.sleep(1)
                 cap.release()
@@ -127,7 +145,11 @@ class User(Base,Plugin):
     def start(self,name):
         print( name )
         #用户注册绑定
-        if name["action"]   == "USER_REG":
+        if name["action"] == "USER_OPENREG":
+            return self.user_openbind(name)
+
+        #用户注册绑定
+        elif name["action"] == "USER_REG":
             return self.user_bind(name)
         #用户修改
         elif name["action"] == "USER_EDIT":
