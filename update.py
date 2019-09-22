@@ -169,7 +169,7 @@ def down_newfile():
         run_gitcmd( git_cmd, 'system' )
         time.sleep(1)
     else:
-        git_cmd = 'git clone '+ GITEE_URL +' '+ UPDATE_DIR
+        git_cmd = 'git clone --recursive '+ GITEE_URL +' '+ UPDATE_DIR
         cmd = git_cmd +' > /dev/null 2>&1'
         os.system( cmd )
         time.sleep(1)

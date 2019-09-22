@@ -1,9 +1,13 @@
-import os,re
-from package.base import Base       #基本类
-from plugin import Plugin
-import package.mymqtt as mymqtt                         #mqtt服务（神经网络）
-import plugin.temp.voices as voices
+import os
+import re
+import time
+
+import package.mymqtt as mymqtt  # mqtt服务（神经网络）
 import plugin.temp.screens as screens
+import plugin.temp.voices as voices
+from package.base import Base  # 基本类
+from plugin import Plugin
+
 
 class Device(Base,Plugin):
     """设备技术类"""
@@ -15,7 +19,7 @@ class Device(Base,Plugin):
     # 获取设备IP
     def get_ip_address(self):
         re_json = []
-        
+
         restr = r'inet\s+([\d+\.]+)\s+'
 
         eth0ip = os.popen('ifconfig eth0').read()
@@ -138,7 +142,9 @@ class Device(Base,Plugin):
             self.data.up_config({"key":"city",'value':data['name']})
             self.Mqtt.send_admin('xiaocx', 'DEVICE_CITY',{"code":"0000","msg":"修改天气预报默认城市成功"})
             self.public_obj.sw.send_nav({"event" : "close"})
+            time.sleep(1)
             self.public_obj.sw.send_nav({"event" : "close"})
+            time.sleep(1)
             return {'state':True,'data': "修改天气预报默认城市为"+ str(data['name']) ,'msg':'','type':'system','stop':True}
         else:
             self.Mqtt.send_admin('xiaocx', 'DEVICE_CITY',{"code":"1001","msg":"修改天气预报默认城市失败"})

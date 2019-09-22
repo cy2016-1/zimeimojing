@@ -13,8 +13,8 @@ class Weatheraddress( Plugin,Base ):
         try:
 
             res  = {'code':'9999','msg':'请求失败！','data':''}
-            url  = "https://search.heweather.net/find?"
-            data = urlencode({'location': postdata, 'key': 'ba623341728e4c08af816220f07821c1'})
+            url  = "https://hapi.16302.com/raspberry/getcityid.html"
+            data = urlencode({"cityname":postdata})
             req  = Request(url, data.encode('utf-8'))
             f    = urlopen(req,timeout = 10)
 
@@ -22,7 +22,8 @@ class Weatheraddress( Plugin,Base ):
                 response  =   json.loads( f.read().decode() )
                 res['code'] = '0000'
                 res['msg']  = '请求成功！'
-                res['data']  = response["HeWeather6"][0]
+                print(response[0],"cc"*100,response[0]["cid"][-1:])
+                res['data']  = response[0]
 
         finally:
             return res
@@ -40,23 +41,30 @@ class Weatheraddress( Plugin,Base ):
             http_data = data["data"][path:-1]
         #请求服务器
         have = self.http_urllib(http_data)
+        #检测是否正常的地址id
+        try:effective =  int(have["data"]["cid"][-1:])     
+        except:effective =""
+        #检测地区是否正常
+        try:
+            if have["data"]["cid"][:2] != "CN":
+                return {'state':True,'data': "设置天气失败，地址不在中国" ,'msg':'','stop':True}   
+                
+            #判断网络是否正常和服务器返回是否正常
+            elif have["code"]=="0000" and type(effective) == type(int()) and len(have["data"]["location"]) <=10:
+                #修改数据库
+                self.data.up_config({"key":"city_cnid",'value':have["data"]["cid"]})
+                #返回结果
+                run.stop("moJing")
+                return {'state':True,'data': "设置天气为{}重启生效。".format(http_data) ,'msg':'','stop':True}
 
-        print(have["data"])
-        print(have["data"]['basic'][0]["cid"])
-        #判断网络是否正常和服务器返回是否正常
-        if have["code"]=="0000" and have["data"]["status"] =="ok" and len(have["data"]['basic'][0]["location"]) <=10:
-            #修改数据库
-            self.data.up_config({"key":"city_cnid",'value':have["data"]['basic'][0]["cid"]})
-            #返回结果
-            run.stop("moJing")
-            return {'state':True,'data': "设置天气为{}重启生效。".format(http_data) ,'msg':'','stop':True}
-
-        else:
-            #错误也返回结果
-            return {'state':True,'data': "设置天气失败，可能语句缺少省市单位" ,'msg':'','stop':True}
+            else:
+                #错误也返回结果
+                return {'state':True,'data': "设置天气失败，可能语句缺少省市单位" ,'msg':'','stop':True}
+        except:
+            return {'state':True,'data': "设置天气失败，可能地址不存在" ,'msg':'','stop':True}
 if __name__ == '__main__':
 
-    print(Weather_address().start({"data":"天津"}))
+    print(Weather_address().start({"data":"天津市"}))
 
 
 

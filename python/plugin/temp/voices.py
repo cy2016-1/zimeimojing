@@ -5,7 +5,6 @@ class Yinliang(): #设置系统音量
 
     # 整数的四舍五入
     def l_45(self,ints):
-
         ints , new= int(ints),10
         #取最后一个值
         have = int(str(ints)[-1:])
@@ -13,7 +12,27 @@ class Yinliang(): #设置系统音量
             ints -= have
             ints += 10
         else: ints -= have
+        del new
         return ints
+
+    '''
+    判断声卡是否有声音
+    返回:
+        1   -- 有声音
+        0   -- 没声音
+    '''
+    def is_voice(self):
+        cmd = 'lsmod | grep -i snd_soc_wm8960_soundcard'
+        cmd_ret = os.popen(cmd).read()
+
+        restr = r'snd_soc_wm8960_soundcard\s+\d+\s+(\d)'
+        math  = re.search(restr, cmd_ret,  re.M|re.I)
+        if math != None:
+            if int( math.group(1) ) <= 5:
+                return 0
+            else:
+                return 1
+        return 0
 
     def main(self,size_txt):
         try:
@@ -25,19 +44,22 @@ class Yinliang(): #设置系统音量
                 #y = 24.979ln(x) - 14.581
                 y = 24.979*math.log(txt) - 14.581
                 os.system("sudo amixer set Speaker {}%".format(y))
-                return {'state':True,'data':"声音{}%".format(txt) ,'msg':'参数1，需要输入字符串类型！','stop':True}
+                data_val = ''
+                if self.is_voice() <= 0:
+                    data_val = '音量{}'.format(txt)
+                return {'state':True,'data':data_val,'msg':'','stop':True}
 
             elif txt <20:
                 y2 = 24.979*math.log(20) - 14.581
                 os.system("sudo amixer set Speaker {}%".format(y2))
-                return {'state':True,'data': "声音最小了",'msg':'参数1，需要输入字符串类型！','stop':True}
+                return {'state':True,'data': "音量最小了",'msg':'音量已经最小了','stop':True}
 
             elif txt >100:
                 y3 = 24.979*math.log(100) - 14.581
                 os.system("sudo amixer set Speaker {}%".format(y3))
-                return {'state':True,'data': "声音最大了",'msg':'参数1，需要输入字符串类型！','stop':True}
+                return {'state':True,'data': "音量最大了",'msg':'音量已经最小了','stop':True}
 
-        except:return {'state':True,'data': "没听清你说声音设置多少呢",'msg':'参数1，需要输入字符串类型！','stop':True}
+        except:return {'state':True,'data': "没听清你说音量设置多少呢",'msg':'无知音量值','stop':True}
 
 class Voices(Plugin):  #分析是否控制音量的语句
     def __init__(self, public_obj):

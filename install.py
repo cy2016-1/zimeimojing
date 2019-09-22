@@ -7,7 +7,15 @@ if int(os.popen("id -u").read()) !=0:
     print("请用root权限执行：sudo ./install.py")
     exit()
 
-#接收参数
+'''
+接收命令行参数
+空      --  正常安装
+update  --  升级操作
+    不重置数据库
+    不重置WiFi网络
+release --  发布操作
+    不重启设备
+'''
 argv = ""
 if len(sys.argv)>1:
     argv = sys.argv[1]
@@ -152,7 +160,7 @@ create_table = []
 create_table=['CREATE TABLE "config" ("key" TEXT(20),"value" TEXT(20),"nona" TEXT(200));', 'CREATE TABLE "nmap_config" ("key" TEXT(20),"value" TEXT(20),"nona" TEXT(200));', 'CREATE TABLE "nmap_mon" ("mac" TEXT(20) NOT NULL PRIMARY KEY,"ip" TEXT(15),"notename" TEXT(30),"up_time" TEXT(11),"is_online" INTEGER);', 'CREATE TABLE "nmap_mon_list" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"mac" TEXT(20),"up_time" TEXT(20),"jiange" INTEGER);', 'CREATE TABLE "nmap_online" ("mac" TEXT(20) NOT NULL PRIMARY KEY,"ip" TEXT(15),"name" TEXT(50),"notename" TEXT(50),"up_time" TEXT(11),"is_online" INTEGER);', 'CREATE TABLE "user_list" ("uid" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"realname" TEXT,"gender" integer,"birthday" TEXT,"nickname" TEXT,"facepath" TEXT);']
 #=[CreatedatabaseEnd]=
 
-if len(create_table) > 0:
+if len(create_table) > 0 and argv != 'update':
     CreateTables(create_table)
 
 

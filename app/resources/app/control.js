@@ -24,6 +24,7 @@ var control = {
 			if( !control.childWin.isDestroyed() ){
 				control.childWin.close();
 			}
+			control.childWin = "";
 		}
 
 		//console.log( typeof(nav_json) );

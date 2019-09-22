@@ -93,20 +93,18 @@ class Master(Base):
     def command_success(self, reobj = {} ):
         log.info("命令动作执行_成功", reobj )
 
-        #发送到前面屏幕
-        send_txt = {'obj':'mojing','msg': reobj['data']}
-        self.public_obj.sw.send_info( send_txt )
-        del send_txt
-
-        if type( reobj['msg'] ) is dict and reobj['state'] is False:
+        if reobj['state'] is True and reobj['data']:
+            #发送到前面屏幕
+            send_txt = {'obj':'mojing','msg': reobj['data']}
+            self.public_obj.sw.send_info( send_txt )
+            del send_txt
+            yuyin.Hecheng_bofang(self.is_snowboy, self.public_obj).main( reobj )
+        
+        elif type( reobj['msg'] ) is dict:
             msg = reobj['msg']
             if 'errtype' in msg.keys():
                 yuyin.Hecheng_bofang(self.is_snowboy, self.public_obj).error( msg['errtype'] )
-        else:
-            #合成语音并播放
-            #reobj = {'state': True,'data': '咋啦……','type': 'system','msg': '这段只用于生成录音用，不用的时候需要给注释掉'}
 
-            yuyin.Hecheng_bofang(self.is_snowboy, self.public_obj).main( reobj )
 
 
 

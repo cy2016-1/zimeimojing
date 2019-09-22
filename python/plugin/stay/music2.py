@@ -1,4 +1,4 @@
-import requests,os,time,re,string,math,random,pygame,threading,random,json
+import requests,os,time,re,string,math,random,pygame,threading,random
 import multiprocessing as mp    #多进程
 from plugin import Plugin
 from package.base import Base       #基本类
@@ -31,28 +31,7 @@ class Music(Base, Plugin):
 
         if self.voices() > 80:
             os.system("sudo amixer set Speaker 80%")
-        self.headers1 = {
-        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Encoding":"gzip, deflate",
-        "Accept-Language":"zh-CN,zh;q=0.9",
-        "Cache-Control":"max-age=0",
-        "Connection":"keep-alive",
-        "If-Modified-Since":"Sat, 14 Sep 2019 07:16:40 GMT",
-        "Upgrade-Insecure-Requests":"1",
-        "User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36"
-        }
-        self.headers2 = {
-        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Encoding":"gzip, deflate",
-        "Accept-Language":"zh-CN,zh;q=0.9",
-        "Cache-Control":"max-age=0",
-        "Connection":"keep-alive",
-        "Cookie":"__guid=254656782.2527316870715561500.1554897413327.5122; kg_mid=b09a65745f398882d240d653f785ea3d; kg_dfid=1ajpD13DCVBn0FW0Vt4MLhAt; Hm_lvt_aedee6983d4cfc62f509129360d6bb3d=1568448840; kg_dfid_collect=d41d8cd98f00b204e9800998ecf8427e; ACK_SERVER_10015=%7B%22list%22%3A%5B%5B%22gzlogin-user.kugou.com%22%5D%5D%7D; ACK_SERVER_10016=%7B%22list%22%3A%5B%5B%22gzreg-user.kugou.com%22%5D%5D%7D; ACK_SERVER_10017=%7B%22list%22%3A%5B%5B%22gzverifycode.service.kugou.com%22%5D%5D%7D; monitor_count=11; Hm_lpvt_aedee6983d4cfc62f509129360d6bb3d=1568448843",
-        "Host":"www.kugou.com",
-        "If-Modified-Since":"Sat, 14 Sep 2019 07:16:40 GMT",
-        "Upgrade-Insecure-Requests":"1",
-        "User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36"
-        }
+
     #发送文字到屏幕
     def postmojing(self,data):
         try:
@@ -123,8 +102,7 @@ class Music(Base, Plugin):
         play = re.sub( '[%s]' % re.escape( string.punctuation ), '-',self.musicname[ints] )
 
 
-        data =  self.http_post("http://www.kugou.com/yy/index.php?r=play/getdata&hash={0}".format(ID),self.headers2)
-
+        data = self.http_post(url ="http://antiserver.kuwo.cn/anti.s?type=convert_url&rid="+ID+"&format=mp3&response=url")
         #歌曲链接
         if data["code"] =="404":
             self.postmojing("没有找到该歌曲,你可以这样搜索,流行歌曲,90后歌曲,纯音乐等等")
@@ -134,25 +112,18 @@ class Music(Base, Plugin):
             self.postmojing("网络可能有点问题")
             return
 
-        data = data["data"]
-        data = json.loads(data)
-        data = data["data"]["play_url"]
+        data= data["data"]
 
-        #检测是否存在歌曲链接，不存在就下一首
-        if len(data)<5:
-            return "lower"
         #进程的不同所有操作上下歌曲时依次在内部停止歌曲
         pygame.init()
         pygame.mixer.init()
         pygame.mixer.music.stop()
         #发送到前面屏幕
 
-        self.postmojing("如果歌曲音量太大导致语音唤醒困难，使用微信小程序控制音量")
+        self.postmojing("歌曲音量太大导致语音唤醒困难，使用微信小程序控制音量")
 
         if os.path.exists(self.music_path+play+".mp3") ==False:
             self.postmojing("正在缓冲："+play)
-
-
             r = requests.get(data, stream=True, timeout = 30)
             f = open("{0}{1}.mp3".format(self.music_path,play), "wb")
             for chunk in r.iter_content(chunk_size=512):
@@ -173,9 +144,9 @@ class Music(Base, Plugin):
                     return  "song"
 
                 #缓存期间唤醒后全部结束歌曲
-                if self.is_pause.value==1:
-                    self.is_pause.value=0
-                    return "stop"
+              #  if self.is_pause.value==1:
+               #     self.is_pause.value=0
+               #     return "stop"
 
 
 
@@ -194,50 +165,37 @@ class Music(Base, Plugin):
           #  print("停止",self.musicstopstop.value )
           #  print("继续",self.continue_implementation.value  )
          #$   print("暂停",self.is_pause.value)
-            ##########################
-            #唤醒后暂停
-            if self.is_pause.value==1:
-                pygame.mixer.music.pause()
-                self.is_pause.value = 0
-            ##########################
+
          #   停止循环  停止音乐  停止线程  主进程存在
-            elif self.musicstopstop.value == 1:
+            if self.musicstopstop.value == 1:
                 self.musicstopstop.value = 0
                 return "stop"
             #下个曲
-            elif self.musicst_lower.value == 1:
+            if self.musicst_lower.value == 1:
                 self.musicst_lower.value = 0
                 return "lower"
-            ##########################
-            #唤醒后暂停
-            if self.is_pause.value==1:
-                pygame.mixer.music.pause()
-                self.is_pause.value = 0
-            ##########################             
             #上一曲
-            elif self.last_song.value == 1:
+            if self.last_song.value == 1:
                 self.last_song.value = 0
                 return  "song"
           #  设置声音继续播放
-            elif self.continue_implementation.value == 1:
+            if self.continue_implementation.value == 1:
                 self.continue_implementation.value = 0
                 pygame.mixer.music.unpause()
 
-            ##########################
             #唤醒后暂停
             if self.is_pause.value==1:
-                pygame.mixer.music.pause()
                 self.is_pause.value = 0
-            ##########################  
-                
+                pygame.mixer.music.pause()
+
+            time.sleep(0.8)
 
         return "lower"
 
 
-    def http_post(self,url,headers):
-
+    def http_post(self,url):
         try:
-            response  = requests.get(url,headers=headers , timeout = 5)
+            response  = requests.get(url, timeout = 5)
             res = {'code':'404','msg':'网络请求失败！','data':''}
             if response.status_code==200:
                 res['code'] = '0000'
@@ -257,8 +215,8 @@ class Music(Base, Plugin):
         #删除音乐缓存
         self.musicdel(self.music_path)
    #     print("进入了for_paly")
-        url="http://mobilecdngz.kugou.com/api/v3/search/song?tag=1&tagtype=全部&area_code=1&plat=0&sver=5&api_ver=1&showtype=14&version=8969&keyword={0}&correct=1&page=1&pagesize=10".format(name)
-        data = self.http_post(url,self.headers1)
+        url="http://search.kuwo.cn/r.s?all="+ name +"&ft=music&itemset=web_2013&client=kt&pn=0&rn=10&rformat=json&encoding=utf8&rn=1&rformat=json&encoding=utf8"
+        data = self.http_post(url =url)
 
         #print(type(data["data"]))
         #得到数据
@@ -270,16 +228,14 @@ class Music(Base, Plugin):
             return
 
         have = data["data"]
-        have = json.loads(have)
-        # print(have["data"]["info"])
-        have = have["data"]["info"]#[0]["hash"]
+        #解析数据
+        text = eval(have)["abslist"]
         #锁定数据
         self.musicname = []
         self.musicid   = []
-        for x  in range(len(have)):
-            self.musicid.append(have[x]["hash"])
-            self.musicname.append(have[x]["songname"])
-
+        for x in text:
+            self.musicid.append(x['MUSICRID'])
+            self.musicname.append(x['NAME']+"-"+x['ARTIST'])
         postdata='<br>'.join(self.musicname)
         self.postmojing("歌曲列表："+postdata)
   #      print( self.musicid)
@@ -289,7 +245,7 @@ class Music(Base, Plugin):
         while 1:
             try:
                 ID = self.musicid[self.ID_ints]
-
+                print(ID,self.ID_ints,"播放id"*10)
                 have = self.playmusic(ID)
 
                 if have == "stop" :
@@ -305,7 +261,7 @@ class Music(Base, Plugin):
                     self.ID_ints +=1
 
             #列表播放完成 最后会超出索引停止循环播放
-            except:
+            except():
                 break
     #    print("线程彻底结束2")
 
@@ -316,7 +272,7 @@ class Music(Base, Plugin):
     #    print("进入start_play")
         #开始新的歌曲停止前面的歌曲线程
         self.musicstopstop.value = 1
-        time.sleep(0.1)
+        time.sleep(1)
         self.musicstopstop.value = 0
         t = mp.Process(target = lambda : self.for_paly(name) )#threading.Thread
         t.start()
@@ -330,7 +286,7 @@ class Music(Base, Plugin):
         #检测只是触发词和触发词+歌曲或者音乐
         if name["data"][path:]=="。" or name["data"][path:path+3]=="歌曲。" or name["data"][path:path+3]=="音乐。":
 
-            random_music = ["by2","林俊杰","she","本兮","庄心妍","梁静茹"]
+            random_music = ["by2","林俊杰","刘德华","本兮","庄心妍"]
             filearr = random_music[ random.randint(0,len(random_music)-1) ]
             self.start_play(filearr)
 
@@ -365,7 +321,7 @@ class Music(Base, Plugin):
     def pause(self):
         self.is_pause.value = 1
         #歌曲停止时 自动1秒后刷新，防止停止后继续播放新的歌曲导致暂停
-        time.sleep(0.1)
+        time.sleep(1.2)
         self.is_pause.value = 0
 
 
@@ -374,24 +330,24 @@ class Music(Base, Plugin):
 
         if name["trigger"] in ["上一曲","上一个","上一首"]:
             self.last_song.value = 1
-            time.sleep(0.1)
+            time.sleep(1.2)
             self.last_song.value = 0
 
 
         elif name["trigger"] in ["下一曲","下一个","下一首"]:
             self.musicst_lower.value = 1
-            time.sleep(0.1)
+            time.sleep(1.2)
             self.musicst_lower.value = 0
 
         elif name["trigger"] in ["暂停"]:
             self.is_pause.value = 1
-            time.sleep(0.1)
+            time.sleep(1.2)
             self.is_pause.value = 0
 
 
         elif name["trigger"] in ["继续"]:
             self.continue_implementation.value = 1
-            time.sleep(0.1)
+            time.sleep(1.2)
             self.continue_implementation.value = 0
 
         #播放新歌
@@ -400,13 +356,13 @@ class Music(Base, Plugin):
         #继续播放
         else:
             self.continue_implementation.value = 1
-            time.sleep(0.1)
+            time.sleep(1.2)
             self.continue_implementation.value = 0
 
     #插件结束
     def stop(self, *enobj):
         self.musicstopstop.value = 1
-        time.sleep(0.1)
+        time.sleep(1.2)
         self.musicstopstop.value = 0
 
 
