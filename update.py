@@ -6,14 +6,14 @@ if int(os.popen("id -u").read()) !=0:
     print("请用root权限执行：sudo ./update.py")
     exit()
 
-#当前运行系统目录
-THIS_DIR = os.getcwd()
+#运行自美系统的根目录
+SYSTEM_ROOT = '/'       #os.path.abspath(os.path.dirname(os.getcwd()))
 
-#系统根目录
-SYSTEM_ROOT = os.path.abspath(os.path.dirname(THIS_DIR))
+#系统目录
+SYSTEM_DIR = os.path.join(SYSTEM_ROOT, 'keyicx')
 
 #升级目录
-UPDATE_DIR = os.path.join( SYSTEM_ROOT, 'update')
+UPDATE_DIR = os.path.join(SYSTEM_ROOT, 'update')
 
 #升级库URL
 GITEE_URL = 'https://gitee.com/kxdev/zimeimojing.git'
@@ -150,7 +150,7 @@ def get_new_ver():
 
 #获取本地版本号
 def get_local_ver():
-    this_verfile = os.path.join(THIS_DIR, 'python/data/ver.txt')
+    this_verfile = os.path.join(SYSTEM_DIR, 'python/data/ver.txt')
     file_ver = ""
     if os.path.exists(this_verfile):
         fo = open(this_verfile, "r+")
@@ -194,12 +194,12 @@ def down_newfile():
 def move_dir():
     if os.path.exists(UPDATE_DIR):
         datetime = time.strftime("%Y%m%d%H%M%S", time.localtime())
-        back_path = THIS_DIR +'_'+str(datetime)
+        back_path = SYSTEM_DIR +'_'+str(datetime)
 
         print_str('正在备份原系统，请稍候……','n')
         progress(1)
 
-        cmd = 'sudo mv '+ THIS_DIR +' '+ back_path
+        cmd = 'sudo mv '+ SYSTEM_DIR +' '+ back_path
         os.system( cmd )
         progress(0)
 
@@ -207,7 +207,7 @@ def move_dir():
         progress(1)
         time.sleep(1)
 
-        cmd = 'sudo cp -rf '+ UPDATE_DIR +' '+ THIS_DIR
+        cmd = 'sudo cp -rf '+ UPDATE_DIR +' '+ SYSTEM_DIR
         os.system( cmd )
 
         print_str('[完成]','p')
@@ -267,10 +267,13 @@ def menu_startup():
             print_str('新版本文件环境部署完成！','p')
             print_str('开始准备安装！')
 
-            os.system('sudo python3 '+ THIS_DIR +'/install.py update')
+            os.system('sudo python3 '+ SYSTEM_DIR +'/install.py update')
 
             print_str('新系统安装成功，即将重启设备！','p')
 
     time.sleep(5)
 
-menu()
+if os.path.isdir(SYSTEM_DIR):
+    menu()
+else:
+    menu_startup()

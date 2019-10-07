@@ -206,7 +206,7 @@ def add_crontab():
     #===================================
     print_str("设置开机启动" ,'n','n')
 
-    autostart = '/home/pi/.config/autostart'
+    autostart = '/etc/xdg/autostart'
     if os.path.exists(autostart) is False:
         #print('目录不存在')
         os.system('mkdir -p '+ autostart )
@@ -428,26 +428,27 @@ def set_bootimg():
     default_splash = '/usr/share/plymouth/themes/pix/splash.png'
 
     #改桌面
-    desktop_conf = '/home/pi/.config/pcmanfm/LXDE-pi/desktop-items-0.conf';
-    f = open(desktop_conf,"r")
-    fstr = f.read()
-    f.close()
+    desktop_conf = '/home/pi/.config/pcmanfm/LXDE-pi/desktop-items-0.conf'
+    if os.path.exists(desktop_conf):
+        f = open(desktop_conf,"r")
+        fstr = f.read()
+        f.close()
 
-    restr = r'wallpaper\=(.+)\n'
-    matc = re.search( restr, fstr, re.M|re.I )
+        restr = r'wallpaper\=(.+)\n'
+        matc = re.search( restr, fstr, re.M|re.I )
 
-    is_write = False
-    if matc!=None:
-        if str(bootimg) != str(matc.group(1)):
-            new_api = 'wallpaper='+str(bootimg)+'\n'
-            fstr = re.sub(restr, new_api, fstr, 1, re.M|re.I )
-            is_write = True
+        is_write = False
+        if matc!=None:
+            if str(bootimg) != str(matc.group(1)):
+                new_api = 'wallpaper='+str(bootimg)+'\n'
+                fstr = re.sub(restr, new_api, fstr, 1, re.M|re.I )
+                is_write = True
 
-    if is_write:
-        fo = open(desktop_conf, "w")
-        line = fo.write( fstr )
-        fo.close()
-    del fstr
+        if is_write:
+            fo = open(desktop_conf, "w")
+            line = fo.write( fstr )
+            fo.close()
+        del fstr
 
     is_diff = diff_file( default_splash, bootimg )
     if is_diff is False:
@@ -539,7 +540,7 @@ def del_pycache(file_dir = "./"):
                 os.system("sudo rm -r "+root+"/"+x)
                 print_str('[完成]','p')
 
-del_pycache()
+del_pycache(root_path)
 
 print_str("安装工作全部完成*_^ ",'p')
 

@@ -160,7 +160,7 @@ class Check(Base):
         st = GPIO.input(self.pin_setnet)
         if int( st )==1:
             if self.jishuqi['pin_setnet_st'] >= 5:
-                if self.jishuqi['start_net']==True:
+                if self.jishuqi['start_net']==True and self.netstatus==False:
                     self.jishuqi['start_net'] = False
                     Setnet().main()
             else:

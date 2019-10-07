@@ -45,18 +45,28 @@ class pyaudio_obj(Base):
         self.yuyin_path = os.path.join(self.config['root_path'], 'data/yuyin')
         self.time,self.collections,self.sys,self.signal,self.wave,self.array,self.pack,self.so,self.np = time,collections,sys,signal,wave,array,pack,os,np
 
-        self.CHUNK = 512
-        FORMAT     = pyaudio.paInt16
-        CHANNELS   = 1
-        RATE       = 16000
+        FORMAT = pyaudio.paInt16
+        CHANNELS = 1
+        CHUNK_DURATION_MS = 30                              # supports 10, 20 and 30 (ms)
+        PADDING_DURATION_MS = 1500                          # 1 sec jugement
 
-        self.p = pyaudio.PyAudio()
-        self.stream = self.p.open(format=FORMAT,
-                        channels=CHANNELS,
-                        rate=RATE,
-                        input=True,
-                        #start = False,
-                        frames_per_buffer=self.CHUNK)
+        self.RATE = 16000
+        self.CHUNK_SIZE = int(self.RATE * CHUNK_DURATION_MS / 1000)   # chunk to read
+        self.NUM_PADDING_CHUNKS = int(PADDING_DURATION_MS / CHUNK_DURATION_MS)
+        self.NUM_WINDOW_CHUNKS = int(400 / CHUNK_DURATION_MS)    # 400 ms/ 30ms  ge
+        self.NUM_WINDOW_CHUNKS_END = self.NUM_WINDOW_CHUNKS * 2
+
+        pa = pyaudio.PyAudio()
+        self.stream = pa.open(format= FORMAT,
+                    channels = CHANNELS,
+                    rate = self.RATE,
+                    input = True,
+                    start = False,
+                    # input_device_index=2,
+                    frames_per_buffer = self.CHUNK_SIZE)
+
+        #0: Normal，1：low Bitrate， 2：Aggressive；3：Very Aggressive
+        self.vad = webrtcvad.Vad(3)
 
 class Master(Base):
     '''主控制类'''
@@ -76,6 +86,9 @@ class Master(Base):
 
         #全局对象类
         self.public_obj = public_obj()
+
+        #录音对象类
+        self.pyaudio_obj = pyaudio_obj()
 
         #初始化录音和识别
         self.Luyin_shibie =  yuyin.Luyin_shibie()
@@ -169,7 +182,7 @@ class Master(Base):
         #启动新进程开始录音+识别
         self.p2 = mp.Process(
             target = self.Luyin_shibie.main,
-            args = ( is_one, self.command_execution, pyaudio_obj(), self.public_obj )
+            args = ( is_one, self.command_execution, self.pyaudio_obj, self.public_obj )
         )
         self.p2.start()
 

@@ -18,8 +18,8 @@ html {font-size: 10px;}
  * background: #000000;     --  这种写法是将背景直接变成纯黑色，适合做魔镜类产品
 **/
 body{
-    background: #160D2A url('../img/system/splash.png') no-repeat center 0;
-    /* background: #000000; */
+    /*background: #160D2A url('../img/system/splash.png') no-repeat center 0;*/
+    background: #000000;
     color: #e4e4e4;
     font-size: 10px;
 }
