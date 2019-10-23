@@ -65,20 +65,18 @@ class User(Base,Plugin):
             return
 
         import time
-        from package.include.eyes.opencv import Opencv        #人脸离线识别
+        from package.include.opencv import Opencv        #人脸离线识别
 
         #保存用户图像成功
         temp_photo = os.path.join(self.config['root_path'], "runtime/shijue/photos_"+ str(uid) +".jpg")
         ding_wav = os.path.join(self.config['root_path'], "data/snowboy/ding.wav")
 
-        def success( is_succ, cap, cv2 ):
+        def success( is_succ):
             if is_succ:
                 postup = {'facepath':temp_photo}
                 self.data.user_up( uid, postup )
                 os.popen("sudo aplay -q "+ ding_wav )
                 time.sleep(1)
-                cap.release()
-                cv2.destroyAllWindows()
                 #取消显示二维码导航消息
                 self.public_obj.sw.send_nav({"event" : "close"})
                 re_json = {"code":'0003', "msg":'人脸图像已经保存成功'}
@@ -91,24 +89,21 @@ class User(Base,Plugin):
         opencv.success = success
 
         fier_file  = os.path.join(self.config['root_path'], "data/shijue/haarcascade_frontalface_default.xml")
-        fier_file2 = os.path.join(self.config['root_path'], "data/shijue/haarcascade_righteye_2splits.xml")
 
         param = {
             'temp_file': temp_photo,
             'fier_file':{
                 'file': fier_file,
-                'scaleFactor': 1.2,     #多少倍
-                'minNeighbors': 6,      #对比多少次
+                'scaleFactor': 1.2,        #多少倍
+                'minNeighbors': 20,      #对比多少次
                 'minSize': (40, 40)
-            },
-            'fier_file2':{
-                'file': fier_file2,
-                'scaleFactor': 1.2,
-                'minNeighbors': 6,
-                'minSize': (40, 40)
-            },
-            'show_win':True
-        }
+                },
+            'show_win':  { 
+                "is_show":  True,       
+                "is_focus": True,
+                },          
+            }
+            
         def start_video():
             opencv.main_video( param )
 
@@ -126,6 +121,7 @@ class User(Base,Plugin):
         else:
             self.Mqtt.send_admin('xiaocx', 'USER_REMOVE',{"code":'2001',"msg":"注销用户信息失败"})
             return have
+
      #用户修改
     def user_edit(self,name):
         '''
@@ -143,7 +139,6 @@ class User(Base,Plugin):
 
 
     def start(self,name):
-        print( name )
         #用户注册绑定
         if name["action"] == "USER_OPENREG":
             return self.user_openbind(name)

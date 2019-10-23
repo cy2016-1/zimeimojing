@@ -30,24 +30,24 @@ class Check(Base):
         self.pin_setnet      = self.config['GPIO']['setnet_pin']                # 配网控制
         self.pin_fengshan_zt = 0
 
-        self.pin_renti_tc    = self.config['GPIO']['renti_tc']['pin']           # 人体探测
-        self.pin_renti_max_time = self.config['GPIO']['renti_tc']['max_time']
+        # self.pin_renti_tc    = self.config['GPIO']['renti_tc']['pin']           # 人体探测
+        # self.pin_renti_max_time = self.config['GPIO']['renti_tc']['max_time']
 
         GPIO.setup(self.pin_pingmo_kg,GPIO.OUT)                                 # 设置屏幕控制脚为输出
         GPIO.setup(self.pin_pingmo_zt,GPIO.IN)
-        GPIO.setup(self.pin_renti_tc, GPIO.IN)
+        #GPIO.setup(self.pin_renti_tc, GPIO.IN)
         GPIO.setup(self.pin_fengshan_kg,GPIO.OUT)
 
         GPIO.setup(self.pin_setnet,GPIO.IN)                                     # 配网控制
 
-        self.ren_nk_time = 0            # 人体离开时间
+        # self.ren_nk_time = 0            # 人体离开时间
         self.is_op_screen = True        # 是否操作屏幕
 
         #计数器
         self.jishuqi = {
             'onnet_time': 0,            # 网络断开时间
             'start_net': True,          # 开始配网 0 -- 不启动，1 - 启动 2- 已启动
-            'ren_nk_time': 0,           # 人体离开时间
+            # 'ren_nk_time': 0,           # 人体离开时间
             'pin_setnet_st':0,          # 配网按键脚状态
         }
 
@@ -66,32 +66,34 @@ class Check(Base):
 
     #人体探测
     def detect_ren(self):
-        if self.pin_renti_max_time == 0: return False
-        is_face = os.path.join(self.config['root_path'],'data/is_face')
+        return
 
-        NOW_TIME = int(time.time())                     # 当前时间
-        ctime = NOW_TIME
-        if os.path.isfile(is_face):
-            ctime = int(os.stat(is_face).st_ctime)      # 获取文件创建时间
+        # if self.pin_renti_max_time == 0: return False
+        # is_face = os.path.join(self.config['root_path'],'data/is_face')
+        # NOW_TIME = int(time.time())                     # 当前时间
+        # ctime = NOW_TIME
+        # if os.path.isfile(is_face):
+        #     ctime = int(os.stat(is_face).st_ctime)      # 获取文件创建时间
 
-        if GPIO.input(self.pin_renti_tc) == True:
-            '''高电平：有人'''
-            self.ren_nk_time  = 0               # 第一次检测人离开时间，置0
-            self.is_op_screen = True
+        # if GPIO.input(self.pin_renti_tc) == True:
+        #     '''高电平：有人'''
+        #     self.ren_nk_time  = 0               # 第一次检测人离开时间，置0
+        #     self.is_op_screen = True
 
-            if (NOW_TIME - ctime) > self.pin_renti_max_time:
-                #self.screens.openclose_screen(1)
-                os.remove(is_face)
+        #     if (NOW_TIME - ctime) > self.pin_renti_max_time:
+        #         #self.screens.openclose_screen(1)
+        #         os.remove(is_face)
 
-        else:
-            '''人离开'''
-            if self.ren_nk_time == 0:
-                self.is_op_screen = True
-                self.ren_nk_time = NOW_TIME     # 第一次检测人离开时间
-            else:
-                if (NOW_TIME - self.ren_nk_time) > self.pin_renti_max_time and self.is_op_screen:
-                    self.is_op_screen = False
-                    #self.screens.openclose_screen(0)
+        # else:
+        #     '''人离开'''
+        #     if self.ren_nk_time == 0:
+        #         self.is_op_screen = True
+        #         self.ren_nk_time = NOW_TIME     # 第一次检测人离开时间
+        #     else:
+        #         if (NOW_TIME - self.ren_nk_time) > self.pin_renti_max_time and self.is_op_screen:
+        #             self.is_op_screen = False
+        #             #self.screens.openclose_screen(0)
+
 
     #检测声卡
     def detect_cards(self):

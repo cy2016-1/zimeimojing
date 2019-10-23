@@ -461,73 +461,6 @@ set_bootimg()
 
 
 '''
-----------------系统扩容-------------------
-'''
-def disk():
-    guandao ='''import os
-print("d")
-print("2")
-print("n")
-print("p")
-print("2")
-print(os.popen("sudo cat /sys/block/mmcblk0/mmcblk0p2/start").read()[:-1])
-print("\\n",end='')
-print("\\n",end='')
-print("w")'''
-
-
-    kuorong = '''#!/usr/bin/python3
-# -*- coding: UTF-8 -*-
-import os
-
-#检测文件是否存在
-if os.path.exists("/kuorong.txt") == False:
-    #设置分区
-    os.system("sudo python3 /guandao.py | sudo fdisk /dev/mmcblk0")
-    #创建文件，第二次开机就不会执行if语句
-    os.system("sudo touch /kuorong.txt")
-    #重启后设置生效
-    os.system("sudo reboot")
-
-#扩容指令
-os.system("sudo resize2fs /dev/mmcblk0p2")
-#删除执行脚本
-os.system('sudo rm -r /kuorong.py')
-#删除执行脚本
-os.system('sudo rm -r /guandao.py')
-#删除开机启动文件
-os.system('sudo rm -r /home/pi/.config/autostart/kuorong.desktop')
-#删除多余文件
-os.system('sudo rm -r /kuorong.txt')'''
-
-    desktop= '''[Desktop Entry]
-Type="Application"
-Exec="/kuorong.py"'''
-
-    #正则获取所有磁盘参数
-    data = re.compile(r'\d+').findall(os.popen("sudo fdisk -l /dev/mmcblk0").read())
-    #比较当前空间和实际空间
-    if data[-3] != data[1]:
-        print("系统空间正在扩容")
-        #创建执行脚本
-        with open ("/guandao.py","w") as x:
-            x.write(guandao)
-        #创建执行脚本
-        with open ("/kuorong.py","w") as x:
-            x.write(kuorong)
-        #创建执行文件
-        with open ("/home/pi/.config/autostart/kuorong.desktop","w") as x:
-            x.write(desktop)
-        #赋予执行权限
-        os.system("sudo chmod +x /kuorong.py")
-        print("系统空间最大化执行完成，即将重启生效")
-        time.sleep(1)
-        os.system("sudo reboot")
-    else:
-        print("系统空间正常")
-
-
-'''
 ----------清理所有__pycache__-------------
 '''
 #清理当前install位置和深层所有的__pycache__
@@ -547,5 +480,4 @@ print_str("安装工作全部完成*_^ ",'p')
 if argv != 'release':
     print_str("系统将在3秒钟后重启",'w')
     time.sleep(3)
-    disk()
     os.system('sudo reboot')

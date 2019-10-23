@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
-import wave,time,sys,pyaudio,os,re
+import os
+import re
 import subprocess
-from package.base import Base,log
+import sys
+import time
+import wave
+
+import pyaudio
+from package.base import Base, log
+
 
 class Bofang(Base):
     '''语音播放类'''

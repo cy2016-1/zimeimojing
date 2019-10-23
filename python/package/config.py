@@ -5,6 +5,7 @@ config = {
     'version': '0.001',     #固件版本
     'root_path': os.path.dirname(os.path.dirname(__file__)),        #系统根目录
     'httpapi': 'https://hapi.16302.com',
+    'database':'',
 
     # MQTT 配置定义，这里只是作初始化，具体定义在 package/data.py 里将重置
     'MQTT':{
@@ -22,10 +23,12 @@ config = {
             'pin': 33,          #获取屏幕状态脚
             'open': 1           #屏幕开的状态，电平值：1 高电平 0 低电平
         },
-        'renti_tc': {
-            'pin': 16,          #人体探测脚
-            'max_time':300      #人体探测最大间隔时间（秒）, 如果设备为：0 则关闭人体探测
-        },
+
+        # 'renti_tc': {
+        #     'pin': 16,          #人体探测脚
+        #     'max_time':300      #人体探测最大间隔时间（秒）, 如果设备为：0 则关闭人体探测
+        # },
+        
         'fengshan_kg': 13,      #降温风扇开关控制脚，0 -- 为关闭此功能
         'deng_kg': 11,          #装饰灯控制脚
         'setnet_pin': 31,       #配网控制按钮脚
@@ -75,8 +78,8 @@ config = {
 
     #摄像头
     "CAMERA":{
-        'enable' : False        # 是否启用 ： True -- 启用，False -- 禁用
+        'enable' : True         # 是否启用 ： True -- 启用，False -- 禁用
     }
 }
 
-config['database'] = config['root_path'] + '/data/config.db';            #数据库
+config['database'] = config['root_path'] + '/data/config.db'            #数据库

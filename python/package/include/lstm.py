@@ -2,15 +2,14 @@ from package.include.model import model
 from package.base import Base,log
 import re,os,string
 
-
-'''数据库  自然语言处理'''
 class Lstm(Base):
-
+    '''数据库自然语言处理'''
+    
     def __init__(self):
 
         self.db   = model(os.path.join(self.config['root_path'],"data/lstm.db"))
 
-        self.trigger = self.db.table( "dz_trigger" ).where().sel()          #获取触发词
+        self.trigger = self.db.table( "dz_trigger" ).where({'status':1}).sel()          #获取触发词
         self.option  = self.db.table( "dz_option" ).where().sel()           #获取具体操作表数据
         self.action  = self.db.table( "dz_action" ).where().sel()           #获取动作词
 
@@ -141,22 +140,3 @@ class Lstm(Base):
         else:
             return dict_none
 
-'''
-if __name__ == '__main__':
-    #"声音要大一点"
-    input_ = {'state':True,'data':'帮我打开卧室灯。','type':'system','msg':'功能插件出错'}
-    print( Lstm().main(input_) )
-
-    input_ = {'state':True,'data':"打开屏幕.",'type':'system','msg':'功能插件出错'}
-    print( Lstm().main(input_) )
-
-
-    input_ = {'state':True,'data':"打开",'type':'system','msg':'功能插件出错'}
-    print( Lstm().main(input_) )
-
-    input_ = {'state':True,'data':"关闭屏幕",'type':'system','msg':'功能插件出错'}
-    print( Lstm().main(input_) )
-
-    input_ = {'state':True,'data':"打开打不打开屏幕打开",'type':'system','msg':'功能插件出错'}
-    log.info( "返回结果",Lstm().main(input_))
-'''

@@ -1,414 +1,303 @@
-import requests,os,time,re,string,math,random,pygame,threading,random,json
-import multiprocessing as mp    #多进程
+import hashlib
+import json
+import multiprocessing as mp  # 多进程
+import os
+import re
+import time
+import urllib
+from urllib.parse import urlparse
+
+import requests
+
+import _thread
+import psutil
+import pygame
+from package.base import Base, log
 from plugin import Plugin
-from package.base import Base       #基本类
 
-class Music(Base, Plugin):
+# 当前播放歌ID
+this_play_id = 0
 
-    def __init__(self,public_obj):
+class Qqmusic(Base):
+    '''QQ音乐基本类'''
 
-        self.music_path = '/music/'
-        #检查根目录下有没有音乐文件夹
-        if os.path.exists(self.music_path) ==False:
-            os.mkdir(self.music_path)
+    def __init__( self, nei_conn ):
+        #print('QQ音乐基本类启用', nei_conn )
+        self.nei_conn = nei_conn
 
-        self.public_obj = public_obj
+        #当前插件进程ID
+        self.music_pid = os.getpid()
 
-        #继续播放
-        self.continue_implementation   = mp.Value("h",0)
+        #音乐缓存根目录
+        self.music_path  = '/music/'
+        self.music_cache = '/music/cache'
+        if os.path.exists(self.music_cache)==False:
+            os.system('sudo mkdir -p '+ self.music_cache)
 
-        #暂停歌曲
-        self.is_pause  = mp.Value("h",0)
+        self.this_play = ''     #当前播放的歌曲
+        self.this_key  = 0      #当前播放的歌曲ID
 
-        #停止歌曲变量
-        self.musicstopstop = mp.Value("h",0)
+    #缓存音乐
+    def cache_music(self, play_list, key):
+        
+        this_play = play_list[key]
+        url       = this_play['url']
+        md5_fname = this_play['hashname']
+        mp3_file  = os.path.join(self.music_cache, md5_fname +'.wav')
 
-        #下一曲变量
-        self.musicst_lower = mp.Value("h",0)
+        if os.path.exists(mp3_file)==False:
+            if key==0 and this_play_id ==0:
+       
+                front_end( {'obj':'mojing','msg':'正在缓冲歌曲，请稍候……'})    
+                os.popen("sudo aplay "+ os.path.join(self.config['root_path'], "data/yuyin/Buffering.wav"))
+        
+        
+            result    = urlparse( url )
+            m4afile   = result.path
+            m4afile   = re.sub(r'\/','',m4afile)
+            file_ext  = os.path.splitext(m4afile)[1]
+            save_file = os.path.join(self.music_cache, md5_fname + file_ext)       #os.path.join(self.music_cache, m4afile)
 
-        #上一曲变量
-        self.last_song     = mp.Value("h",0)
+            headers = {
+                'Connection': "keep-alive",
+                'Pragma': "no-cache",
+                'Cache-Control': "no-cache",
+                'User-Agent': "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                            "Chrome/72.0.3626.119 Safari/537.36",
+                'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
+                'Referer': "https://y.qq.com",
+                'Accept-Encoding': "gzip, deflate, br",
+                'Accept-Language': "zh-CN,zh;q=0.9",
+                'cache-control': "no-cache",
+            }
 
-        if self.voices() > 80:
-            os.system("sudo amixer set Speaker 80%")
-        self.headers1 = {
-        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Encoding":"gzip, deflate",
-        "Accept-Language":"zh-CN,zh;q=0.9",
-        "Cache-Control":"max-age=0",
-        "Connection":"keep-alive",
-        "If-Modified-Since":"Sat, 14 Sep 2019 07:16:40 GMT",
-        "Upgrade-Insecure-Requests":"1",
-        "User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36"
-        }
-        self.headers2 = {
-        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Encoding":"gzip, deflate",
-        "Accept-Language":"zh-CN,zh;q=0.9",
-        "Cache-Control":"max-age=0",
-        "Connection":"keep-alive",
-        "Cookie":"__guid=254656782.2527316870715561500.1554897413327.5122; kg_mid=b09a65745f398882d240d653f785ea3d; kg_dfid=1ajpD13DCVBn0FW0Vt4MLhAt; Hm_lvt_aedee6983d4cfc62f509129360d6bb3d=1568448840; kg_dfid_collect=d41d8cd98f00b204e9800998ecf8427e; ACK_SERVER_10015=%7B%22list%22%3A%5B%5B%22gzlogin-user.kugou.com%22%5D%5D%7D; ACK_SERVER_10016=%7B%22list%22%3A%5B%5B%22gzreg-user.kugou.com%22%5D%5D%7D; ACK_SERVER_10017=%7B%22list%22%3A%5B%5B%22gzverifycode.service.kugou.com%22%5D%5D%7D; monitor_count=11; Hm_lpvt_aedee6983d4cfc62f509129360d6bb3d=1568448843",
-        "Host":"www.kugou.com",
-        "If-Modified-Since":"Sat, 14 Sep 2019 07:16:40 GMT",
-        "Upgrade-Insecure-Requests":"1",
-        "User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36"
-        }
-    #发送文字到屏幕
-    def postmojing(self,data):
+            music = requests.get(url,headers=headers).content
+            with open(save_file,'wb') as f:
+                f.write(music)
+
+            cmd = "ffmpeg -y -i "+ save_file +" "+ mp3_file
+            #print(cmd)
+            os.system(cmd)
+            time.sleep(1)
+            os.system('rm -f '+ save_file)
+            time.sleep(1)
+        return mp3_file
+        
+    #前端显示歌曲名称和演唱者
+    def music_name_list(self,play_list,hashname):
         try:
-            self.public_obj.sw.send_info( {'obj':'mojing','msg': data} )
+            name = {}      
+            for key in play_list:
+                name[key['hashname']]=key['name']+" 演唱者:"+key['author']
+       
+            front_end( {'obj':'mojing','msg':'正在播放:'+ name[hashname]})
         except:
             pass
-    #当前音量
-    def voices(self):
-        jieguo,jiance=str(),'['
-        huoqu_os=os.popen("sudo amixer scontents | grep 'Front Left: Playback'|grep 'dB'").read()
-        for x in re.sub(r'^.*k','',re.sub(r'].*$','',huoqu_os[len(re.sub(r'F.*$','',huoqu_os)):])):
-            if x==jiance:
-                jiance="kaishi"
-            elif jiance=="kaishi":
-                jieguo+=x
-        #通过y = 1.7972e^(0.04x) x为填入的音量，y为实际音量 这个公式计算出实际音量。
-        return 1.7972 * math.pow(2.718,0.04 * int(jieguo[:-2]))
+        
+    #播放音乐
+    def play_music(self):
+        global this_play_id
 
-    # 删除本地缓存音乐文件
-    def musicdel(self,path):
-        try:
-            if len(os.listdir(path)) <100:
-     #           print("不需要清理")
-                return
-            datatime=[]
-            for x in os.listdir(path):
-                #记录所有歌曲的最后访问时间
-                datatime.append(os.stat(path+x)[-3])
-            #列表有小到大排列,和去重
-            datatime.sort()
-            deldata = list(set(datatime[:10]))
-            '''
-            for x in deldata:
-                print("时间为：",time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(x)))
+        #print('当前播放ID', this_play_id )
 
-            print("符合删除",deldata)
-            '''
-            ints = 0
-            #循环所有歌曲
-            for x in os.listdir(path):
-               # print(x)
-                #循环删除符合要求的
-                for y in deldata:
-                    #在所有歌曲中寻找=符合删除要求的歌曲
-                    try:
-                        if y == os.stat(path+x)[-3]:
-                            ints +=1
-                            #删除10首结束
-                            if ints > 10:
-                                break
-                            os.system("sudo rm -r {0}{1}".format(path,x))
-                            print(" 正在删除：{0}{1}".format(path,x))
-                    #这个是为了防止已经删除的文件，还在内存列表里还是循环继续删除，导致错误
-                    except:pass
+        play_list = self.read_play_list()
 
-        except Exception as bug :print("音乐删除错误"*100,bug)
+        if this_play_id < 0:
+            this_play_id = len(play_list) - 1
 
+        # =======  开始缓存下一曲  =========
+        next_key = this_play_id + 1
+        if next_key >= len(play_list):
+            next_key = 0
 
+        self.p1 = mp.Process(
+            target = self.cache_music,
+            args = (play_list,next_key)
+        )
+        self.p1.start()
+        # ============  END  ==============
 
+        this_play = self.cache_music(play_list, this_play_id)
 
-
-
-    def playmusic(self,ID):
-    #    print("进入了playmusic",self.musicid,ID)
-
-        ints = self.musicid.index(ID)
-        #去符号方法
-        play = re.sub( '[%s]' % re.escape( string.punctuation ), '-',self.musicname[ints] )
-
-
-        data =  self.http_post("http://www.kugou.com/yy/index.php?r=play/getdata&hash={0}".format(ID),self.headers2)
-
-        #歌曲链接
-        if data["code"] =="404":
-            self.postmojing("没有找到该歌曲,你可以这样搜索,流行歌曲,90后歌曲,纯音乐等等")
-            return
-
-        if data["code"] =="9999":
-            self.postmojing("网络可能有点问题")
-            return
-
-        data = data["data"]
-        data = json.loads(data)
-        data = data["data"]["play_url"]
-
-        #检测是否存在歌曲链接，不存在就下一首
-        if len(data)<5:
-            return "lower"
-        #进程的不同所有操作上下歌曲时依次在内部停止歌曲
-        pygame.init()
-        pygame.mixer.init()
-        pygame.mixer.music.stop()
-        #发送到前面屏幕
-
-        self.postmojing("如果歌曲音量太大导致语音唤醒困难，使用微信小程序控制音量")
-
-        if os.path.exists(self.music_path+play+".mp3") ==False:
-            self.postmojing("正在缓冲："+play)
-
-
-            r = requests.get(data, stream=True, timeout = 30)
-            f = open("{0}{1}.mp3".format(self.music_path,play), "wb")
-            for chunk in r.iter_content(chunk_size=512):
-                if chunk:
-                    f.write(chunk)
-
-                #停止循环  停止音乐  停止线程  主进程存在
-                if self.musicstopstop.value == 1:
-                    self.musicstopstop.value = 0
-                    return "stop"
-                #下个曲
-                if self.musicst_lower.value == 1:
-                    self.musicst_lower.value = 0
-                    return "lower"
-                #上一曲
-                if self.last_song.value == 1:
-                    self.last_song.value = 0
-                    return  "song"
-
-                #缓存期间唤醒后全部结束歌曲
-                if self.is_pause.value==1:
-                    self.is_pause.value=0
-                    return "stop"
-
-
-
-
-
-        pygame.init()
-        pygame.mixer.init()
-        pygame.mixer.music.set_volume(1)#调整音量最多1
-        self.postmojing("正在播放："+play)
-        file ="{0}{1}.mp3".format(self.music_path,play)
-        file = file.encode('utf-8')
-        pygame.mixer.music.load(file)
+        self.music_name_list(play_list,this_play[len(self.music_cache)+1:-4])
+        
+        pygame.mixer.music.load(this_play)
         pygame.mixer.music.play()
-
+        this_play_id = next_key     
         while pygame.mixer.music.get_busy():
-          #  print("停止",self.musicstopstop.value )
-          #  print("继续",self.continue_implementation.value  )
-         #$   print("暂停",self.is_pause.value)
-            ##########################
-            #唤醒后暂停
-            if self.is_pause.value==1:
-                pygame.mixer.music.pause()
-                self.is_pause.value = 0
-            ##########################
-         #   停止循环  停止音乐  停止线程  主进程存在
-            elif self.musicstopstop.value == 1:
-                self.musicstopstop.value = 0
-                return "stop"
-            #下个曲
-            elif self.musicst_lower.value == 1:
-                self.musicst_lower.value = 0
-                return "lower"
-            ##########################
-            #唤醒后暂停
-            if self.is_pause.value==1:
-                pygame.mixer.music.pause()
-                self.is_pause.value = 0
-            ##########################             
-            #上一曲
-            elif self.last_song.value == 1:
-                self.last_song.value = 0
-                return  "song"
-          #  设置声音继续播放
-            elif self.continue_implementation.value == 1:
-                self.continue_implementation.value = 0
-                pygame.mixer.music.unpause()
+            pass
 
-            ##########################
-            #唤醒后暂停
-            if self.is_pause.value==1:
-                pygame.mixer.music.pause()
-                self.is_pause.value = 0
-            ##########################  
-                
-
-        return "lower"
+        self.play_music()
 
 
-    def http_post(self,url,headers):
-
-        try:
-            response  = requests.get(url,headers=headers , timeout = 5)
-            res = {'code':'404','msg':'网络请求失败！','data':''}
-            if response.status_code==200:
-                res['code'] = '0000'
-                res['msg']  = '请求成功！'
-                res['data'] = response.text
-                return res
-            else:
-                return res
-        #没有网络或者请求超时依然返回,正常情况下也返回
-        except:
-            return {'code':'9999','msg':'网络错误！','data':''}
-
-#==================================================
-#播放歌曲方法
-#==================================================
-    def for_paly(self,name):
-        #删除音乐缓存
-        self.musicdel(self.music_path)
-   #     print("进入了for_paly")
-        url="http://mobilecdngz.kugou.com/api/v3/search/song?tag=1&tagtype=全部&area_code=1&plat=0&sver=5&api_ver=1&showtype=14&version=8969&keyword={0}&correct=1&page=1&pagesize=10".format(name)
-        data = self.http_post(url,self.headers1)
-
-        #print(type(data["data"]))
-        #得到数据
-        if data["code"] =="404":
-            self.postmojing("没有找到该歌曲,你可以这样搜索,流行歌曲,90后歌曲,纯音乐等等")
-            return
-        if data["code"] =="9999":
-            self.postmojing("网络可能有点问题")
-            return
-
-        have = data["data"]
-        have = json.loads(have)
-        # print(have["data"]["info"])
-        have = have["data"]["info"]#[0]["hash"]
-        #锁定数据
-        self.musicname = []
-        self.musicid   = []
-        for x  in range(len(have)):
-            self.musicid.append(have[x]["hash"])
-            self.musicname.append(have[x]["songname"])
-
-        postdata='<br>'.join(self.musicname)
-        self.postmojing("歌曲列表："+postdata)
-  #      print( self.musicid)
-  #      print(self.musicname)
-        #self.ID_ints变量必须使用self传递，不然在多次线程里不稳定，会被重置
-        self.ID_ints = 0
-        while 1:
-            try:
-                ID = self.musicid[self.ID_ints]
-
-                have = self.playmusic(ID)
-
-                if have == "stop" :
-          #          print("线程彻底结束")
-                    pygame.mixer.music.stop()
-                    break
-
-                elif have == "song":
-                    self.ID_ints -=1
-                    if self.ID_ints < 0 :self.ID_ints=0
-
-                elif have == "lower":
-                    self.ID_ints +=1
-
-            #列表播放完成 最后会超出索引停止循环播放
-            except:
+    # 分析列表
+    # 如查缓冲目录有对应的音乐文件优先播放
+    def analy_list(self, play_list):
+        i = 0
+        is_file = ''        #是否有缓冲文件
+        for key in play_list:
+            md5_fname = key['hashname']
+            mp3_file  = os.path.join(self.music_cache, md5_fname +'.wav')
+            if os.path.exists(mp3_file):
+                is_file = mp3_file
                 break
-    #    print("线程彻底结束2")
+            i += 1
+
+        if is_file:
+            return is_file,i
+        elif i > 0:
+            return self.cache_music(play_list, 0), 0
+
+
+    #读取播放列表
+    def read_play_list(self):
+        this_play_list = os.path.join(self.music_path,'this_play_list.json')
+        fstr = ''
+        play_list = []
+        with open(this_play_list, mode='r', encoding='utf-8') as f:
+            fstr = f.read()
+
+        #得到播放列表
+        play_list = json.loads(fstr)
+        return play_list
+
+    #音乐主体入口
+    def main(self):
+        global this_play_id
+
+        pygame.init()
+        pygame.mixer.init()
+        pygame.mixer.music.set_volume(1)        #调整音量最多1
+
+        #线程控制函数
+        def th_control( pygame, nei_conn, music_pid):
+            global this_play_id
+            while True:
+                enjson = nei_conn.recv()
+                log.info('音乐收到通知', enjson )
+
+                if type(enjson) is dict:
+                    if enjson['control'] == 'pause':
+                        pygame.mixer.music.pause()
+                    elif enjson['control'] == 'unpause':
+                        if enjson['newlist'] == 1:
+                            pygame.mixer.music.stop()
+                            this_play_id = 0
+                        else:
+                            pygame.mixer.music.unpause()
+                    elif enjson['control'] == 'stop':
+                        pygame.mixer.music.pause()
+                        pygame.mixer.quit()
+                        pygame.quit()
+                        os.system('sudo kill -9 '+ str(music_pid))
+
+                    elif enjson['control'] == 'next':
+                        pygame.mixer.music.stop()
+
+                    elif enjson['control'] == 'previous':
+                        this_play_id -= 2
+                        pygame.mixer.music.stop()
 
 
 
-    #start_music初始化被进程启动了，通过歌曲指令调用了start_play线程播放歌曲
-    def start_play(self,name):
-    #    print("进入start_play")
-        #开始新的歌曲停止前面的歌曲线程
-        self.musicstopstop.value = 1
-        time.sleep(0.1)
-        self.musicstopstop.value = 0
-        t = mp.Process(target = lambda : self.for_paly(name) )#threading.Thread
-        t.start()
+        _thread.start_new_thread( th_control, (pygame, self.nei_conn, self.music_pid) )
+
+        # 读取当前播放列表
+        play_list = self.read_play_list()
+
+        #返回的是歌曲列表 内部是多个字典 需要解析内部的authon  name
+
+        # 分析歌典列表
+        self.this_play, self.this_key = self.analy_list( play_list )
+        this_play_id = self.this_key
+        if self.this_play:
+            self.play_music()
 
 
 
-    def start_music(self,name):
-        #找到触发词后面词文字开始的位置
-        path = re.search(name["trigger"], name["data"]).span()[-1]
-        #所有播放意图的触发指令后面没有歌曲名就我们自定义推荐
-        #检测只是触发词和触发词+歌曲或者音乐
-        if name["data"][path:]=="。" or name["data"][path:path+3]=="歌曲。" or name["data"][path:path+3]=="音乐。":
-
-            random_music = ["by2","林俊杰","she","本兮","庄心妍","梁静茹"]
-            filearr = random_music[ random.randint(0,len(random_music)-1) ]
-            self.start_play(filearr)
 
 
-            return {'state':True,'data':"我猜你是要听歌曲吧，一起来听",'msg':'','stop':True}
+# ==================================================================================================
 
-        else:
-            #检测触发词旁边是否存在歌曲或者音乐
-            if name["data"][path:path+2]=="歌曲" or name["data"][path:path+2]=="音乐":
-                self.start_play(name["data"][path+2:])
-                return {'state':True,'data':"一起来听"+name["data"][path+2:],'msg':'','stop':True}
+class Music(Plugin,Base):
+    '''音乐插件'''
 
-            else:
-                #检测触发词最后面是否存在歌曲或者音乐
-                if name["data"][-4:]=="的歌曲。" or name["data"][-4:]=="的音乐。":
-                    self.start_play(name["data"][path:-4])
-                    return {'state':True,'data':"一起来听"+name["data"][path:-4],'msg':'','stop':True}
+    def __init__( self, public_obj ):
+        global front_end
+        self.public_obj = public_obj
+        front_end = self.public_obj.sw.send_info
+        # 进程通信
+        self.nei_conn, self.wai_conn = mp.Pipe(False)
 
-              #  elif name["data"][-3:]=="歌曲。" or name["data"][-3:]=="音乐。":
-               #     self.start_play(name["data"][path:-3])
-               #     return {'state':True,'data':"一起来听"+name["data"][path:-3],'msg':'','stop':True}
+        #当前插件进程ID
+        self.this_pid = os.getpid()
 
-                else:
-                    self.start_play(name["data"][path:])
-                    return {'state':True,'data':"一起来听"+name["data"][path:],'msg':'','stop':True}
+        #当前播放歌曲列表名称
+        self.this_list_name = ''
 
-    #这个方法只会被执行一次   需要返回值
-    def start(self,name):
-        return self.start_music(name)
+        self.p2 = mp.Process(
+            target = Qqmusic(self.nei_conn).main
+        )
+        self.p2.start()
+        
 
-    #插件等待（暂时停止）  唤醒触发
+
+    #插件入口
+    def start(self, enobj):
+
+        #print('插件入口',enobj, enobj['data'] )
+        self.this_list_name = enobj['data']
+        self.wai_conn.send({"control":"play"})
+     
+    #插件等待（暂时停止）控制
     def pause(self):
-        self.is_pause.value = 1
-        #歌曲停止时 自动1秒后刷新，防止停止后继续播放新的歌曲导致暂停
-        time.sleep(0.1)
-        self.is_pause.value = 0
+        self.wai_conn.send({"control":"pause"})
+
+    #插件继续
+    def resume(self, enobj={}):
 
 
-    #插件继续#二次开始start
-    def resume(self, name):
+        if str(self.this_list_name) != str(enobj['data']) and enobj['name']=='Music':
+            self.wai_conn.send({"control":"unpause","newlist":1})
+            self.this_list_name = enobj['data']
+           
 
-        if name["trigger"] in ["上一曲","上一个","上一首"]:
-            self.last_song.value = 1
-            time.sleep(0.1)
-            self.last_song.value = 0
+        elif enobj["trigger"] in ["下一曲","下一个","下一首"]:
 
-
-        elif name["trigger"] in ["下一曲","下一个","下一首"]:
-            self.musicst_lower.value = 1
-            time.sleep(0.1)
-            self.musicst_lower.value = 0
-
-        elif name["trigger"] in ["暂停"]:
-            self.is_pause.value = 1
-            time.sleep(0.1)
-            self.is_pause.value = 0
+            self.wai_conn.send({"control":"next"})
+     
 
 
-        elif name["trigger"] in ["继续"]:
-            self.continue_implementation.value = 1
-            time.sleep(0.1)
-            self.continue_implementation.value = 0
+        elif enobj["trigger"] in ["上一曲","上一个","上一首"]:
 
-        #播放新歌
-        elif name["trigger"] in ["播放","来一首","唱一首","高歌一曲","唱一个","来一个"]:
-            return self.start_music(name)
-        #继续播放
+            self.wai_conn.send({"control":"previous"})
+        
+
         else:
-            self.continue_implementation.value = 1
-            time.sleep(0.1)
-            self.continue_implementation.value = 0
+            #继续播放
+            self.wai_conn.send({"control":"unpause","newlist":0})
+
 
     #插件结束
     def stop(self, *enobj):
-        self.musicstopstop.value = 1
-        time.sleep(0.1)
-        self.musicstopstop.value = 0
+        self.wai_conn.send({"control":"stop"})
+        #print('当前进程', self.this_pid)
+
+        pro = psutil.Process( int(self.this_pid) )
+        if pro:       #进程存在
+            #停止进程下所有子进程
+            for x in pro.children():
+                pid_arr = re.findall(r'pid\=(\d+)', str(x), re.M|re.I)
+                if pid_arr:
+                    os.system('sudo kill -9 '+ str(pid_arr[0]) )
+        os.system('sudo kill -9 '+ str(self.this_pid) )
+        return False
 
 
+    #重写插件默认事件
+    def __del__(self):
+        pass
 
-
+if __name__ == "__main__":
+    send_dict = {'state': True, 'data': '播放歌曲。', 'trigger': '播放', 'action': '', 'ptype': 'stay', 'name': 'Music', 'optype': 'start'}
+    Music({}).start(send_dict)

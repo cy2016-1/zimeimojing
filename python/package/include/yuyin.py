@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-import os,random,re
-from package.base import Base,log
-import package.include.luyin as luyin                   #录音
-import package.include.bofang as bofang                 #播放
-import package.include.baiduapi.hecheng as hecheng      #百度语音合成（文字转语音）
-import package.include.baiduapi.shibie as shibie        #百度识别
-#import package.include.noise as noise        #降噪
+import os
+import random
+import re
+import time
+
+import package.include.baiduapi.hecheng as hecheng  # 百度语音合成（文字转语音）
+import package.include.baiduapi.shibie as shibie  # 百度识别
+import package.include.bofang as bofang  # 播放
+import package.include.luyin as luyin  # 录音
+from package.base import Base, log
+
 
 '''
 语音类
@@ -25,19 +29,17 @@ class Hecheng_bofang(Base):
         self.public_obj = public_obj
 
     def success(self,position):         #os.path.join(self.yuyin_path,"result.wav")
-        if self.reobj["state"]==False or ('stop' in self.reobj):
-            pass
+        is_snowboy_value = 0
+        if self.reobj["state"]==False or ('stop' in self.reobj and self.reobj['stop'] is True):
+            is_snowboy_value = 0
         else:
+            is_snowboy_value = 2
             self.public_obj.master_conn.send({"optype":"snowboy"})
             
         chiproc = self.bofang.paly_wav( position )
-        chiproc.wait()   
-        
-        #等待播放结束
-        if self.reobj["state"]==False or ('stop' in self.reobj):
-            self.is_snowboy.value = 0       # 停止
-        else:
-            self.is_snowboy.value = 2       # 启动第二次唤醒状态
+        chiproc.wait()   #等待播放结束
+
+        self.is_snowboy.value = is_snowboy_value
 
     def error(self, errtype = ''):
         if errtype == 'neterror':        #网络错误
@@ -87,7 +89,9 @@ class Luyin_shibie(Base):
         pyaudio_obj --  录音对象
         public_obj  --  全局类对象
     '''
-    def main(self, is_one, command_execution, pyaudio_obj, public_obj ):
+    def main(self, hx_chenggong, is_one, command_execution, pyaudio_obj, public_obj ):
+        hx_chenggong.value = os.getpid()       #记录唤醒进程ID
+
         self.success = command_execution
 
         self.pyaudio_obj    = pyaudio_obj
@@ -98,20 +102,21 @@ class Luyin_shibie(Base):
         #如果是首次唤醒：执行魔镜应答声
         if is_one == 1:
             wozai = [
-            {'text':'嗯','wav': 'zaina2.wav'},
-            {'text':'我在','wav': 'zaina3.wav'}
+            {'text':'嗯','wav': 'zaina2.wav',"time":0.33},
+            {'text':'我在','wav': 'zaina3.wav',"time":0.66}
             ]
-            filearr = wozai[ random.randint(0,len(wozai)-1) ]
+            ints = random.randint(0,len(wozai)-1) 
+            filearr = wozai[ ints ]
 
             #播放唤醒提示声
             play_cmd = 'aplay -q '+ self.yuyin_path +'/{}'.format(filearr['wav'])
 
             send_txt = {'init':1, 'obj':'mojing','msg': filearr['text']}
             self.pyaudio_obj.sw.send_info( send_txt )
-            os.system(play_cmd)
+            os.popen(play_cmd)
 
-            del send_txt,play_cmd,wozai,filearr
+            time.sleep(filearr["time"])
+
+            del send_txt,play_cmd,wozai,filearr,ints
 
         self.luyin.main(self.timer, self.pyaudio_obj)
-
-

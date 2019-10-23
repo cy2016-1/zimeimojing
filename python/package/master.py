@@ -47,13 +47,13 @@ class pyaudio_obj(Base):
 
         FORMAT = pyaudio.paInt16
         CHANNELS = 1
-        CHUNK_DURATION_MS = 30                              # supports 10, 20 and 30 (ms)
-        PADDING_DURATION_MS = 1500                          # 1 sec jugement
+        CHUNK_DURATION_MS = 30                              #supports 10, 20 and 30 (ms)
+        PADDING_DURATION_MS = 1500                          #1 sec jugement
 
         self.RATE = 16000
-        self.CHUNK_SIZE = int(self.RATE * CHUNK_DURATION_MS / 1000)   # chunk to read
+        self.CHUNK_SIZE = int(self.RATE * CHUNK_DURATION_MS / 1000)             #chunk to read
         self.NUM_PADDING_CHUNKS = int(PADDING_DURATION_MS / CHUNK_DURATION_MS)
-        self.NUM_WINDOW_CHUNKS = int(400 / CHUNK_DURATION_MS)    # 400 ms/ 30ms  ge
+        self.NUM_WINDOW_CHUNKS = int(400 / CHUNK_DURATION_MS)                   #400 ms/ 30ms ge
         self.NUM_WINDOW_CHUNKS_END = self.NUM_WINDOW_CHUNKS * 2
 
         pa = pyaudio.PyAudio()
@@ -66,7 +66,7 @@ class pyaudio_obj(Base):
                     frames_per_buffer = self.CHUNK_SIZE)
 
         #0: Normal，1：low Bitrate， 2：Aggressive；3：Very Aggressive
-        self.vad = webrtcvad.Vad(3)
+        self.vad = webrtcvad.Vad(2)
 
 class Master(Base):
     '''主控制类'''
@@ -119,8 +119,6 @@ class Master(Base):
                 yuyin.Hecheng_bofang(self.is_snowboy, self.public_obj).error( msg['errtype'] )
 
 
-
-
     '''命令动作执行
     参数:
         sbobj -- 语音识别成功返回的字典对象,格式体如下：
@@ -171,31 +169,42 @@ class Master(Base):
         self.p5.start()
 
 
-    ''''
+    '''
     进入语音进程
     参数：
         is_one - 是否为首次唤醒 1- 首次 / 2 - 第二次（不在播放唤醒应答声）
     '''
     def start_yuyin(self, is_one = 0):
         log.info("开始进入语音进程")
+        if self.hx_yuyinpid.value > 0:
+            os.system("sudo kill -9 {}".format(self.hx_yuyinpid.value))
+        self.hx_yuyinpid.value = 0
 
         #启动新进程开始录音+识别
         self.p2 = mp.Process(
             target = self.Luyin_shibie.main,
-            args = ( is_one, self.command_execution, self.pyaudio_obj, self.public_obj )
+            args = (self.hx_yuyinpid, is_one, self.command_execution, self.pyaudio_obj, self.public_obj )
         )
         self.p2.start()
-
+        
+    #停止说话
+    def stop_aplay(self):
+        taskcmd = 'ps ax | grep aplay' 
+        out = os.popen(taskcmd).read()               # 检测是否已经运行
+        pat = re.compile(r'(\d+).+(aplay -q .*/python/runtime/hecheng/)')
+        res = pat.findall(out)
+        for x in res:
+            pid = x[0]
+            cmd = 'sudo kill -9 '+ pid
+            os.popen(cmd)
 
     #语音唤醒成功
     def snowboy_success(self):
         self.is_snowboy.value = 1
         self.public_obj.master_conn.send({"optype":"snowboy"})
 
-
     #开始启动唤醒
     def start_snowboy(self):
-
         model  = os.path.join(self.config['root_path'],self.config['WAKEUP']['model'])      #语音唤醒模型
         sensit = self.config['WAKEUP']['sensit']
 
@@ -210,15 +219,6 @@ class Master(Base):
         del model,sensit,resource
 
 
-    #人脸识别
-    def start_face(self):
-        self.p3 = mp.Process(
-            target = visual.Visual().main,
-            args = (self.command_execution, )
-        )
-        self.p3.start()
-
-
     #启动MQTT通信服务
     def start_mqtt(self):
         self.p4 = mp.Process(
@@ -228,6 +228,8 @@ class Master(Base):
         self.p4.start()
 
     def main(self):
+        #定义唤醒成功内存变量：记录语音进程ID
+        self.hx_yuyinpid = mp.Value("h",0)
         #定义唤醒成功内存变量：是否唤醒成功
         self.is_snowboy  = mp.Value("h",0)
 
@@ -239,9 +241,6 @@ class Master(Base):
 
         #启动技能
         self.start_skills()
-
-        #是否启动人脸识别：文件不存在则启动人脸识别
-        is_face = os.path.join(self.config['root_path'],'data/is_face')
 
         yuyin_path = os.path.join(self.config['root_path'], 'data/yuyin')
 
@@ -271,11 +270,8 @@ class Master(Base):
             if self.is_snowboy.value > 0:
                 self.start_yuyin( self.is_snowboy.value )
                 self.is_snowboy.value = 0
-
-            #开始人脸识别
-            if os.path.isfile(is_face) is False:
-                self.start_face()
-                os.mknod(is_face)       #创建空文件
+                #唤醒停止说话，放在这里就不会出现二次启动录音
+                self.stop_aplay()
 
             timeing += 1
             if timeing >= 4:

@@ -1,8 +1,8 @@
 import os,time
 from package.base import Base,log
 
-from package.include.eyes.opencv import Opencv        #人脸离线识别
-import package.include.baiduapi.contrast as contrast    #人脸在线对比
+from package.include.opencv import Opencv         #人脸离线识别
+import package.include.baiduapi.contrast as contrast  #人脸在线对比
 
 class Visual(Base):
     """视觉类"""
@@ -17,9 +17,9 @@ class Visual(Base):
         self.video_max = 10
 
         self.opencv = Opencv()          #人脸识别类
-        self.opencv.success = self.success
+        self.opencv.success = self.success_max
 
-        self.contrast = contrast.Contrast_face()        #人脸在线对比
+        self.contrast = contrast.Contrast_face()  #人脸在线对比
 
     #开始使用百度在线人脸对比
     def start_contrast_face(self, user_info, i = 0 ):
@@ -39,11 +39,13 @@ class Visual(Base):
         i += 1
         time.sleep(0.2)
         return self.start_contrast_face(user_info, i )
-
+        
+    def success(self,data):
+        print(data)
+        
     #抓拍人脸成功
-    def success(self, is_succ, cap, cv2):
-        cap.release()
-        cv2.destroyAllWindows()
+    def success_max(self, is_succ):
+
         if self.video_i >= self.video_max:
             return
         if is_succ:
@@ -59,7 +61,8 @@ class Visual(Base):
                     'data': '嗨，你好！' + str(duibi_info['nickname']),
                     'body': duibi_info
                 }
-                self.command_execution(data)
+           
+                self.success(data)
 
         else:
             self.start_video()
@@ -71,19 +74,19 @@ class Visual(Base):
         #fier_file2 = os.path.join(self.config['root_path'], "data/shijue/haarcascade_righteye_2splits.xml")
         param = {
             'temp_file': self.temp_photo,
-            'fier_file':{
-                'file': fier_file,
-                'scaleFactor': 1.8,     #多少倍
-                'minNeighbors': 4,      #对比多少次
-                'minSize': (64, 64)
-            },
-            'show_win':False
-        }
+            'fier_file':{ 
+                'file': fier_file,           
+                },
+         #   'show_win':{
+         #      "is_show":False,
+         #      "is_focus":False,
+         #     },            
+            }
 
         self.opencv.main_video( param )
 
-    def main(self, command_execution ):
-        self.command_execution = command_execution
+    def main( self ):
+
         self.user_info = self.data.user_list_get()
         if self.user_info == False:
             log.info('暂无用户数据，人脸对比停止！')

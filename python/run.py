@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-import os,sys,re,time
-import multiprocessing as mp        #多进程
+import multiprocessing as mp  # 多进程
+import os
+import re
+import sys
+import time
 
 this_path = os.path.dirname(os.path.dirname(__file__))
 task_main       = 'main.py'                         #后端任务
@@ -16,7 +19,7 @@ logfile = os.path.join(this_path,'python/runtime/log/tasks.log')	# 日志文件
 #停止任务
 def stop( task_name ):
     taskcmd = 'ps ax | grep ' + task_name
-    out = os.popen(taskcmd).read();               # 检测是否已经运行
+    out = os.popen(taskcmd).read()               # 检测是否已经运行
     pat = re.compile(r'(\d+).+('+task_name+')')
     res = pat.findall(out)
     for x in res:
@@ -28,7 +31,7 @@ def stop( task_name ):
 #查询任务
 def ps_ax( task_name ):
     taskcmd = 'ps ax | grep ' + task_name
-    out = os.popen(taskcmd).read();               # 检测是否已经运行
+    out = os.popen(taskcmd).read()               # 检测是否已经运行
     pat = re.compile(r'(\d+).+('+task_name+')')
     res = pat.findall(out)
     if len(res)>2:
@@ -56,13 +59,12 @@ def start(run_file, cmdtype ='system'):
 #启动Mojing前端
 def start_mojing_app(is_debug=""):
     #麦克风利用率100%
-    os.system("sudo amixer set Capture 90%")
-    #os.system("sudo ntpdate ntp.sjtu.edu.cn")
+    #os.system("sudo amixer set Capture 80%")
+    #os.system("sudo amixer set PCM 90%")
 
     while True:
         is_task_mojing = ps_ax(task_mojing)
         if is_task_mojing == False:
-            #start(task_mojing_cmd, 'system')
             start(task_mojing_cmd + is_debug, 'system')     #启动前端
 
             stop(task_main)
@@ -72,7 +74,6 @@ def start_mojing_app(is_debug=""):
             start('sudo '+task_main_cmd, 'system')          #启动后端
 
         time.sleep(3)
-
 
 if __name__ == '__main__':
 
@@ -95,7 +96,7 @@ if __name__ == '__main__':
 
     #检测自己有没有运行
     runcmd = 'ps ax | grep ' + task_run
-    out = os.popen(runcmd).read();               # 检测是否已经运行
+    out = os.popen(runcmd).read()               # 检测是否已经运行
     pat = re.compile(r'(\d+).+(\/python\d?\s+\S+'+task_run+')')
     runres = pat.findall(out)
     if len(runres) > 1:

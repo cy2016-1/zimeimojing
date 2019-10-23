@@ -106,12 +106,12 @@ class Hecheng(Base):
             try:
                 f = urlopen(req,timeout=10)#合成时间不多，识别最耗时
                 result_str = f.read()
-                if re_type == 'system' :
+                if re_type == 'system':
                     save_file = audio_fill_
                 else:
                     save_file = os.path.join(self.audio_file,'result.' + self.FORMAT )
 
-                log.info('保存地址：', save_file )
+                #log.info('保存地址：', save_file )
                 with open(save_file, 'wb') as of:
                     of.write(result_str)
 

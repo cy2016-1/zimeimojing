@@ -30,7 +30,6 @@ class Luyin():
 
 
             def record_to_file( data, sample_width):
-                import os
                 #“从麦克风记录并输出结果数据到‘path’”
                 # sample_width, data = record()
                 data = p_self.pack('<' + ('h' * len(data)), *data)
@@ -40,7 +39,6 @@ class Luyin():
                 #wf.setframerate(p_self.RATE)
                 #wf.writeframes(data)
                 #wf.close()
-                #os.system("sudo aplay -q /var/www/server/python/data/yuyin/wo.wav")
                 return data
 
 
