@@ -64,8 +64,6 @@ class Luyin_shibie(Base):
         self.luyin.success = self.luyin_success
         self.luyin.error = self.luyin_error
         self.timer = 5      #录音时长
-
-        #self.noise = noise.Noise()
      
     #全部转换成功执行（已在main函数中被重写）
     def success(self, json ):
@@ -80,6 +78,16 @@ class Luyin_shibie(Base):
     def luyin_error(self,bug):
         log.info('出错继续录音',bug)
         self.luyin.main(self.timer, self.pyaudio_obj)
+
+        #停止说话
+    def stop_aplay(self):
+        taskcmd = 'ps ax | grep aplay' 
+        out = os.popen(taskcmd).read()               # 检测是否已经运行
+        pat = re.compile(r'(\d+)\s+pts.+aplay.+\/python\/runtime\/hecheng\/')
+        res = pat.findall(out)
+        for x in res:
+            cmd = 'sudo kill -9 '+ str(x)
+            os.popen(cmd)
 
     '''
     语音录音主函数
@@ -99,6 +107,9 @@ class Luyin_shibie(Base):
 
         self.yuyin_path = pyaudio_obj.yuyin_path
 
+        #停止之前的播放声音
+        self.stop_aplay()
+
         #如果是首次唤醒：执行魔镜应答声
         if is_one == 1:
             wozai = [
@@ -109,7 +120,7 @@ class Luyin_shibie(Base):
             filearr = wozai[ ints ]
 
             #播放唤醒提示声
-            play_cmd = 'aplay -q '+ self.yuyin_path +'/{}'.format(filearr['wav'])
+            play_cmd = 'aplay -q '+ self.yuyin_path +'/'+ filearr['wav']
 
             send_txt = {'init':1, 'obj':'mojing','msg': filearr['text']}
             self.pyaudio_obj.sw.send_info( send_txt )

@@ -24,7 +24,6 @@ class Mymqtt():
         self.__mqtt_pass = self.bao["mqttpass"]     # 密码
 
     def client_connect(self):
-        #print( self.__clientid, self.__mqtt_name, self.__mqtt_pass)
         client = mqtt.Client(self.__clientid)    # ClientId不能重复，所以使用当前时间
         client.username_pw_set(self.__mqtt_name, self.__mqtt_pass)  # 必须设置，否则会返回「Connected with result code 4」
         client.on_connect = self.on_connect             #连接成功回调
@@ -34,7 +33,6 @@ class Mymqtt():
 
     #连接成功回调
     def on_connect(self,client, userdata, flags, rc):
-        print("Connected with result code "+str(rc))
         topic = '/'+self.__clientid+'/sys/nav'
         client.subscribe(topic)        #订阅主题
         topic = '/'+self.__clientid+'/sys/admin'
@@ -43,7 +41,6 @@ class Mymqtt():
 
     #收到消息回调
     def on_message(self,client, userdata, msg):
-        #print(msg.topic+" "+msg.payload.decode("utf-8"))
         topic = msg.topic
         magstr = msg.payload.decode("utf-8")
         json_obj = json.loads( magstr )
@@ -98,7 +95,6 @@ class Mymqtt():
 
     # 订阅消息回调处理
     def message_check(self, topic, msgbody ):
-        print( msgbody )
         if type(msgbody) is dict:
             sbobj ={
                 'state': True,

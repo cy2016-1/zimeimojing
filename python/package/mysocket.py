@@ -6,7 +6,6 @@ class Mysocket():
 
     def __init__(self ):
         self.connection()
-        print("内部通信已经初始化")
 
     def connection(self):
         try:
@@ -16,7 +15,6 @@ class Mysocket():
 
     #重新连接
     def reconnect(self):
-        print('重新连一下')
         try:
             self.ws = self.ws.connect("ws://127.0.0.1:8103")
         except Exception as e:

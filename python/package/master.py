@@ -43,7 +43,7 @@ class pyaudio_obj(Base):
 
     def __init__(self):
         self.yuyin_path = os.path.join(self.config['root_path'], 'data/yuyin')
-        self.time,self.collections,self.sys,self.signal,self.wave,self.array,self.pack,self.so,self.np = time,collections,sys,signal,wave,array,pack,os,np
+        self.time,self.collections,self.sys,self.signal,self.wave,self.array,self.pack,self.np = time,collections,sys,signal,wave,array,pack,np
 
         FORMAT = pyaudio.paInt16
         CHANNELS = 1
@@ -187,16 +187,6 @@ class Master(Base):
         )
         self.p2.start()
         
-    #停止说话
-    def stop_aplay(self):
-        taskcmd = 'ps ax | grep aplay' 
-        out = os.popen(taskcmd).read()               # 检测是否已经运行
-        pat = re.compile(r'(\d+).+(aplay -q .*/python/runtime/hecheng/)')
-        res = pat.findall(out)
-        for x in res:
-            pid = x[0]
-            cmd = 'sudo kill -9 '+ pid
-            os.popen(cmd)
 
     #语音唤醒成功
     def snowboy_success(self):
@@ -270,8 +260,6 @@ class Master(Base):
             if self.is_snowboy.value > 0:
                 self.start_yuyin( self.is_snowboy.value )
                 self.is_snowboy.value = 0
-                #唤醒停止说话，放在这里就不会出现二次启动录音
-                self.stop_aplay()
 
             timeing += 1
             if timeing >= 4:
