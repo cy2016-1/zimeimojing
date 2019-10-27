@@ -1,6 +1,4 @@
-
 class Luyin():
-
     '''录音类'''
 
     def success(self,results):

@@ -250,7 +250,6 @@ class Master(Base):
         timeing = 0
 
         while True:
-
             #监听唤醒进程：是否正常
             if self.p1.is_alive()==False:
                 self.start_snowboy()

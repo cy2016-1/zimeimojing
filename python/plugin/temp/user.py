@@ -1,13 +1,16 @@
 import os
 import re
+import time
 import urllib
 
 import package.mymqtt as mymqtt
 from package.base import Base  # 基本类
 from plugin import Plugin
-
+from package.include.opencv import Opencv        #人脸离线识别
 
 class User(Base,Plugin):
+    '''用户管理插件'''
+    
     def __init__(self, public_obj):
         self.public_obj = public_obj
         self.Mqtt = mymqtt.Mymqtt(self.config)
@@ -49,7 +52,6 @@ class User(Base,Plugin):
 
     #用户人脸绑定
     def user_face_bind(self, uid ):
-        import os
         ls_str = os.popen("sudo ls -al /dev/ | grep video").read()
         if re.search("video0", ls_str) == None:
             self.public_obj.sw.send_nav({"event" : "close"})                 #取消显示二维码导航消息
@@ -64,14 +66,11 @@ class User(Base,Plugin):
             self.Mqtt.send_admin('xiaocx', 'USER_REG', re_json )
             return
 
-        import time
-        from package.include.opencv import Opencv        #人脸离线识别
-
         #保存用户图像成功
         temp_photo = os.path.join(self.config['root_path'], "runtime/shijue/photos_"+ str(uid) +".jpg")
         ding_wav = os.path.join(self.config['root_path'], "data/snowboy/ding.wav")
 
-        def success( is_succ):
+        def success(is_succ):
             if is_succ:
                 postup = {'facepath':temp_photo}
                 self.data.user_up( uid, postup )
@@ -81,7 +80,6 @@ class User(Base,Plugin):
                 self.public_obj.sw.send_nav({"event" : "close"})
                 re_json = {"code":'0003', "msg":'人脸图像已经保存成功'}
                 self.Mqtt.send_admin('xiaocx', 'USER_REG', re_json )
-
             else:
                 start_video()
 
@@ -95,14 +93,14 @@ class User(Base,Plugin):
             'fier_file':{
                 'file': fier_file,
                 'scaleFactor': 1.2,        #多少倍
-                'minNeighbors': 20,      #对比多少次
+                'minNeighbors': 20,        #对比多少次
                 'minSize': (40, 40)
-                },
-            'show_win':  { 
-                "is_show":  True,       
+            },
+            'show_win':  {
+                "is_show":  True,
                 "is_focus": True,
-                },          
             }
+        }
             
         def start_video():
             opencv.main_video( param )
