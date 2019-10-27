@@ -421,48 +421,6 @@ update_config=1
 
 if argv != 'update':reset_wifi()
 
-#设置开机动画
-def set_bootimg():
-    print_str("设置开机动画",'n','n')
-
-    #桌面图片地址
-    bootimg = os.path.join(root_path, 'app/resources/app/html/img/system/splash.png')
-    #开机动画
-    default_splash = '/usr/share/plymouth/themes/pix/splash.png'
-
-    #改桌面
-    desktop_conf = '/home/pi/.config/pcmanfm/LXDE-pi/desktop-items-0.conf'
-    if os.path.exists(desktop_conf):
-        f = open(desktop_conf,"r")
-        fstr = f.read()
-        f.close()
-
-        restr = r'wallpaper\=(.+)\n'
-        matc = re.search( restr, fstr, re.M|re.I )
-
-        is_write = False
-        if matc!=None:
-            if str(bootimg) != str(matc.group(1)):
-                new_api = 'wallpaper='+str(bootimg)+'\n'
-                fstr = re.sub(restr, new_api, fstr, 1, re.M|re.I )
-                is_write = True
-
-        if is_write:
-            fo = open(desktop_conf, "w")
-            line = fo.write( fstr )
-            fo.close()
-        del fstr
-
-    is_diff = diff_file( default_splash, bootimg )
-    if is_diff is False:
-        cmd = 'cp -f '+ bootimg + ' '+ default_splash
-        os.system( cmd )
-
-    print_str('[完成]','p')
-
-set_bootimg()
-
-
 '''
 ----------清理所有__pycache__-------------
 '''
