@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+import multiprocessing as mp  # 多进程
+import os
+import time
+
+import package.include.visual as visual
 import RPi.GPIO as GPIO
-import time,os
 from package.base import Base, log
 from plugin import Plugin
-import multiprocessing as mp    #多进程
-import package.include.visual as visual
+
 
 class Probe_people(Base,Plugin):
 
@@ -12,8 +15,6 @@ class Probe_people(Base,Plugin):
     GPIO.setmode(GPIO.BOARD) 
     GPIO.setup(channel,GPIO.IN)
 
-    
-    
     def __init__(self, public_obj ): 
        
         log.info("人体探测启动")
@@ -29,10 +30,7 @@ class Probe_people(Base,Plugin):
                 self.public_obj.master_conn.send({'optype': 'return','type': 'system','state': True,'msg': '人脸识别','data':"你好",'stop':True} )       
         except:
             self.public_obj.master_conn.send({'optype': 'return','type': 'system','state': True,'msg': '人脸识别','data':"你好",'stop':True} ) 
-                      
-           
-        
-   
+
     #进程
     def main(self):
         try:
@@ -66,8 +64,9 @@ class Probe_people(Base,Plugin):
                     self.visual =visual.Visual()
                     self.visual.success =self.success
                     self.visual.main()
+                   
                       
-        except:
+        except():
             #防止树莓派系统莫名其妙的错误
             log.info("人体探测"*10)
             time.sleep(1)
@@ -80,12 +79,3 @@ class Probe_people(Base,Plugin):
                        
 if __name__ == "__main__":
     Human_body_detection().main()      
-
-
-
-
-
-
-
-
-    

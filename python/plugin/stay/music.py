@@ -44,13 +44,11 @@ class Qqmusic(Base):
         url       = this_play['url']
         md5_fname = this_play['hashname']
         mp3_file  = os.path.join(self.music_cache, md5_fname +'.wav')
-
-        if os.path.exists(mp3_file)==False:
+        #检测缓存音乐是否存在，和文件大小是否正常。
+        if os.path.exists(mp3_file)==False or self.filesize(mp3_file)<2527360:
             if key==0 and this_play_id ==0:
-       
                 front_end( {'obj':'mojing','msg':'正在缓冲歌曲，请稍候……'})    
                 os.popen("sudo aplay "+ os.path.join(self.config['root_path'], "data/yuyin/Buffering.wav"))
-        
         
             result    = urlparse( url )
             m4afile   = result.path
@@ -93,7 +91,15 @@ class Qqmusic(Base):
             front_end( {'obj':'mojing','msg':'正在播放:'+ name[hashname]})
         except:
             pass
-        
+
+    # 获取文件大小
+    def filesize(self,path):
+        try:
+            return os.path.getsize(path)
+        except:
+            #如果文件不存在返回正常以上的文件大小
+            return 100000000000
+              
     #播放音乐
     def play_music(self):
         global this_play_id
@@ -143,7 +149,7 @@ class Qqmusic(Base):
                 break
             i += 1
 
-        if is_file:
+        if is_file :
             return is_file,i
         elif i > 0:
             return self.cache_music(play_list, 0), 0
