@@ -25,7 +25,7 @@ GitHub(国外)：https://github.com/drbdrb/zimei
     
     方式二：源码安装（适合有一定的Linux操作经验和编程基础的用户），具体安装方法请浏览：[http://docs.16302.com/1318686](http://docs.16302.com/1318686)
 3. 首次启动
-    第一次启用系统会提示用微信扫描绑定设备：
+    第一次启用系统会提示用微信扫描绑定设备：<br/>
     <img src="http://qiniucn.16302.com/cebf6a2e00280c328c045d66076a60d4" width="500" border="0" />
     并有语音提示：我已经准备好了，你可以与我互动啦！即为安装成功。
 
