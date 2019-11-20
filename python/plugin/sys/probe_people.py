@@ -36,9 +36,9 @@ class Probe_people(Base,Plugin):
         try:
             self.hello = 0#记录主人是否存在#设置为1 就不会一开始和你打招呼   
             self.on1 = time.time()
-            self.key =0           
+            self.key =0
+
             while 1:
-                
                 self.key += GPIO.input(self.channel)
                 #print( self.key,time.time())
                 #刷新率
@@ -64,16 +64,14 @@ class Probe_people(Base,Plugin):
                     self.visual =visual.Visual()
                     self.visual.success =self.success
                     self.visual.main()
-                   
-                      
-        except():
+        except:
             #防止树莓派系统莫名其妙的错误
             log.info("人体探测"*10)
             time.sleep(1)
             self.main()
+
     #开始        
     def start(self, enobj):
-         
         m = mp.Process(target = self.main )
         m.start()
                        

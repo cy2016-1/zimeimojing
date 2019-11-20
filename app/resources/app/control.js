@@ -29,7 +29,6 @@ var control = {
 			control.childWin = "";
 		}
 
-		//console.log( typeof(nav_json) );
 		try {
 			//var nav_json = JSON.parse( json );
 			if(typeof(nav_json)=='object'){
@@ -101,7 +100,7 @@ var control = {
 		    });
 		}).listen(8103);
 		server.on("connection", (client_sock)=>{
-			console.log("这客户端接入")
+			console.log("有客户端接入")
 		});
 
 		console.log("WebSocket建立完毕")

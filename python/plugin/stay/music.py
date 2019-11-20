@@ -221,8 +221,6 @@ class Qqmusic(Base):
 
 
 
-
-
 # ==================================================================================================
 
 class Music(Plugin,Base):
@@ -247,38 +245,25 @@ class Music(Plugin,Base):
         self.p2.start()
         
 
-
     #插件入口
     def start(self, enobj):
-
         #print('插件入口',enobj, enobj['data'] )
         self.this_list_name = enobj['data']
         self.wai_conn.send({"control":"play"})
      
     #插件等待（暂时停止）控制
-    def pause(self):
+    def pause(self, *enobj):
         self.wai_conn.send({"control":"pause"})
 
     #插件继续
     def resume(self, enobj={}):
-
-
         if str(self.this_list_name) != str(enobj['data']) and enobj['name']=='Music':
             self.wai_conn.send({"control":"unpause","newlist":1})
             self.this_list_name = enobj['data']
-           
-
         elif enobj["trigger"] in ["下一曲","下一个","下一首"]:
-
             self.wai_conn.send({"control":"next"})
-     
-
-
         elif enobj["trigger"] in ["上一曲","上一个","上一首"]:
-
             self.wai_conn.send({"control":"previous"})
-        
-
         else:
             #继续播放
             self.wai_conn.send({"control":"unpause","newlist":0})
