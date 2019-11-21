@@ -75,7 +75,7 @@ class Master(Base):
         self.check = check.Check()
 
         #远程控制模块
-        self.mqtt = mymqtt.Mymqtt(self.config)
+        self.mqtt = mymqtt.Mymqtt()
 
         #技能总控
         self.skills = skills.Skills()
@@ -209,7 +209,7 @@ class Master(Base):
     def start_mqtt(self):
         self.p4 = mp.Process(
             target = self.mqtt.main,
-            args = (self.command_execution, self.public_obj )
+            args = (self.command_execution, self.public_obj, self.config)
         )
         self.p4.start()
 
@@ -271,10 +271,10 @@ class Master(Base):
         #定义唤醒成功内存变量：是否唤醒成功
         self.is_snowboy  = mp.Value("h",0)
 
+        self.start_init()
+
         #启动设备检测
         self.check.main(self.public_obj)
-
-        self.start_init()
 
         #启动唤醒
         self.start_snowboy()

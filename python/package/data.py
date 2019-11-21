@@ -67,10 +67,10 @@ class data():
     #保存必要参数
     def save_necessary_data(self, jsonstr):
         try:
-            create_tb_cmd='CREATE TABLE IF NOT EXISTS config(key TEXT,value TEXT,nona TEXT);'       #表头创建值
+            create_tb_cmd='CREATE TABLE "config" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"key" TEXT(20),"value" TEXT(20),"class" INTEGER DEFAULT 0,"nona" TEXT(200));'       #表头创建值
             self.db.connection.execute(create_tb_cmd)        #主要就是上面的语句
         except:
-            print('表存在')
+            pass #('表存在')
 
         ret_dict = {}
 
@@ -79,33 +79,34 @@ class data():
         if(cx):
             self.db.table('config').where(where).setField('value',jsonstr['clientid'])
         else:
-            self.db.table('config').add({'key':'clientid','value':jsonstr['clientid'],'nona':'设备ID'})
+            self.db.table('config').add({'key':'clientid','value':jsonstr['clientid'],'nona':''})
 
         where = {'key':'mqttname'}
         cx = self.db.table('config').where(where).find()
         if(cx):
             self.db.table('config').where(where).setField('value',jsonstr['clientid'])
         else:
-            self.db.table('config').add({'key':'mqttname','value':jsonstr['clientid'],'nona':'MQTT用户名'})
+            self.db.table('config').add({'key':'mqttname','value':jsonstr['clientid'],'nona':''})
 
         where = {'key':'mqttpass'}
         cx = self.db.table('config').where(where).find()
         if(cx):
             self.db.table('config').where(where).setField('value',jsonstr['skey'])
         else:
-            self.db.table('config').add({'key':'mqttpass','value':jsonstr['skey'],'nona':'MQTT密钥'})
+            self.db.table('config').add({'key':'mqttpass','value':jsonstr['skey'],'nona':''})
 
         where = {'key':'mqttdevid'}
         cx = self.db.table('config').where(where).find()
         if(cx):
             self.db.table('config').where(where).setField('value',jsonstr['devid'])
         else:
-            self.db.table('config').add({'key':'mqttdevid','value':jsonstr['devid'],'nona':'MQTT密钥ID'})
+            self.db.table('config').add({'key':'mqttdevid','value':jsonstr['devid'],'nona':''})
 
         ret_dict = {
-            'clientid'   : jsonstr['clientid'],
-            'mqttname'  : jsonstr['clientid'],
-            'mqttpass'  : jsonstr['skey']
+            'clientid' : jsonstr['clientid'],
+            'mqttdevid': jsonstr['devid'],
+            'mqttname' : jsonstr['clientid'],
+            'mqttpass' : jsonstr['skey']
         }
         return ret_dict
 

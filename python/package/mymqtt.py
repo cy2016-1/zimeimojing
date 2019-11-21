@@ -8,18 +8,18 @@ import package.include.paho.mqtt.publish as publish
 
 class Mymqtt():
     """MQTT操作类"""
-
+    __host = ''
+    __port = ''
     __clientid = ''
     __mqtt_name = ''
     __mqtt_pass = ''
 
-    def __init__(self, config ):
-        self.bao = config['MQTT']
-        self.__host = self.bao["server"]            # mqtt.16302.com
-        self.__port = int(self.bao["port"])              # 1883
-        self.__clientid = self.bao["clientid"]      # 设备id
-        self.__mqtt_name = self.bao["mqttname"]     # 用户名
-        self.__mqtt_pass = self.bao["mqttpass"]     # 密码
+    def __init(self, config ):
+        self.__host = config["server"]            # mqtt.16302.com
+        self.__port = int(config["port"])         # 1883
+        self.__clientid = config["clientid"]      # 设备id
+        self.__mqtt_name = config["mqttname"]     # 用户名
+        self.__mqtt_pass = config["mqttpass"]     # 密码
 
     def client_connect(self):
         client = mqtt.Client(self.__clientid)    # ClientId不能重复，所以使用当前时间
@@ -105,6 +105,7 @@ class Mymqtt():
             self.command_execution( sbobj )
 
     #入口函数
-    def main(self, command_execution, public_obj ):
+    def main(self, command_execution, public_obj, config ):
+        self.__init(config['MQTT'])
         self.command_execution = command_execution
         self.client_connect()
