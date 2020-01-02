@@ -14,14 +14,12 @@ class Mymqtt():
     __mqtt_name = ''
     __mqtt_pass = ''
 
-    def __init__(self, config={}):
-        if len(config)>0:
-            mqtt_conf = config["MQTT"]
-            self.__host = mqtt_conf["server"]            # mqtt.16302.com
-            self.__port = int(mqtt_conf["port"])         # 1883
-            self.__clientid = mqtt_conf["clientid"]      # 设备id
-            self.__mqtt_name = mqtt_conf["mqttname"]     # 用户名
-            self.__mqtt_pass = mqtt_conf["mqttpass"]     # 密码
+    def init(self, config ):
+        self.__host = config["server"]            # mqtt.16302.com
+        self.__port = int(config["port"])         # 1883
+        self.__clientid = config["clientid"]      # 设备id
+        self.__mqtt_name = config["mqttname"]     # 用户名
+        self.__mqtt_pass = config["mqttpass"]     # 密码
 
     def client_connect(self):
         client = mqtt.Client(self.__clientid)    # ClientId不能重复，所以使用当前时间
@@ -108,12 +106,6 @@ class Mymqtt():
 
     #入口函数
     def main(self, command_execution, public_obj, config ):
-        mqtt_conf = config['MQTT']
-        self.__host = mqtt_conf["server"]            # mqtt.16302.com
-        self.__port = int(mqtt_conf["port"])         # 1883
-        self.__clientid = mqtt_conf["clientid"]      # 设备id
-        self.__mqtt_name = mqtt_conf["mqttname"]     # 用户名
-        self.__mqtt_pass = mqtt_conf["mqttpass"]     # 密码
-
+        self.init(config['MQTT'])
         self.command_execution = command_execution
         self.client_connect()

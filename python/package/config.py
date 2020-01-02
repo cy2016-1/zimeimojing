@@ -45,8 +45,8 @@ config = {
             "hecheng_api_url" : "http://tsn.baidu.com/text2audio",                # 百度语音合成的网址
             "body":{
                 "grant_type"      : "client_credentials",
-                "client_id"       : "8IUGBKypHccENIUzCeggIZt1",
-                "client_secret"   : "kj0fIVYFe4BSjSkA0TBzyPWhcnqkwnu1"
+                "client_id"       : "tOpUbG9aNsiVrCYSSug605Tn",
+                "client_secret"   : "zVRAwxFWUzzHEfXruUB20wIyhGrzj1b6"
             }
         },
 

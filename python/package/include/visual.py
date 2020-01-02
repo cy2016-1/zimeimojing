@@ -86,7 +86,7 @@ class Visual(Base):
 
         save      = {'type': 3,'color': 1}
 
-        self.opencv.main_video(temp_file=self.temp_photo,fier_file =fier_file,window =window ,save=save,camera_angle = 0,thre = 0.5  )    
+        self.opencv.main_video(temp_file=self.temp_photo,fier_file =fier_file,window =window ,save=save,camera_angle = 1,thre = 0.5  )    
        
         
     

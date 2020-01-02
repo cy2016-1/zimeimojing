@@ -9,12 +9,23 @@ from plugin import Plugin
 from package.include.opencv import Opencv        #人脸离线识别
 import package.include.baiduapi.contrast as contrast  #人脸在线对比
 
+"""mqtt通讯错误捕获类"""      
+class MqttBug():
+    def __init__(self,bug):
+        self.bug = bug
+    def send_admin(self,*data):
+        print('[\033[31m{0}{1}\033[0m]'.format("bug:",self.bug))
+        
 class User(Base,Plugin):
     '''用户管理插件'''
     
     def __init__(self, public_obj):
         self.public_obj = public_obj
-        self.Mqtt = mymqtt.Mymqtt(self.config)
+        try:
+            self.Mqtt = mymqtt.Mymqtt()
+            self.Mqtt.init(self.config['MQTT'])
+        except Exception as bug:
+            self.Mqtt = MqttBug(bug)
 
     #打开绑定信息
     def user_openbind(self, postjson):
@@ -85,7 +96,7 @@ class User(Base,Plugin):
                 self.public_obj.sw.send_nav({"event" : "close"})
                 re_json = {"code":'0003', "msg":'人脸图像已经保存成功'}
                 self.Mqtt.send_admin('xiaocx', 'USER_REG', re_json )
-
+                return True
 
         opencv = Opencv()
         opencv.success = success        
@@ -103,7 +114,7 @@ class User(Base,Plugin):
             
             save      = {'type': 3,'color': 1}
             
-            opencv.main_video(temp_file=temp_photo,fier_file =fier_file,window =window  ,save=save,camera_angle = 0,thre = 0.5  )  
+            opencv.main_video(temp_file=temp_photo,fier_file =fier_file,window =window  ,save=save,camera_angle = 1,thre = 0.5  )  
 
         start_video()
 

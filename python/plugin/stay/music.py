@@ -131,7 +131,8 @@ class Qqmusic(Base):
         pygame.mixer.music.play()
         this_play_id = next_key     
         while pygame.mixer.music.get_busy():
-            pass
+            time.sleep(0.1)
+          
 
         self.play_music()
 

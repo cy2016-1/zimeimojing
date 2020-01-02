@@ -73,6 +73,14 @@ def start_mojing_app(is_debug=""):
 
         time.sleep(3)
 
+
+#检测声卡
+def detect_cards():
+    if re.search("wm8960", os.popen("cat /proc/asound/cards").read()) == None:
+        return False
+    else:
+        return True
+
 if __name__ == '__main__':
 
     is_debug = ""
@@ -92,6 +100,12 @@ if __name__ == '__main__':
     if argv.lower() == 'debug':
         is_debug = " Debug"
 
+    if not detect_cards():
+        import tkinter.messagebox as messagebox
+        from tkinter import *
+        Tk().withdraw()
+        messagebox.showinfo('硬件错误提示','没有发现驱动板，请购买或者关机重新插拔驱动板！')
+
     #检测自己有没有运行
     runcmd = 'ps ax | grep ' + task_run
     out = os.popen(runcmd).read()               # 检测是否已经运行
@@ -99,5 +113,5 @@ if __name__ == '__main__':
     runres = pat.findall(out)
     if len(runres) > 1:
         exit()
-        
+
     start_mojing_app(is_debug)

@@ -135,15 +135,27 @@ class Screens():
         del line,config,fo,rema,restr
 
         os.system('sudo reboot')
-
+        
+"""mqtt通讯错误捕获类"""      
+class MqttBug():
+    def __init__(self,bug):
+        self.bug = bug
+    def send_admin(self,*data):
+        print('[\033[31m{0}{1}\033[0m]'.format("bug:",self.bug))
+        
 class Device(Base,Plugin):
     """设备管理类"""
 
     def __init__(self, public_obj):
-        self.public_obj = public_obj
-        self.Mqtt = mymqtt.Mymqtt(self.config)
+        self.public_obj = public_obj        
         self.Yinliang = Yinliang()
         self.Screens  = Screens()
+        try:
+            self.Mqtt = mymqtt.Mymqtt()
+            self.Mqtt.init(self.config['MQTT'])
+        except Exception as bug:
+            self.Mqtt = MqttBug(bug)
+            
 
     # 获取设备IP
     def get_ip_address(self):

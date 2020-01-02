@@ -22,7 +22,6 @@ class Weatheraddress( Plugin,Base ):
                 response  =   json.loads( f.read().decode() )
                 res['code'] = '0000'
                 res['msg']  = '请求成功！'
-                print(response[0],"cc"*100,response[0]["cid"][-1:])
                 res['data']  = response[0]
 
         finally:
