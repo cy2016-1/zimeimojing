@@ -66,8 +66,7 @@ class Install():
         self.cmd('sudo mkdir -p',r'python/data/conf')
         self.cmd('sudo mkdir -p',r'python/runtime/log')
         self.cmd('sudo mkdir -p',r'python/runtime/photo')
-        self.cmd('sudo mkdir -p',r'python/runtime/soundCache')
-        self.cmd('sudo mkdir -p',r'/music')
+        self.cmd('sudo mkdir -p',r'python/runtime/soundCache')   
         self.cmd('sudo mkdir -p',r'/music/cache')
 
         #该目录下全部权限
@@ -75,10 +74,10 @@ class Install():
         self.cmd('sudo chmod -R 0777', 'python/data/')
 
         #该目录下全部不可执行，可读可写
-        self.cmd('sudo chown -R pi.pi','python/runtime/')
+        # self.cmd('sudo chown -R pi.pi','python/runtime/')
         self.cmd('sudo chmod -R 0777', 'python/runtime/')
-        self.cmd('sudo chown -R pi.pi','/music/cache')
-        self.cmd('sudo chmod -R 0777', '/music/cache')
+        # self.cmd('sudo chown -R pi.pi','/music/cache')
+        self.cmd('sudo chmod -R 0777', '/music/')
 
         #该目录下全部仅执行
         self.cmd('sudo chmod +x' , 'python/run.py')

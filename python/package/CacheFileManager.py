@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: Guanghui Sun
 # @Date: 2020-01-01 15:42:36
-# @LastEditTime: 2020-01-21 14:34:59
+# @LastEditTime: 2020-03-04 16:09:53
 # @Description:  cache文件管理方法
 
 import time
@@ -61,11 +61,12 @@ class CacheFileManager:
     @staticmethod
     def delfile(days=60):            
         '''将管理列表中超出days天没有访问的文件删除,days也可以为小数!'''
-
         Folder = [r'./runtime/soundCache', r'/music/cache']
         for f in Folder:
-            CacheFileManager.scanCacheFile(f)
-
+            if os.path.exists(f):
+                CacheFileManager.scanCacheFile(f)
+            else:
+                os.makedirs(f)
         delta = datetime.timedelta(days=days)
         now = datetime.datetime.now()
         accessTime = CacheFileManager.__readFile2dict()
