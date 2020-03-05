@@ -43,7 +43,7 @@ GPIO:
   deng_kg: 11                   # 装饰灯控制脚
   setnet_pin: 31                # 配网控制按钮脚
   detect_man: 16                # 人体探测
-  powersavetime: 30             # 持续n分钟都没有人,则关闭屏幕节能.可选数值[1~65536] 如果为0 则关闭此功能
+  powersavetime: 0              # 持续n分钟都没有人,则关闭屏幕节能.可选数值[1~65536] 如果为0 则关闭此功能
 
 SCREEN_MARGON:                  # 屏幕边距配置
   top: 10px
