@@ -15,18 +15,18 @@ class myThread(threading.Thread):
         self.threadID = threadID
         self.name = name
 
-    def run(self):
-        print_time(self.name)
+    def print_time(self,threadName):
+        global exitFlag, is_print
+        while True:
+            if exitFlag:
+                exit()
+            if is_print:
+                sys.stdout.write('■')
+                sys.stdout.flush()
+            time.sleep(0.5)
 
-def print_time(threadName):
-    global exitFlag, is_print
-    while True:
-        if exitFlag:
-            exit()
-        if is_print:
-            print ('■',end='')
-            sys.stdout.flush()
-        time.sleep(0.5)
+    def run(self):
+        self.print_time(self.name)
 
 class update():
 

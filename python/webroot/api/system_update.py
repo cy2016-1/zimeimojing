@@ -20,6 +20,18 @@ class system_update(ApiBase):
                 ret_arr = {'code': 20000,'message': '提交获取最新版本号操作成功', 'data':{'error':'0000'}}
                 return json.dumps(ret_arr)
 
+            # 获取本地版本号
+            elif op=='localver':
+                version = 'v0.0.1'
+                with open('./data/ver.txt', 'r') as f:
+                    version = f.read()
+                data = {
+                    'error': '0000',
+                    'version': version
+                }
+                ret_arr = {'code': 20000,'message': '获取当前系统版本号成功', 'data':data}
+                return json.dumps(ret_arr)
+
             # 获取远程版本号
             elif op == 'remotever':
                 file_str = ''

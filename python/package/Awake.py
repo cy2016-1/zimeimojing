@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: GuanghuiSun
 # @Date: 2019-12-31 15:00:28
-# @LastEditTime: 2020-03-02 18:03:36
+# @LastEditTime: 2020-03-04 19:20:22
 # @Description:  唤醒服务。换醒程序一般没有需要接收的消息，向控制中心发唤醒消息即可。
 import os
 import socket
@@ -25,7 +25,7 @@ class Awake(MsgProcess):
             elif self.config['AwakeEngine'] == 'snowboy':
                 self.awakeThread = Thread(target=self.snowboyThread, args=())
             self.awakeThread.start()
-            logging.debug(self.awakeThread)
+            # logging.debug(self.awakeThread)
           
     def snowboyThread(self):            
         path = os.path.join(os.getcwd(), r'bin/snowboy')
@@ -70,8 +70,7 @@ class Awake(MsgProcess):
         result = re.search(pattern, allRunProg)   
         while not result:
             exefile = os.path.join(os.getcwd(), "bin/XFawake/awake")
-            subprocess.Popen(args=exefile, cwd=os.path.dirname(exefile), shell=True, stdout=subprocess.DEVNULL)
-            logging.debug("subprocess.popen bin/XFawake/awake")
+            subprocess.Popen(args=exefile, cwd=os.path.dirname(exefile), shell=True, stdout=subprocess.DEVNULL) 
             time.sleep(3)     
             allRunProg = str((os.popen('ps -aux ')).read())
             pattern = r"bin/XFawake/awake\b"    

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: GuanghuiSun
 # @Date: 2020-02-22 10:37:52
-# @LastEditTime: 2020-03-01 23:06:37
+# @LastEditTime: 2020-03-04 19:23:01
 # @Description:  录音服务
 
 import webrtcvad
@@ -12,6 +12,7 @@ from threading import Thread
 from MsgProcess import MsgProcess, MsgType
 import package.VoiceRecognition as VoiceRecognition
 import socket
+import wave
 from bin.pyAlsa import pyAlsa
 
 
@@ -156,14 +157,31 @@ class Record(MsgProcess):
 
         if Speech_CHUNK_Counter > MinSpeechCHUNK:
             os.popen('aplay -q data/audio/dong.wav')
-            frames = frames[0: 1 - NoSpeechCheck]
+            frames = frames[0: 2 - NoSpeechCheck]
             frames = b"".join(frames)
             text = self.VoiceRecognition.Start(frames)
             if text:
                 self.send(MsgType.Text, Receiver='Screen', Data=text)
                 self.send(MsgType=MsgType.Text, Receiver=message['Sender'], Data=text)
+                self.saveRec(frames, text)
                 return
         logging.info('无语音数据')
         self.send(MsgType=MsgType.JobFailed, Receiver=message['Sender'])
         self.send(MsgType.Text, Receiver='Screen', Data='无语音数据')
         self.send(MsgType.QuitGeekTalk, Receiver='ControlCenter')
+
+    def saveRec(self, frames, text):
+        ''' 录音分析 日志为DEBUG或INFO时启用 '''
+        if self.config['Logging']['Level'] not in ['DEBUG', 'INFO']:
+            return
+        recpath = r"./runtime/record/"
+        if not os.path.exists(recpath):
+            os.makedirs(recpath)
+        file = os.path.join(recpath, text + '.wav')
+        w = wave.open(file, 'w')
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(16000)
+        w.writeframes(frames)
+
+        

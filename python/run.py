@@ -53,12 +53,13 @@ def ps_ax(task_name):
 def start(run_file):      # 启动函数
     def run_fund(run_file):
         os.system('export DISPLAY=:0 && ' + run_file)
-    Process(target=run_fund,args=(run_file,)).start()
+    Process(target=run_fund, args=(run_file,)).start()
 
 
 # 启动Mojing前端
 def start_mojing_app(is_debug=""): 
     os.system("sudo alsactl --file data/asound.state restore")  # 加载音量设置
+    os.system("sudo amixer set Capture 70%")    # 设置话筒
   
     while True:
         is_task_mojing = ps_ax(task_mojing)

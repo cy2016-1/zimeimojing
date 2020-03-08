@@ -52,7 +52,6 @@ class Install():
         os.system("sudo cp python/bin/XFawake/libs/ARM/*.so /usr/lib/")
         self.print_str('[完成]','p')
 
-    # 111111111111111111111111111111111111111
 
     # 设置目录权限
     def set_path_chmod(self):
@@ -85,8 +84,6 @@ class Install():
         self.cmd('sudo chmod +x' , 'python/WebServer.py')
 
         self.print_str('[完成]','p')
-
-    # 222222222222222222222222222222222222222222222222
 
     # 创建系统默认数据库
     def CreateTables(self):
@@ -137,8 +134,6 @@ class Install():
         os.system("sudo chown pi.pi "+ con_file)
         os.system("sudo chmod 777 "+ con_file)
         self.print_str("[完成]",'p')
-
-    # 333333333333333333333333333333333333333333333333333333
 
     # 管理计划任务
     def add_crontab(self):
@@ -195,8 +190,6 @@ class Install():
         self.print_str("[完成]",'p')
 
 
-    # 444444444444444444444444444444444444444444444444444444444
-
     # 设置默认声卡
     def set_soundcard(self):
         self.print_str("设置默认声卡" ,'n','n')
@@ -235,8 +228,6 @@ class Install():
 
         self.print_str("[完成]",'p')
 
-    # 555555555555555555555555555555555555555555
-
     # 开始清理工作
     def vacuuming(self):
         self.print_str("开始清理工作" ,'n','n')
@@ -246,8 +237,6 @@ class Install():
         os.system('rm -f '+ os.path.join(self.root_path, "python/runtime/shijue") +'/*')
         self.print_str("[完成]",'p')
 
-    # 666666666666666666666666666666666666666
-
     # 校准时间的方法
     def calibration_time(self):
         #需要安装包sudo apt-get install ntpdate
@@ -255,18 +244,18 @@ class Install():
         self.print_str("正在设置时间核对……",'n','n')
 
         # 时区判断
-        if os.popen("date -R").read().count("0800") == 1:
+        if os.popen("cat /etc/timezone").read().count("Asia/Shanghai") == 1:
             pass
         else:
             #修改时区到中国上海
+            cmd = 'sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime'
+            os.system( cmd )
             with open("/etc/timezone","w") as x:
                 x.write('Asia/Shanghai')
         #在继续修改时间
         os.system("sudo ntpdate ntp.sjtu.edu.cn")
 
         self.print_str('[完成]','p')
-
-    # 777777777777777777777777777777777777777777777
 
     # 重置WiFi网络
     def reset_wifi(self):
@@ -281,8 +270,6 @@ update_config=1
 
         self.print_str('[完成]','p')
 
-    # 88888888888888888888888888888888888
-
     #清理当前install位置和深层所有的__pycache__
     def del_pycache(self, file_dir = "./"):
         self.print_str("开始清理__pycache__" ,'n')
@@ -292,8 +279,6 @@ update_config=1
                     self.print_str("正在删除-->"+root+"/"+x, 'n', 'n')
                     os.system("sudo rm -r "+root+"/"+x)
                     self.print_str('[完成]','p')
-
-    # del_pycache(self.root_path) 999999999999999999999999999999999999
 
     def main(self, argv=''):
         '''

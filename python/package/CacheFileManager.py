@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: Guanghui Sun
 # @Date: 2020-01-01 15:42:36
-# @LastEditTime: 2020-03-04 16:09:53
+# @LastEditTime: 2020-03-04 18:24:28
 # @Description:  cache文件管理方法
 
 import time
@@ -84,3 +84,4 @@ class CacheFileManager:
 
 if __name__ == "__main__":
     CacheFileManager.delfile()
+    

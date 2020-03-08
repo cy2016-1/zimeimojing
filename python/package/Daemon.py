@@ -30,6 +30,7 @@ class Daemon(MsgProcess):
         self.showBind = True
         self.isSettingNet = False                                       # 是否正在配网中
         self.pin_fengshan_zt = 0
+        self.set_time_i = 100                                           # 设置时间计时
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.pin_fengshan_kg, GPIO.OUT)
@@ -124,6 +125,14 @@ class Daemon(MsgProcess):
             req = Request(url)
             f = urlopen(req, timeout=10)
             if f.getcode() == 200:
+                self.set_time_i += 1
+                if self.set_time_i > 100:
+                    systime = f.read().decode()
+                    systime = int(systime) + 1      #偏移1秒
+                    systime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(systime))
+                    os.popen('date -s "'+ systime +'"')
+                    self.set_time_i = 0
+                # print( systime )
                 # data = {'type': 'dev', 'data':  {"netstatus": 1}}
                 # self.send(MsgType.Text, Receiver='Screen', Data=data)
                 self.connectedTime = time.time()

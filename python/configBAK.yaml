@@ -1,6 +1,5 @@
 # 自美系统的配置文件 请简单了解yaml语法后再小心修改,特别注意冒号':'后要跟一个空格再填数据.
 
-version: '2.0.0'                # 自美系统当前版本
 AwakeEngine: XFAwake            # 唤醒引擎 可选讯飞唤醒 XFAwake 或 snowboy
 RecSeclet: pyAlsa               # 录音 可选 ScoketRec:从unix socket录音 pyAlsa:调用pyalsa.so 录音 Pyaudio:调用Pyaudio录音
 initWifi: ApHot                 # wifi配网 可选 SoundWave 声波配网 ApHot 热点配网
