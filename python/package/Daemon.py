@@ -23,7 +23,8 @@ class Daemon(MsgProcess):
         self.pin_detect_man = self.config['GPIO']['detect_man']         # 人体探测
         self.powersavetime = self.config['GPIO']['powersavetime']       # 节能时间
         self.detect_man_time = time.time()  # 探测到人的时间
-
+        self.playreadygo = True
+        self.playno_network = True
         self.arr_setnet = []                                            # 配网按键控制
         Device.setSoundCard()
         self.u_list = db().user_list_get()                              # 用户列表
@@ -145,10 +146,19 @@ class Daemon(MsgProcess):
                     if Device.online():                                 # 设备成功上线
                         self.showBindNav()                              # 显示绑定页
                         self.send(MsgType.Start, Receiver='MqttProxy')  # 启动mqtt
+                    if self.playreadygo:                        
+                        # 准备好了。可以互动了
+                        self.playreadygo = False
+                        path = 'data/audio/readygo.wav'
+                        os.system('aplay -q ' + path)
                 return
         except Exception as e:
             logging.warning(e)
         if time.time() - self.connectedTime > 15:
+            if self.playno_network:
+                self.playno_network = False
+                path = 'data/audio/meiyou_wangluo.wav'
+                os.system('aplay -q ' + path)
             self.netStatus = False
             data = {'type': 'dev', 'data': {"netstatus": 0}}
             self.send(MsgType.Text, Receiver='Screen', Data=data)

@@ -5,13 +5,11 @@ from .ApiBase import ApiBase
 from package.mylib import mylib
 
 class plugin_admin(ApiBase):
-    '''
-    插件管理
-    '''
+    '''插件管理'''
 
     pluginpath = r'./plugin'
 
-    # 获取单个插件信息
+    # 卸载插件
     def uninstall_pugin(self, pluginNmae='' ):
         filedir = pluginNmae + '/'
         json_file = os.path.join(self.pluginpath, filedir)

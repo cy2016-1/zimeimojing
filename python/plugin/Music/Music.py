@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: GuanghuiSun
 # @Date: 2020-01-08 09:05:25
-# @LastEditTime: 2020-01-20 10:14:11
+# @LastEditTime: 2020-03-05 11:12:05
 # @Description:  音乐播放器 主要是从聊天机器处得到一串dict 解析下载播放
 
 import random
@@ -150,11 +150,12 @@ class Music(MsgProcess):
             self.consoleShow()
           
     def Stop(self, message=None):
-        if self.playState != PlayState.Stop:
-            os.system('clear')
+        if self.playState != PlayState.Stop:          
+            os.system('clear')            
             self.playState = PlayState.Stop
             self.player.stop()
-            self.player.quit()                           
+            self.player.quit()
+            os.system('sudo killall mplayer > /dev/null 2>&1 ')              
             super().Stop()
 
     def cacheMusic(self, index, showinfo=False):

@@ -45,6 +45,12 @@ class plugin_list(ApiBase):
         origin_plugin = json.loads(ret['data'])
         return origin_plugin
 
+    # 获取远程单个插件信息
+    def __load_origin_plugin_info(self, pluginName):
+        url = self.config['httpapi'] + '/raspberry/plugininfo.html'
+        ret = mylib.http_post(url,{'name':pluginName})
+        plugininfo = json.loads(ret['data'])
+        return plugininfo
 
     # 加载插件列表
     def load_pugin_list(self):
@@ -56,13 +62,19 @@ class plugin_list(ApiBase):
         }
         return json.dumps(ret_arr)
 
-    # 获取单个插件信息
+    # 获取本地单个插件信息
     def load_pugin_info(self, pluginNmae='' ):
         filedir = pluginNmae + '/'
         json_file = os.path.join(self.pluginpath, filedir, 'config.json')
         config_json = {}
         with open(json_file, 'r') as f:
             config_json = json.load(f)
+
+        origin_info = self.__load_origin_plugin_info(pluginNmae)
+        if len(origin_info)<=0:
+            config_json['isRelease'] = 0
+        else:
+            config_json['isRelease'] = 1
 
         ret_arr = {
             'code' : 20000,

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Author: GuanghuiSun
 # @Date: 2020-01-03 09:09:04
-# @LastEditTime: 2020-03-03 13:46:27
+# @LastEditTime: 2020-03-05 14:20:58
 # @Description:  控制中心
 
 import logging
@@ -69,9 +69,6 @@ class ControlCenter(MsgProcess):
         for pro in self.ProcessPool:
             self.send(MsgType=MsgType.HeartBeat, Receiver=pro.name)
 
-        # 准备好了。可以互动了
-        path = 'data/audio/readygo.wav'
-        os.system('aplay -q ' + path)
 
     def Awake(self, message):
         """被唤醒时自动执行"""

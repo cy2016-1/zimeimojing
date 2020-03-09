@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Autor: atlight
 # @Date: 2019-12-29 13:34:16
-# @LastEditTime: 2020-01-12 16:32:50
+# @LastEditTime: 2020-03-08 16:53:34
 # @Description: 语音识别类，可以增加多家产品,暂实现百度语音识别
 from package.BDaip.speech import AipSpeech
 import logging
@@ -30,6 +30,7 @@ class VoiceRecognition:
             bdResult = client.asr(speech=data, options={'dev_pid': 1536, 'cuid': VoiceRecognition.CUID})
         except Exception as e:
             logging.error('网络故障! %s' % e)
+            return False
         logging.debug('语音识别已返回')
         text = ''
 

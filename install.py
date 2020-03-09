@@ -231,10 +231,9 @@ class Install():
     # 开始清理工作
     def vacuuming(self):
         self.print_str("开始清理工作" ,'n','n')
-        os.system('rm -f '+ os.path.join(self.root_path, "python/runtime/token") +'/*')
-        os.system('rm -f '+ os.path.join(self.root_path, "python/runtime/hecheng") +'/*')
+        os.system('rm -f '+ os.path.join(self.root_path, "python/runtime/soundCache") +'/*')
+        os.system('rm -f '+ os.path.join(self.root_path, "python/runtime/photo") +'/*')
         os.system('rm -f '+ os.path.join(self.root_path, "python/runtime/log") +'/*')
-        os.system('rm -f '+ os.path.join(self.root_path, "python/runtime/shijue") +'/*')
         self.print_str("[完成]",'p')
 
     # 校准时间的方法

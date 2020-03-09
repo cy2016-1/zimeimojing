@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Autor: atlight
 # @Date: 2019-12-29 13:34:16
-# @LastEditTime: 2020-01-20 14:18:22
+# @LastEditTime: 2020-03-09 00:15:03
 # @Description: 语音合成类，可以增加多家产品,暂实现百度语音识别
 
 from MsgProcess import MsgProcess, MsgType
@@ -52,7 +52,7 @@ class SpeechSynthesis(MsgProcess):
     def playSound(self, fileName):
         '''播放音乐文件fileName 可能会实现一个player类 暂用mpg123 '''        
         CacheFileManager.add(fileName)        
-        logging.debug('墦放音频')
+        logging.debug('墦放 %s ' % fileName)
         os.system(" mpg123  -q  {} ".format(fileName))
         # os.popen("sudo mpg123  -q  {}".format(fileName))
         # os.popen("sudo aplay -q {}".format(fileName))

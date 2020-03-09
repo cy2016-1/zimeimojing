@@ -20,7 +20,7 @@ LoadModular:                    # 系统预加载的模块 true:启用 false:禁
   SpeechSynthesis: True         # 提供文本转语音服务 
   MqttProxy: True               # MQTT代理
   GeneralSwitchProxy: True      # 万能开关代理 
-  Awake: Start                   # 唤醒 
+  Awake: Start                  # 唤醒 
  
 
 BDAip:                          # 百度Aip账号,可替换为你自已的
