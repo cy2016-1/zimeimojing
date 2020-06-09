@@ -1,0 +1,6 @@
+{
+    "sender": "equipm",
+    "receive": "xiaocx",
+    "plugin": "%plugin%",
+    "data": %data%
+}

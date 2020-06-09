@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-# @Author: GuanghuiSun
 # @Date: 2020-01-14 10:02:49
-# @LastEditTime: 2020-03-01 19:09:52
+# @LastEditTime: 2020-03-12 11:33:08
 # @Description:  视觉类api,提供了调用摄像头拍照，人脸误别，人脸对比等基本api
 '''
 图形相关的api 高度抽像封装.
@@ -60,9 +59,10 @@ def FromCaptureGetFaceImg(picfile, showFocus=False, timeOut=10):
     startTime = time.time()    
     while time.time() - startTime <= timeOut:
         ret, frame = cap.read()
-        if CAMERA['flip'] >= 0:
-            cv2.flip(frame, CAMERA['flip'], frame)
-        bakup = frame.copy() 
+        flip = int(CAMERA['flip'])
+        if flip >= 0:
+            cv2.flip(frame, flip, frame)
+        bakup = frame.copy()
         if showFocus:      # 显示一个聚焦框(320,320 )，并只从框内取图
             Xstart = int((640 - 320) / 2)
             Ystart = int((480 - 320) / 2)

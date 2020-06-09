@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# @Autor: atlight
 # @Date: 2019-12-29 13:34:16
 # @LastEditTime: 2020-03-08 16:53:34
 # @Description: 语音识别类，可以增加多家产品,暂实现百度语音识别

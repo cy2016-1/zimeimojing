@@ -30,7 +30,7 @@ IsGeekMode:
     - false
 
 LoadModular:
-  note: 系统默认加载模块
+  note: 系统默认加载服务
   more:
     Daemon:
       note: 守护进程
@@ -39,7 +39,7 @@ LoadModular:
         Start: 载入后启动
         false: 禁用
     Screen:
-      note: 屏幕显示通讯模块
+      note: 屏幕显示通讯服务
       radio:
         true: 启动
         Start: 载入后启动
@@ -57,19 +57,19 @@ LoadModular:
         Start: 载入后启动
         false: 禁用
     MqttProxy:
-      note: 移动端控制通讯模块
+      note: 移动端控制通讯服务
       radio:
         true: 启动
         Start: 载入后启动
         false: 禁用
     GeneralSwitchProxy:
-      note: 万能开关通讯模块
+      note: 万能开关通讯服务
       radio:
         true: 启动
         Start: 载入后启动
         false: 禁用
     Awake:
-      note: 语音唤醒模块
+      note: 语音唤醒服务
       radio:
         true: 启动
         Start: 载入后启动

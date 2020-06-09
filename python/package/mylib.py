@@ -47,7 +47,7 @@ class mylib:
 
     # http访问
     @staticmethod
-    def http_post(url, postdata={}):
+    def http_post(url, postdata={}, timeout=5):
         res = {'code': '9999', 'msg': '[error:mylib.http_post]网络请求失败！', 'data': ''}
         try:
             response = requests.get(url, params=postdata, timeout=5)       # post不兼容本服务器

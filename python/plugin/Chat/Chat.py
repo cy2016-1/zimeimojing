@@ -50,7 +50,7 @@ class Chat(MsgProcess):
             'EncodingAESKey': '2uetECGe8oob6bbSvLj4DBNjPh2epX1y8mws0pENF5g'
         }
         apiUrl = r'https://openai.weixin.qq.com/openapi/message/'
-        header = {"username": "小美", "msg": text}
+        header = {"username": self.CUID, "msg": text}
         headers = {'alg': "HS256"}
         query = jwt.encode(header, payload['EncodingAESKey'],
                            algorithm=headers['alg'], headers=headers).decode('ascii')
@@ -59,9 +59,9 @@ class Chat(MsgProcess):
         post_json = urlencode(post_json).encode('utf-8')
         try:
             page = urllib.request.urlopen(url, data=post_json, timeout=5)  # 响应时间定为了5秒
-        except :
+        except Exception as e:
             msg = "和腾讯连接失败"
-            logging.warning(msg)
+            logging.warning("{}:{}".format(msg, e))
             self.send(MsgType=MsgType.Text, Receiver='Screen', Data=msg)
             return
         # 判断网络请求成功

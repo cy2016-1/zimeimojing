@@ -57,25 +57,27 @@ class Install():
     def set_path_chmod(self):
         self.print_str("设置目录下文件权限" ,'n','n')
 
-        self.cmd("sudo chmod +x",'app/moJing')
-        self.cmd('sudo chmod +x','python/bin/setWifi/*')
-        self.cmd('sudo chmod +x','python/bin/XFawake/*')
+        self.cmd("sudo chmod +x", 'app/moJing')
+        self.cmd('sudo chmod +x', 'python/bin/setWifi/*')
+        self.cmd('sudo chmod +x', 'python/bin/XFawake/*')
+        self.cmd('sudo chmod +x', 'python/bin/EchoCancellation/*')
+        self.cmd('sudo chmod +x', 'python/bin/pyAlsa/*')
 
         #创建所需目录
-        self.cmd('sudo mkdir -p',r'python/data/conf')
-        self.cmd('sudo mkdir -p',r'python/runtime/log')
-        self.cmd('sudo mkdir -p',r'python/runtime/photo')
-        self.cmd('sudo mkdir -p',r'python/runtime/soundCache')   
-        self.cmd('sudo mkdir -p',r'/music/cache')
+        self.cmd('sudo mkdir -p', r'python/data/conf')
+        self.cmd('sudo mkdir -p', r'python/runtime/log')
+        self.cmd('sudo mkdir -p', r'python/runtime/photo')
+        self.cmd('sudo mkdir -p', r'python/runtime/soundCache')   
+        self.cmd('sudo mkdir -p', r'/music/cache')
 
         #该目录下全部权限
-        self.cmd('sudo chown -R pi.pi','python/data/')
+        self.cmd('sudo chown -R pi.pi', 'python/data/')
         self.cmd('sudo chmod -R 0777', 'python/data/')
 
         #该目录下全部不可执行，可读可写
-        # self.cmd('sudo chown -R pi.pi','python/runtime/')
+        self.cmd('sudo chown -R pi.pi', 'python/runtime/')
         self.cmd('sudo chmod -R 0777', 'python/runtime/')
-        # self.cmd('sudo chown -R pi.pi','/music/cache')
+        self.cmd('sudo chown -R pi.pi', '/music/cache')
         self.cmd('sudo chmod -R 0777', '/music/')
 
         #该目录下全部仅执行
@@ -164,9 +166,9 @@ class Install():
         if time_matc==None:
             fstr += "\n" + times_cmd
 
-        fo = open(crontab, "w+")
-        fo.write(fstr)
-        fo.close()
+        # fo = open(crontab, "w+")
+        # fo.write(fstr)
+        # fo.close()
 
         self.print_str("[完成]",'p')
 

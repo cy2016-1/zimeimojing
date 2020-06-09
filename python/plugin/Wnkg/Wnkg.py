@@ -13,7 +13,8 @@ class Wnkg(MsgProcess):
         send_data = {
             'deviceid': '', 'data': {'type': 'switch', 'state': state}
         }
-        self.say(send_data, False, 'GeneralSwitchProxy')
+        # self.say(send_data, False, 'GeneralSwitchProxy')
+        self.send(MsgType.Text, "GeneralSwitchProxy", send_data)
 
     def light(self, data):
         if data[0:2] == '打开':
@@ -24,7 +25,8 @@ class Wnkg(MsgProcess):
         send_data = {
             'deviceid': '', 'data': {'type': 'light', 'state': state}
         }
-        self.say(send_data, False, 'GeneralSwitchProxy')
+        # self.say(send_data, False, 'GeneralSwitchProxy')
+        self.send(MsgType.Text, "GeneralSwitchProxy", send_data)
 
     def dhtfunc(self, data):
         if data[0:2] == '打开':
@@ -36,7 +38,8 @@ class Wnkg(MsgProcess):
             'deviceid': '',
             'data': {'type': 'dht', 'state': state}
         }
-        self.say(send_data, False, 'GeneralSwitchProxy')
+        # self.say(send_data, False, 'GeneralSwitchProxy')
+        self.send(MsgType.Text, "GeneralSwitchProxy", send_data)
 
     def Text(self, message):
         Data = message['Data']
@@ -51,8 +54,9 @@ class Wnkg(MsgProcess):
 
             if wnkg_data['type'] == 'dht':
                 wnkg_data = Data['data']
-                state = {'humidity':wnkg_data['state']['humidity']+'%', 'temperature':wnkg_data['state']['temperature']+'℃'}
-                self.say(state, False, 'MqttProxy')
+                state = {'humidity': wnkg_data['state']['humidity']+'%', 'temperature': wnkg_data['state']['temperature']+'℃'}
+                # self.say(state, False, 'MqttProxy')
+                self.send(MsgType.Text, "MqttProxy", state)
         else:
             if Data[-1:] == '灯':
                 self.switch(Data)

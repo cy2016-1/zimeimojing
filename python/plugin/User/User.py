@@ -56,7 +56,7 @@ class User(MsgProcess):
 
     def user_bind(self, jsonText):
         '''  用户绑定  '''
-        #print('user_bind arg: jsonText:', jsonText)
+        # print('user_bind arg: jsonText:', jsonText)
         jsonText = jsonText['data']
         re_json = {"code": '9999', "msg": "绑定操作失败，请重新操作"}       
         info = self.data.user_reg(jsonText)
@@ -75,17 +75,20 @@ class User(MsgProcess):
             re_json = {"code": '0000',"uid": info['data']['uid'], "msg": info['msg']}
 
         mqtt = {"action": "USER_REG", "data": re_json}
-        self.say(mqtt)
+        self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
+        # self.say(mqtt)
 
         if int(info['state']) >= 1:
             uid = info['data']['uid']
             self.uid = uid
             self.user_face_bind(uid)
             mqtt = {"action": "USER_REG","msg": "恭喜您，注册绑定成功！", "data": {"code": '0003'}}
-            self.say(mqtt)
+            # self.say(mqtt)
+            self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
         else:            
-            mqtt = {"action": "USER_REG", "msg":'绑定新用户信息失败', "data": {"code": '9999'}}
-            self.say(mqtt)
+            mqtt = {"action": "USER_REG", "msg": '绑定新用户信息失败', "data": {"code": '9999'}}
+            # self.say(mqtt)
+            self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
 
         self.Stop()
 
@@ -98,7 +101,8 @@ class User(MsgProcess):
 
             re_json = {"code": '0003', "msg": '未检测到摄像头'}
             mqtt = {"action": "USER_REG", "data": re_json}
-            self.say(mqtt)
+            # self.say(mqtt)
+            self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
             return True
 
         if self.config['CAMERA']['enable'] == '0':
@@ -108,8 +112,8 @@ class User(MsgProcess):
 
             re_json = {"code": '0003', "msg": '系统配置为不启用摄像头'}
             mqtt = {"action": "USER_REG", "data": re_json}
-
-            self.say(mqtt)
+            self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
+            # self.say(mqtt)
             return True
 
         picfile = "runtime/photo/" + str(uid) + ".jpg"    
@@ -127,7 +131,8 @@ class User(MsgProcess):
         u_list = self.data.user_list_get()
         mqtt = {"action": "USER_LIST", "data": u_list}
         logging.debug(mqtt)
-        self.say(mqtt)
+        self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
+        # self.say(mqtt)
 
 
     # 用户注销
@@ -140,7 +145,8 @@ class User(MsgProcess):
             re_json = {"code": '2001', "msg": "注销用户信息失败"}
 
         mqtt = {"action": "USER_DEL", "data": re_json}
-        self.say(mqtt)
+        self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
+        # self.say(mqtt)
         return have
 
      # 用户修改
@@ -158,5 +164,6 @@ class User(MsgProcess):
             re_json = {"code": '2001', "msg": "用户修改信息失败"}
 
         mqtt = {"action": "USER_EDIT", "data": re_json}
-        self.say(mqtt)
+        self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
+        # self.say(mqtt)
         return have

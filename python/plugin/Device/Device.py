@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: drbdrb,
 # @Date: 2019-09-16 10:42:36
-# @LastEditTime: 2020-03-03 17:52:35
+# @LastEditTime: 2020-03-19 09:55:12
 # @Description: 设备类插件由 GuanghuiSun 修改并移植至2.0
 
 import json
@@ -182,7 +182,21 @@ class Device(MsgProcess):
             msg = '屏幕已经关闭'
             self.say(msg)
             return
-        
+
+        Triggers = ["重启"]
+        if any(map(lambda trig: trig in Data, Triggers)):            
+            msg = '好的，现在重启'
+            self.say(msg)
+            os.system("sudo reboot")
+            return
+
+        Triggers = ["关机"]
+        if any(map(lambda trig: trig in Data, Triggers)):            
+            msg = '好的，正在关机'
+            self.say(msg)
+            os.system("sudo shutdown now")
+            return
+
         Triggers = ["声音", "音量"]
         if any(map(lambda trig: trig in Data, Triggers)):
             
@@ -317,11 +331,9 @@ class Device(MsgProcess):
             self.send(MsgType.Text, Receiver='Screen', Data=msgJson)
             self.send(MsgType.Text, Receiver='Screen', Data=msgJson)
             time.sleep(1)
-            self.say(msgJson)
             msg = "天气预报城市已修改为{}".format(city['name'])
             mqtt = {'action': 'DEVICE_CITY',
-                    'data': {"code": "0000", "msg": msg}}
-            
+                    'data': {"code": "0000", "msg": msg}}            
             self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=mqtt)
             self.send(MsgType=MsgType.Text, Receiver="Screen", Data=msg)
             self.send(MsgType=MsgType.Text, Receiver="SpeechSynthesis", Data=msg)

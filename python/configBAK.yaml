@@ -1,27 +1,30 @@
 # 自美系统的配置文件 请简单了解yaml语法后再小心修改,特别注意冒号':'后要跟一个空格再填数据.
 
-AwakeEngine: XFAwake            # 唤醒引擎 可选讯飞唤醒 XFAwake 或 snowboy
-RecSeclet: pyAlsa               # 录音 可选 ScoketRec:从unix socket录音 pyAlsa:调用pyalsa.so 录音 Pyaudio:调用Pyaudio录音
+AwakeEngine: XFAwake            # 唤醒引擎 可选讯飞唤醒XFAwake或snowboy
+RecSeclet: pyAlsa               # 录音 可选 ScoketRec:从unixSocket录音 pyAlsa:调用pyalsa.so录音 Pyaudio:用Pyaudio录音
 initWifi: ApHot                 # wifi配网 可选 SoundWave 声波配网 ApHot 热点配网
 AudioOutput: Inside             # 音频输出 可选 Inside:驱动板自带的喇叭 External:使用树莓派的HDMI和3.5mmAUX输出(HDMI优先)
 IsGeekMode: False               # 是否采用极客连续对话模式,此选项仅影响唤醒时的对话,对插件的连续对话不影响
 
 snowboy:
+  model: xiaoduxiaodu.umdl      # 唤醒词模型 小度小度 可改成自已定义唤醒词放在目录 python/bin/snowboy
+  sensitivity: 0.5              # 唤醒词模型参数值
   supplyRecord: False           # 是否提供管道录音
   BindFile: /tmp/Record.zimei   # socket.AF_UNIX管道绑定文件
 
 XFAwake:
-  supplyRecord: False             # 相关参数在 python/bin/XFawake/awake.ini 中修改
+  supplyRecord: False           # 相关参数在 python/bin/XFawake/awake.ini 中修改
   
-LoadModular:                    # 系统预加载的模块 true:启用 false:禁用 Start:启用并需要一个Start消息
+LoadModular:                    # 系统预加载模块 true:启用 false:禁用 Start:启用并需要一个Start消息
   Daemon: Start                 # 守护进程
   Screen: True                  # 前端APP
-  Record: True                  # 提供录音服务 
-  SpeechSynthesis: True         # 提供文本转语音服务 
+  Record: True                  # 提供录音服务
+  SpeechSynthesis: True         # 提供文本转语音服务
   MqttProxy: True               # MQTT代理
-  GeneralSwitchProxy: True      # 万能开关代理 
-  Awake: Start                  # 唤醒 
- 
+  GeneralSwitchProxy: Start     # 万能开关代理
+  Awake: Start                  # 唤醒
+   
+LastDefaultPlugin: Chat        
 
 BDAip:                          # 百度Aip账号,可替换为你自已的
   APP_ID: '15449758'
@@ -30,8 +33,8 @@ BDAip:                          # 百度Aip账号,可替换为你自已的
 
 Logging:
   Level: WARNING                # 日志级别 可选 DEBUG INFO WARNING ERROR
-  File: runtime/log/sys.log     # 日志文件 
-  Mode: w                       # 日志写入文件的模式 可选'a'： 追加模式,日志文件会越来越大 'w' 覆盖模式,即覆盖掉以前的日志            
+  File: runtime/log/sys.log     # 日志文件
+  Mode: w                       # 日志写入文件的模式 可选'a'： 追加模式,日志文件会越来越大 'w' 覆盖模式,即覆盖掉以前的日志
 
 CAMERA:                         # 摄像头配置
   enable: True                  # 是否启用
@@ -43,6 +46,9 @@ GPIO:
   setnet_pin: 31                # 配网控制按钮脚
   detect_man: 16                # 人体探测
   powersavetime: 0              # 持续n分钟都没有人,则关闭屏幕节能.可选数值[1~65536] 如果为0 则关闭此功能
+  cputemp:                      # CPU温度到最高后启用降温风扇
+    high: 70
+    low: 50
 
 SCREEN_MARGON:                  # 屏幕边距配置
   top: 10px
@@ -55,9 +61,13 @@ VIEW:                           # 前端默认显示
   title: 自美魔镜
   path: desktop/mojing/
 
+ADMIN:
+  config: data/conf/adminconfig.json
+
 httpapi: https://hapi.16302.com
 
 MQTT:
+  warp: data/mqtt               # MQTT协议定义目录位置
   server: mqtt.16302.com
   port: 1883
   clientid:

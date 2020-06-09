@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# @Autor: atlight
 # @Date: 2019-12-29 13:34:16
 # @LastEditTime: 2020-03-09 00:15:03
 # @Description: 语音合成类，可以增加多家产品,暂实现百度语音识别
@@ -40,7 +39,7 @@ class SpeechSynthesis(MsgProcess):
         # 音量，取值0-9，默认为5中音量      VOL = 5
         # 下载的文件格式, 3：mp3(default) 4： pcm-16k 5： pcm-8k 6. wav
         # AUE = 6
-        #         
+        #
         try:
             auido = client.synthesis(text=text, options={'vol': 5, 'per': 4, 'aue': '3', 'cuid': self.CUID})
         except Exception as e:
@@ -53,6 +52,6 @@ class SpeechSynthesis(MsgProcess):
         '''播放音乐文件fileName 可能会实现一个player类 暂用mpg123 '''        
         CacheFileManager.add(fileName)        
         logging.debug('墦放 %s ' % fileName)
-        os.system(" mpg123  -q  {} ".format(fileName))
+        os.system("mpg123  -q  {} ".format(fileName))
         # os.popen("sudo mpg123  -q  {}".format(fileName))
         # os.popen("sudo aplay -q {}".format(fileName))

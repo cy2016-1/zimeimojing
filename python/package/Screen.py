@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# @Autor: atlight
 # @Date: 2019-12-26 09:35:35
 # @LastEditTime: 2020-01-22 14:32:04
 # @Description: 屏幕显示的消息进程，只要实现Text消息响应即可。
@@ -58,6 +57,10 @@ class Screen(MsgProcess):
 
             if Data['type'] == 'dev':       # 网络状态图标
                 self.sw.send_dev(Data['data'])
+                return
+
+            if Data['type'] == 'exejs':       # 网络状态图标
+                self.sw.send(Data)
                 return
 
             self.sw.send(Data)              # 用户自定义数据 直接发给前端

@@ -3,6 +3,8 @@ from MsgProcess import MsgProcess, MsgType
 import json
 import os
 import logging
+import re
+import copy
 
 
 class MqttProxy(MsgProcess):
@@ -14,6 +16,25 @@ class MqttProxy(MsgProcess):
     def __init__(self, msgQueue):
         super().__init__(msgQueue)
         self.isconnect = False
+        warp_path = self.config["MQTT"]["warp"]
+        file = os.path.join(warp_path,"topic.json")
+        with open(file) as f:
+            topic = json.load(f)
+        self.subscribe = topic["subscribe"]
+        self.pubscribe = topic["pubscribe"]
+
+        file = os.path.join(warp_path,"send.json")
+        with open(file) as f:
+            self.sendwarp = f.read()
+
+        file = os.path.join(warp_path,"receive.json")
+        with open(file) as f:
+            self.receivewarp = f.read()
+
+        self.plugintemp = {}
+        template_path = r'./data/conf/pluginconfig.json'
+        with open(template_path) as f:
+            self.plugintemp = json.load(f)
 
     def Start(self, message):
         if not self.isconnect:         
@@ -35,19 +56,17 @@ class MqttProxy(MsgProcess):
         ''' 回调函数,收到插件发来的文本消息 转发到mqtt服务器 '''
         plugin = message['Sender']
         Data = message['Data']
+        
+        Data = json.dumps(Data)
+        jsonText = self.sendwarp.replace(r'%plugin%', plugin)
+        jsonText = jsonText.replace(r'%data%', Data)
+        jsonText = json.loads(jsonText)
 
-        # 2.0方法 mqtt协议新字典,只要传送激活词就可以激活任意插件
-        # {sender:'发送方', 'receive':'equipm', 'plugin':插件名, data='激活词'}
-        jsonText = {
-            "sender": "equipm",     # 设备
-            "receive": "xiaocx",    # 接收者
-            "plugin": plugin,       # 插件名
-            "data": Data            # 数据
-        }
+        for pub in self.pubscribe:
+            topic = pub.replace(r'%clientid%', self.__clientid)
 
-        topic = '/' + self.__clientid + '/xiaocx/admin'
-        self.publish(topic, json.dumps(jsonText))
-        logging.debug('MQTT 2.0 SEND :%s %s' % (topic, jsonText))
+            self.publish(topic, json.dumps(jsonText, ensure_ascii=False))
+            logging.debug('MQTT SEND topic:%s %s' % (topic, jsonText))
 
     # 加载插件列表
     def load_pugin_list(self, data):
@@ -58,17 +77,14 @@ class MqttProxy(MsgProcess):
             plugin_list = []
             for filedir in os.listdir(pluginpath):
                 if os.path.isdir(os.path.join(pluginpath, filedir)) and filedir != '__pycache__':
+                    template_json = copy.deepcopy(self.plugintemp)          # 拷贝一个对象
+
                     json_file = os.path.join(pluginpath, filedir, 'config.json')
                     with open(json_file, 'r') as f:
                         config_json = json.load(f)
-                        # print( config_json )
-                        item_dict = {
-                            'name': config_json['name'],
-                            'displayName': config_json['displayName'],
-                            'icon': config_json['icon'],
-                            'IsEnable': config_json['IsEnable']
-                        }
-                        plugin_list.append(item_dict)
+
+                        template_json.update(config_json)
+                        plugin_list.append(template_json)
 
             send_json = {
                 "Sender": "equipm",
@@ -79,23 +95,14 @@ class MqttProxy(MsgProcess):
             }
         elif data['type'] == 'getinfo':
             filedir = data['pugin'] + '/'
+            template_json = copy.deepcopy(self.plugintemp)          # 拷贝一个对象
             json_file = os.path.join(pluginpath, filedir, 'config.json')
             plugin_info = {}
             with open(json_file, 'r') as f:
                 config_json = json.load(f)
-                plugin_info = {
-                    'name': config_json['name'],
-                    'displayName': config_json['displayName'],
-                    'description': config_json['description'],
-                    'icon': config_json['icon'],
-                    'IsEnable': config_json['IsEnable'],
-                    'control': '',
-                    'initControl': 0,
-                }
-                if 'control' in config_json.keys():
-                    plugin_info['control'] = config_json['control']
-                if 'initControl' in config_json.keys():
-                    plugin_info['initControl'] = config_json['initControl']
+
+                template_json.update(config_json)
+                plugin_info = template_json
 
             if len(plugin_info) > 0:
                 send_json = {
@@ -105,8 +112,7 @@ class MqttProxy(MsgProcess):
                         "info": plugin_info
                     }
                 }
-
-        if len(send_json) > 0:
+        if len(send_json) > 0:           
             self.Text(send_json)
 
     def client_connect(self):
@@ -116,21 +122,27 @@ class MqttProxy(MsgProcess):
     # 连接成功回调
     def on_connect(self, client, userdata, flags, rc):
         logging.info('mqtt开始订阅主题.')
-        topic = '/public/sys/admin'
-        self.client.subscribe(topic)        # 订阅主题
-        topic = '/'+self.__clientid+'/equipm/admin'
-        self.client.subscribe(topic)        # 订阅主题
+
+        for sub in self.subscribe:
+            topic = sub.replace(r'%clientid%', self.__clientid)
+
+            logging.info("subscribe topic: %s" % topic)
+            self.client.subscribe(topic)
+
         logging.info('mqtt完成主题订阅.')
            
     # 收到消息回调
     def on_message(self, client, userdata, msg):
         """收到mqtt消息，转发到插件 根据消息类型分析"""
         magstr = msg.payload.decode("utf-8")
-        json_obj = json.loads(magstr)
-        logging.debug('MQTT RECEIVE: %s' % json_obj)
+        logging.debug('MQTT RECEIVE: %s' % magstr)
+
+        json_obj = self.receivewarp.replace(r'%data%', magstr)
+        json_obj = json.loads(json_obj)
 
         if type(json_obj) is dict and 'receive' in dict(json_obj).keys():
-            if str(json_obj['receive']) == 'equipm':  # 接收端是设备
+            logging.info(json_obj)
+            if str(json_obj['receive']) == 'equipm':  # 接收端是树莓派设备
                 # 2.0方法 mqtt协议新字典,只要传送激活词就可以激活任意插件
                 # {sender:'发送方', 'receive':'equipm', 'plugin':插件名, data='激活词'}
                 Data = json_obj['data']

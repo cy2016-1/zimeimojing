@@ -36,11 +36,9 @@ class Visual():
         this_info = user_info[i]
         facepath = this_info['facepath']
 
-
         if facepath != None:
             if os.path.isfile(facepath):
                 bjz = self.contrast.IsSameFace(facepath, self.temp_photo)
-
                 if bjz:
                     return this_info
         i += 1
@@ -55,7 +53,6 @@ class Visual():
         # 释放摄像头并销毁所有窗口
 
         self.video_i += 1
-
         if self.video_i > self.video_max:
             self.opencv.close()
             self.success("人脸识别结束")
@@ -64,12 +61,9 @@ class Visual():
         if is_succ:
             duibi_info = self.start_contrast_face(self.user_info, 0)
             if len(duibi_info) > 0:
-
                 self.opencv.close()
-          
                 try:
                     with open("runtime/userid/userid.json","w") as f:
-                    
                         f.write( json.dumps(duibi_info) )
                 except:pass
                                    
@@ -80,30 +74,20 @@ class Visual():
 
     # 开始抓拍人脸
     def start_video(self):
-
-        fier_file = "data/opencv/haarcascade_frontalface_default.xml"
-
-        fier_file = [{'file': fier_file, 'scaleFactor': 1.2,
-                      'minNeighbors': 5, 'minSize': (40, 40)}]
-
-        window = {'name': 'Facerecognition',
-                  'size': -1, 'is_capture': 1}
-
+        xml_file  = "data/opencv/haarcascade_frontalface_default.xml"
+        fier_file = [{'file': xml_file, 'scaleFactor': 1.2, 'minNeighbors': 5, 'minSize': (40, 40)}]
+        window = {'name': 'Facerecognition', 'size': -1, 'is_capture': 1}
         save = {'type': 3, 'color': 1}
 
-        self.opencv.main_video(temp_file=self.temp_photo, fier_file=fier_file,
-                               window=window, save=save, camera_angle=1, thre=0.5)
+        self.opencv.main_video(temp_file=self.temp_photo, fier_file=fier_file, window=window, save=save, camera_angle=1, thre=0.5)
 
     def main(self):
 
         self.user_info = self.data.user_list_get()
-        
-        
         if self.user_info == False:
             self.success("暂无用户数据，人脸对比停止！")
             return
-            
-            
+
         if len(self.user_info) > 0:
             for x in self.user_info:
                 if x['facepath'] == None:

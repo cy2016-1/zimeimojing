@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# @Author: GuanghuiSun
 # @Date: 2020-02-22 10:37:52
 # @LastEditTime: 2020-03-04 19:23:01
 # @Description:  录音服务
