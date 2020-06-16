@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# @Author: GuanghuiSun
+# @Author: drbdrb
 # @Date: 2020-01-03 09:09:04
 # @LastEditTime: 2020-03-26 01:05:48
 # @Description:  控制中心
@@ -23,10 +23,10 @@ class ControlCenter(MsgProcess):
     def __init__(self, msgQueue):
         super().__init__(msgQueue)
         self.msgQueue = msgQueue
-        self.ProcessPool = list()  # 进程池
-        self.plugTriggers = dict()  # 插件激活词
+        self.ProcessPool = list()     # 进程池
+        self.plugTriggers = dict()    # 插件激活词
         self.lastSystemPlugin = None  # 最近,正在运行的系统插件    
-        self.isGeekTalk = False  # 连续对话模式
+        self.isGeekTalk = False       # 连续对话模式
         self.awakeresponse = list()
         self.AwakeInit()
         self.LoadAll()
@@ -86,7 +86,6 @@ class ControlCenter(MsgProcess):
 
     def Awake(self, message):
         '''被唤醒时自动执行'''
-
         logging.debug('唤醒')
         self.Silence()
         randarr = random.choice(self.awakeresponse)
@@ -97,6 +96,29 @@ class ControlCenter(MsgProcess):
         if self.config['GPIO']['powersavetime'] > 0:
             os.system('sudo vcgencmd display_power 1 > /dev/null')
 
+    def Start(self, message):
+        '''处理用控制中心启动核心模块'''
+        module = message['Data']
+        if not module:
+            return
+
+        self.send(MsgType.Stop, Receiver=module)
+        
+        package = r'package.' + module
+        try:
+            package = importlib.import_module(package)
+        except Exception as e:
+            logging.error("loading [%s] error %s " % (module, e))
+            return
+        try:
+            moduleClass = getattr(package, module)
+        except Exception as e:
+            logging.error("loading [%s] error %s " % (module, e))
+            return
+        process = moduleClass(self.msgQueue)
+        process.start()
+        self.ProcessPool.append(process)  # 加入进程池
+        
     def Text(self, message):
         ''' 处理文本内容 调用相关插件 '''
         text = message['Data']
@@ -165,7 +187,7 @@ class ControlCenter(MsgProcess):
         logging.info('Received [HeartBeat] message from [{}]'.format(message['Sender']))
 
     def JobsDone(self, message):
-        if self.isGeekTalk:            
+        if self.isGeekTalk:
             self.Silence()
             self.send(MsgType=MsgType.Start, Receiver='Record', Data=8)
             logging.debug('isGeekTalk so Record.')
@@ -207,7 +229,7 @@ class ControlCenter(MsgProcess):
         for pro in self.ProcessPool:
             self.send(MsgType=MsgType.Stop, Receiver=pro.name)
         time.sleep(2)
-        super().Stop()    
+        super().Stop()
         os.system("sudo pkill -f awake")
         os.system("sudo pkill -f ControlCenter.py")
 

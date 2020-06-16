@@ -1,4 +1,4 @@
-const { BrowserWindow, net } = require('electron');
+const { BrowserWindow, net, ipcMain } = require('electron');
 const ws = require("nodejs-websocket");
 
 const html_root = 'http://127.0.0.1:8088/';
@@ -59,7 +59,7 @@ var control = {
                 if (nav_json.event == 'self') {
                     control.mainWindow.loadURL(url);
                 }
-                // event : 'index' 关闭弹出窗口
+                // event : 'index' 定义首页
                 if (nav_json.event == 'index') {
                     view_index = url
                     control.mainWindow.loadURL(view_index);
@@ -83,9 +83,25 @@ var control = {
         }
     },
 
+    //接收前端消息并转发到Python
+    relay_to_python: function(client_sock) {
+        ipcMain.on('toPython', (event, arg) => {
+            if (typeof arg == 'string') {
+                try {
+                    arg = JSON.parse(arg);
+                } catch (e) {
+                    arg = { MsgType: 'Text', Receiver: 'ControlCenter', Data: arg }
+                }
+            }
+            arg = JSON.stringify(arg);
+            client_sock.sendText(arg);
+        });
+    },
+
     //内部通信服务端
     start_websocket: function() {
         console.log("[JS]:开始建立屏幕通讯连接...");
+        var _this = this;
         var server = ws.createServer((conn) => {
             conn.on("text", (str) => {
                 // console.log(str);
@@ -107,6 +123,7 @@ var control = {
         }).listen(8103);
         server.on("connection", (client_sock) => {
             console.log("[JS]:有客户端接入")
+            _this.relay_to_python(client_sock);
         });
     },
 
