@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 import os,time,re,sys
-import hashlib
 import sqlite3
 if int(os.popen("id -u").read()) !=0:
     print("请用root权限执行：sudo ./install.py")
@@ -130,8 +129,8 @@ class Install():
         self.print_str("[完成]",'p')
 
         self.print_str("初始化音量配置asound.state", 'n', 'n')
-        bak_file = os.path.join(self.root_path, 'python/data/asound.stateBAK')
-        con_file = os.path.join(self.root_path, 'python/data/asound.state')
+        bak_file = os.path.join(self.root_path, 'python/data/conf/asound.stateBAK')
+        con_file = os.path.join(self.root_path, 'python/data/conf/asound.state')
         os.system('sudo cp -f '+ bak_file +' '+ con_file)
         os.system("sudo chown pi.pi "+ con_file)
         os.system("sudo chmod 777 "+ con_file)
@@ -155,7 +154,7 @@ class Install():
         #每隔1小时检测一次
         times_cmd = "0 */1 * * * root "+ time_file + " &"
 
-        r_runfile = r'^\*.+pi export DISPLAY=:0 &&.+\&$'
+        r_runfile = r'^\*.+pi\s+export\s+DISPLAY=:0\s+&&.+\&$'
         matc = re.search( r_runfile, fstr, re.M|re.I )
         if matc==None:
             fstr = "\n" + run_cmd
@@ -166,9 +165,10 @@ class Install():
         if time_matc==None:
             fstr += "\n" + times_cmd
 
-        # fo = open(crontab, "w+")
-        # fo.write(fstr)
-        # fo.close()
+        with open(crontab, 'w') as fso:
+            fso.write(fstr)
+
+        os.system('sudo /etc/init.d/cron restart')
 
         self.print_str("[完成]",'p')
 
@@ -254,7 +254,7 @@ class Install():
             with open("/etc/timezone","w") as x:
                 x.write('Asia/Shanghai')
         #在继续修改时间
-        os.system("sudo ntpdate ntp.sjtu.edu.cn")
+        # os.system("sudo ntpdate ntp.sjtu.edu.cn")
 
         self.print_str('[完成]','p')
 

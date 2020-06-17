@@ -251,7 +251,6 @@ class WebServer():
     '''HTTP服务器类'''
 
     def start(self):
-        # http.server 使用stderr.write写日志。故转发到空设备屏蔽之
         serverAddress = ('0.0.0.0', 8088)
         server = HTTPServer(serverAddress, RequestHandler)
         server.serve_forever()
@@ -259,7 +258,7 @@ class WebServer():
     # 开始运行
     def Run(self, argv=''):
         if argv.lower() != 'debug':
-            sys.stderr = open(os.devnull, 'w')
+            sys.stderr = open(os.devnull, 'w')      # http.server 使用stderr.write写日志。故转发到空设备屏蔽之
         p = Process(target=self.start)
         p.start()
 

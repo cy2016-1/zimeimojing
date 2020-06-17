@@ -18,7 +18,7 @@ class SayIp(MsgProcess):
 
         # 语音交互最简例子
         self.say('是要再播报一次吗？请说\"是的\"或者\"不是\"!')        
-        words = self.listen()    
+        words = self.listen()
         if '是的' in words:
             self.say(msgstr)
         
