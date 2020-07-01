@@ -1,9 +1,3 @@
-AwakeEngine:
-  note: 语音唤醒引擎
-  select:
-    snowboy: snowboy
-    XFAwake: 讯飞唤醒
-
 RecSeclet:
   note: 录音方式
   select:
@@ -28,6 +22,28 @@ IsGeekMode:
   switch:
     - true
     - false
+
+ApiConfig:
+  note: 模块接口配置
+  more:
+    AwakeEngine:
+      note: 语音唤醒引擎
+      select:
+        snowboy: snowboy
+        XFAwake: 讯飞唤醒
+    SpeechSynthesis:
+      note: 语音合成接口
+      select:
+        Baidu: 百度语音合成
+    VoiceRecognition:
+      note: 语音识别接口
+      select:
+        Baidu: 百度语音识别
+    FaceRecognition:
+      note: 人脸识别接口
+      select:
+        Baidu: 百度人脸识别
+
 
 LoadModular:
   note: 系统默认加载服务

@@ -1,7 +1,7 @@
 import logging
 import os
 import re
-import package.visualApi as visual
+from package.FaceRecognition import FaceRecognition
 from MsgProcess import MsgProcess, MsgType
 from package.data import data as dbdata
 
@@ -10,6 +10,7 @@ class User(MsgProcess):
     def __init__(self, msgQueue):
         super().__init__(msgQueue)
         self.data = dbdata()
+        self.visual = FaceRecognition()
 
     def Text(self, message):
         text = message['Data']  
@@ -22,12 +23,13 @@ class User(MsgProcess):
             
             Triggers = ["我是谁"]
             if any(map(lambda trig: trig in text, Triggers)):
-                user = visual.WhoAmI()
+                self.say('稍等，让我看看你是谁？')
+                user = self.visual.WhoAmI()
                 if user and isinstance(user, dict):
                     self.say('您好：' + user['nickname'])
                 else:
                     self.say('我还不知道您是谁呢。您注册绑定后我就知道你您是谁了')
-                self.Stop()            
+                self.Stop()
                 return
             
         if isinstance(text, dict) and 'action' in text.keys():
@@ -46,7 +48,7 @@ class User(MsgProcess):
                 return self.user_dels(jsonText)
 
     def user_openbind(self, jsonText):
-        '''  显示用户绑定的二维码    '''
+        '''显示用户绑定的二维码'''
         clientid = self.config['httpapi']+'/xiaocx/dev/' + self.config['MQTT']['clientid']
         nav_json = {"event": "open", "size": {"width": 380, "height": 380}, "url": "desktop/Public/bind_user.html?qr=" + clientid}
         data = {'type': 'nav', 'data': nav_json}
@@ -55,7 +57,7 @@ class User(MsgProcess):
         self.say(text)
 
     def user_bind(self, jsonText):
-        '''  用户绑定  '''
+        '''用户绑定'''
         # print('user_bind arg: jsonText:', jsonText)
         jsonText = jsonText['data']
         re_json = {"code": '9999', "msg": "绑定操作失败，请重新操作"}       
@@ -117,7 +119,7 @@ class User(MsgProcess):
             return True
 
         picfile = "runtime/photo/" + str(uid) + ".jpg"    
-        if visual.FromCaptureGetFaceImg(picfile, showFocus=True,timeOut=120):
+        if self.visual.FromCaptureGetFaceImg(picfile, showFocus=True,timeOut=120):
             self.data.user_up(uid, {'facepath':picfile})
             data = {'type': 'nav', 'data': {"event": "close"}}
             self.send(MsgType.Text, Receiver='Screen',Data=data)  # 取消显示二维码导航消息                

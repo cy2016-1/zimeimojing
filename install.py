@@ -48,17 +48,16 @@ class Install():
 
     def copy_libfile(self):
         self.print_str("拷贝必要的*.so库文件到系统目录" ,'n','n')
-        os.system("sudo cp python/bin/XFawake/libs/ARM/*.so /usr/lib/")
+        os.system("sudo cp python/api/XFawake/libs/ARM/*.so /usr/lib/")
         self.print_str('[完成]','p')
-
 
     # 设置目录权限
     def set_path_chmod(self):
         self.print_str("设置目录下文件权限" ,'n','n')
 
         self.cmd("sudo chmod +x", 'app/moJing')
+        self.cmd('sudo chmod +x', 'python/api/XFawake/*')
         self.cmd('sudo chmod +x', 'python/bin/setWifi/*')
-        self.cmd('sudo chmod +x', 'python/bin/XFawake/*')
         self.cmd('sudo chmod +x', 'python/bin/EchoCancellation/*')
         self.cmd('sudo chmod +x', 'python/bin/pyAlsa/*')
 
@@ -122,7 +121,7 @@ class Install():
         self.print_str("[完成]",'p')
 
         self.print_str("设置系统配置文件config.yaml" ,'n','n')
-        bak_file = os.path.join(self.root_path, 'python/configBAK.yaml')
+        bak_file = os.path.join(self.root_path, 'python/data/conf/configBAK.yaml')
         con_file = os.path.join(self.root_path, 'python/config.yaml')
         os.system('sudo cp -f ' + bak_file + ' ' + con_file)
         os.system('sudo chmod 0666 python/config.yaml') 

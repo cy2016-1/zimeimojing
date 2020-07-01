@@ -13,7 +13,16 @@ import time
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from MsgProcess import MsgProcess, MsgType
-    
+
+# 旋转屏幕数值对应表
+rotate_array = {
+    "0": "不旋转",
+    "1": "旋转90度",
+    "2": "旋转180度",
+    "3": "旋转270度",
+    "0x10000": "左右翻转",
+    "0x20000": "上下翻转"
+}
     
 class Volume:
     @staticmethod
@@ -98,16 +107,14 @@ class Screen():
 
         restr = r'^display_rotate\s*=\s*(\d)'
         rema = re.search(restr, fstr, re.M | re.I)
+        new_api = 'display_rotate=' + str(val)
         if rema:
-            new_api = 'display_rotate=' + str(val)
-            fstr = re.sub(restr, new_api, fstr, 1, re.M | re.I)
+            cmd = "sudo sed -i s/^display_rotate\s*=\s*[0-9]*/'"+ new_api +"'/g "+ config
         else:
-            new_api = 'display_rotate=' + str(val)
-            fstr += "\n" + str(new_api) + "\n"
+            appstr = "\n" + str(new_api) + "\n"
+            cmd = "sudo sh -c 'echo \""+ appstr +"\" >> "+ config +"'"
 
-        fo = open(config, "w")
-        fo.write(fstr)
-        fo.close()
+        os.system(cmd)
         os.system('sudo reboot')
 
 
@@ -310,7 +317,7 @@ class Device(MsgProcess):
         
         elif Data['action'] == 'DEVICE_RTURN':  # 旋转屏幕
             value = Data['value']
-            msg = '旋转屏幕{}并重启生效'.format(value)
+            msg = '设置屏幕{}并重启生效'.format(rotate_array[str(value)])
             mqtt = {'action': 'DEVICE_RTURN',
                     'data': {"code": "0000", "msg": msg}}
                     
@@ -353,5 +360,5 @@ class Device(MsgProcess):
 
     def Stop(self, message=None):
         # 保存音量信息
-        os.system("alsactl --file data/asound.state store ")
+        os.system("alsactl --file data/conf/asound.state store ")
         super().Stop()

@@ -141,14 +141,15 @@ class Daemon(MsgProcess):
         return res
     
     def detect_man(self):
-        ''' 人体探测 关闭屏幕节能 ''' 
-        if GPIO.input(self.pin_detect_man):
-            self.detect_man_time = time.time()
-            os.system('sudo vcgencmd display_power 1 > /dev/null')
-        else:
-            if (self.powersavetime > 0) and (time.time() - self.detect_man_time >= self.powersavetime * 60):
-                os.system('sudo vcgencmd display_power 0 > /dev/null')
-                        
+        ''' 人体探测 关闭屏幕节能 '''
+        if self.powersavetime > 0:
+            if GPIO.input(self.pin_detect_man):
+                self.detect_man_time = time.time()
+                os.system('sudo vcgencmd display_power 1 > /dev/null')
+            else:
+                if time.time() - self.detect_man_time >= self.powersavetime * 60:
+                    os.system('sudo vcgencmd display_power 0 > /dev/null')
+
     def detectAll(self):
         time.sleep(5)       # 等待屏幕启动，以免丢失网络图标
         Device.setSoundCard()     # 设置默认声卡

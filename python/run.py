@@ -25,9 +25,9 @@ def processExist(pname):
 
 def init():
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    os.system("sudo alsactl --file data/asound.state restore")  # 加载音量设置
+    os.system("sudo alsactl --file data/conf/asound.state restore")  # 加载音量设置
     os.system("sudo amixer set Capture 70%")  # 设置话筒
-    os.system("alsactl --file data/asound.state restore")  # 加载音量设置
+    os.system("alsactl --file data/conf/asound.state restore")  # 加载音量设置
     os.system("amixer set Capture 70%")  # 设置话筒
     
     # 设定目录权限 特别是pi
@@ -35,7 +35,7 @@ def init():
     os.system("sudo chmod -R 0777 runtime")
     os.system("sudo chmod -R 0777 /music/")
 
-    bak = "configBAK.yaml"
+    bak = "data/conf/configBAK.yaml"
     cfg = "config.yaml"
     if not os.path.exists(cfg) or os.path.getsize(cfg) < 10:       
         os.system('sudo cp -f %s %s ' % (bak, cfg))

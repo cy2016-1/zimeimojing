@@ -45,7 +45,7 @@
 </template>
 
 <script>
-var api = import('../../api/plugin.js');
+var api = import('/admin/api/plugin.js');
 
 module.exports = {
   data() {

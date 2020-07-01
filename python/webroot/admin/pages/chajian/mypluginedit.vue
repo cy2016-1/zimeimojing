@@ -106,9 +106,9 @@
 </template>
 
 <script>
-var openwindow = import('../../utils/open-window.js').then((e) => { return e.default });
-var api = import('../../api/plugin.js');
-var user = import('../../api/user.js');
+var openwindow = import('/admin/utils/open-window.js').then((e) => { return e.default });
+var api = import('/admin/api/plugin.js');
+var user = import('/admin/api/user.js');
 
 module.exports = {
   data() {

@@ -316,8 +316,13 @@ class ControlCenter(MsgProcess):
 
 
 if __name__ == "__main__":
-    sys.path.append(os.getcwd())
-    sys.path.append(os.path.join(os.getcwd(), 'package'))
-    sys.path.append(os.path.join(os.getcwd(), 'bin'))   
+    cwd = os.getcwd()
+    sys.path.append(cwd)
+    sys.path.append(os.path.join(cwd, 'api'))
+    sys.path.append(os.path.join(cwd, 'bin'))
+    sys.path.append(os.path.join(cwd, 'package'))
+    sys.path.append(os.path.join(cwd, 'include'))
+    sys.path.append(os.path.join(cwd, 'module'))
+    del cwd
     Center = ControlCenter(Queue())
     Center.start()

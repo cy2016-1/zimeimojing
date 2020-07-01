@@ -15,6 +15,16 @@
     "icon": "0",
     "version": "0.0.1",
     "updateTime": "2020-02-11 12:25:00",
+    "control":[
+		{
+			"lable":"人脸识别",
+			"body":[{
+				"type":"button",
+				"setvalue":"我是谁",
+				"text":"我是谁"
+			}]
+		}
+	],
     "repository": {
         "type": "git",
         "url": "https://gitee.com/kxdev/plugin_user.git"

@@ -8,7 +8,7 @@ class set_config(ApiBase):
     def main(self):
         # 获取配置
         if self.query['op'] == 'getconfig':
-            config_set = os.path.abspath('./config_set.yaml')
+            config_set = os.path.abspath('./data/conf/config_set.yaml')
             conf_set = mylib.yamlLoad(config_set)
             ret_arr = {
                 'code' : 20000,

@@ -13,7 +13,7 @@ import urllib
 from enum import Enum
 from threading import Thread
 import requests
-import package.mplayer as mplayer
+import include.mplayer as mplayer
 from MsgProcess import MsgProcess, MsgType
 from package.CacheFileManager import CacheFileManager
 

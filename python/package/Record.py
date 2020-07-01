@@ -9,7 +9,7 @@ import time
 import logging
 from threading import Thread
 from MsgProcess import MsgProcess, MsgType
-import package.VoiceRecognition as VoiceRecognition
+from package.VoiceRecognition import VoiceRecognition
 import socket
 import wave
 from bin.pyAlsa import pyAlsa
@@ -60,7 +60,7 @@ class Record(MsgProcess):
         self.vad = webrtcvad.Vad(1)  # 语音检测库
         self.isReset = False
         self.currentRecThread = None  # 当前录音线程
-        self.VoiceRecognition = VoiceRecognition.VoiceRecognition()
+        self.VoiceRecognition = VoiceRecognition(MsgProcess)
 
     def Start(self, message):
         logging.info('[%s] request Record' % message['Sender'])
@@ -165,7 +165,7 @@ class Record(MsgProcess):
                 self.saveRec(frames, text)
                 return
         logging.info('无语音数据')
-        self.send(MsgType=MsgType.JobFailed, Receiver=message['Sender'])
+        self.send(MsgType.JobFailed, Receiver=message['Sender'])
         self.send(MsgType.Text, Receiver='Screen', Data='无语音数据')
         self.send(MsgType.QuitGeekTalk, Receiver='ControlCenter')
 

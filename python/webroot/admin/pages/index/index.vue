@@ -30,7 +30,7 @@
 </template>
 
 <script>
-var api = import("../../api/index.js");
+var api = import("/admin/api/index.js");
 
 module.exports = {
   data() {

@@ -51,7 +51,7 @@
 </template>
 
 <script>
-var api = import('../../api/setconfig.js');
+var api = import('/admin/api/setconfig.js');
 
 module.exports = {
   data() {

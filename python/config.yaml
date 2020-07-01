@@ -1,20 +1,16 @@
 # 自美系统的配置文件 请简单了解yaml语法后再小心修改,特别注意冒号':'后要跟一个空格再填数据.
 
-AwakeEngine: XFAwake            # 唤醒引擎 可选讯飞唤醒XFAwake或snowboy
 RecSeclet: pyAlsa               # 录音 可选 ScoketRec:从unixSocket录音 pyAlsa:调用pyalsa.so录音 Pyaudio:用Pyaudio录音
 initWifi: ApHot                 # wifi配网 可选 SoundWave 声波配网 ApHot 热点配网
 AudioOutput: Inside             # 音频输出 可选 Inside:驱动板自带的喇叭 External:使用树莓派的HDMI和3.5mmAUX输出(HDMI优先)
 IsGeekMode: False               # 是否采用极客连续对话模式,此选项仅影响唤醒时的对话,对插件的连续对话不影响
 
-snowboy:
-  model: xiaoduxiaodu.umdl      # 唤醒词模型 小度小度 可改成自已定义唤醒词放在目录 python/bin/snowboy
-  sensitivity: 0.5              # 唤醒词模型参数值
-  supplyRecord: False           # 是否提供管道录音
-  BindFile: /tmp/Record.zimei   # socket.AF_UNIX管道绑定文件
+ApiConfig:
+  AwakeEngine: XFAwake          # 唤醒引擎 可选: XFAwake / snowboy
+  SpeechSynthesis: Baidu        # 语音合成 可选: Baidu
+  VoiceRecognition: Baidu       # 语音识别 可选: Baidu
+  FaceRecognition: Baidu        # 人脸识别 可选: Baidu
 
-XFAwake:
-  supplyRecord: False           # 相关参数在 python/bin/XFawake/awake.ini 中修改
-  
 LoadModular:                    # 系统预加载模块 true:启用 false:禁用 Start:启用并需要一个Start消息
   Daemon: Start                 # 守护进程
   Screen: True                  # 前端APP
@@ -23,13 +19,8 @@ LoadModular:                    # 系统预加载模块 true:启用 false:禁用
   MqttProxy: True               # MQTT代理
   GeneralSwitchProxy: Start     # 万能开关代理
   Awake: Start                  # 唤醒
-   
-LastDefaultPlugin: Chat        
 
-BDAip:                          # 百度Aip账号,可替换为你自已的
-  APP_ID: '15449758'
-  API_KEY: tOpUbG9aNsiVrCYSSug605Tn
-  SECRET_KEY: zVRAwxFWUzzHEfXruUB20wIyhGrzj1b6
+LastDefaultPlugin: Chat
 
 Logging:
   Level: WARNING                # 日志级别 可选 DEBUG INFO WARNING ERROR

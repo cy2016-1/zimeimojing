@@ -15,3 +15,4 @@ from .imagesearch import AipImageSearch
 from .bodyanalysis import AipBodyAnalysis
 from .imageprocess import AipImageProcess
 from .easydl import EasyDL
+from .config import config
