@@ -35,10 +35,12 @@ ApiConfig:
       note: 语音合成接口
       select:
         Baidu: 百度语音合成
+        Xunfei: 讯飞语音合成
     VoiceRecognition:
       note: 语音识别接口
       select:
         Baidu: 百度语音识别
+        Xunfei: 讯飞语音识别
     FaceRecognition:
       note: 人脸识别接口
       select:

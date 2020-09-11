@@ -7,8 +7,8 @@ IsGeekMode: False               # 是否采用极客连续对话模式,此选项
 
 ApiConfig:
   AwakeEngine: XFAwake          # 唤醒引擎 可选: XFAwake / snowboy
-  SpeechSynthesis: Baidu        # 语音合成 可选: Baidu
-  VoiceRecognition: Baidu       # 语音识别 可选: Baidu
+  SpeechSynthesis: Baidu        # 语音合成 可选: Baidu / Xunfei
+  VoiceRecognition: Baidu       # 语音识别 可选: Baidu / Xunfei
   FaceRecognition: Baidu        # 人脸识别 可选: Baidu
 
 LoadModular:                    # 系统预加载模块 true:启用 false:禁用 Start:启用并需要一个Start消息

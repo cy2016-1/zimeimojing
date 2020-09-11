@@ -51,4 +51,8 @@ def getwifilist():
 
     wifi_list.sort(key=takeSecond,reverse=True)
 
-    return json.dumps( wifi_list )
+    return json.dumps(wifi_list)
+
+    
+    
+

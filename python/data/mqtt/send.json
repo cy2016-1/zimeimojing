@@ -1,6 +1,6 @@
 {
-    "sender": "equipm",
-    "receive": "xiaocx",
-    "plugin": "%plugin%",
-    "data": %data%
+    "MsgType": "Text",
+    "Receive": "%receive%",
+    "Sender": "%plugin%",
+    "Data": %data%
 }

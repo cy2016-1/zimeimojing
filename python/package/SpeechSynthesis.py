@@ -21,6 +21,13 @@ class SpeechSynthesis(MsgProcess):
             sps = baidu(self.CUID)
             self.SpeechSynthesis = sps.main
 
+
+        if self.config['ApiConfig']['SpeechSynthesis'] == 'Xunfei':
+            from module.SpeechSynthesis.xunfei import xunfei
+
+            sps = xunfei(self.CUID)
+            self.SpeechSynthesis = sps.main
+
     # 开始合成，由接口类重写这个方法
     def SpeechSynthesis(self, text, fileName):
         pass

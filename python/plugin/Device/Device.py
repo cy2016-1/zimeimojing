@@ -2,7 +2,7 @@
 # @Author: drbdrb,
 # @Date: 2019-09-16 10:42:36
 # @LastEditTime: 2020-03-19 09:55:12
-# @Description: 设备类插件由 GuanghuiSun 修改并移植至2.0
+# @Description: 设备类插件
 
 import json
 import logging
@@ -168,7 +168,7 @@ class Device(MsgProcess):
                 res = self.http_urllib(Data)
                 logging.debug(res)
                 if isinstance(res, dict) and 'cid' in res.keys() and res['type'] == 'city' and res['cnty'] == '中国':                   
-                    data = {'action': 'DEVICE_CITY', 'data':
+                    data = {'action': 'DEVICE_CITY', 'info':
                             {'name': res['location'], 'cnid': res['cid']}}
                     self.mqttProcess(data)
                     return
@@ -260,13 +260,15 @@ class Device(MsgProcess):
             if state == 'volume':  # 音量
                 volume = str(Volume.get())
                 mqtt = {"action": "DEVICE_STATE",
-                        "data": {"code": "0000", "info": {"sound": volume}}}
+                        "info": {"code": "0000", "sound": volume}
+                        }
                 self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=mqtt)
            
             elif state == 'screen':  # 屏幕状态
                 screen = Screen.getPower()
                 mqtt = {"action": "DEVICE_STATE",
-                        "data": {"code": "0000", "info": {"screen": screen}}}
+                        "info": {"code": "0000", "screen": screen}
+                        }
                 self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=mqtt)
 
             elif state == 'all':
@@ -297,7 +299,7 @@ class Device(MsgProcess):
             else:
                 msg = '屏幕已经关闭'
             mqtt = {'action': 'DEVICE_SCREEN',
-                    'data': {"code": "0000", "msg": msg}}
+                    'info': {"code": "0000", "msg": msg}}
             Screen.setPower(value)
             self.send(MsgType=MsgType.Text, Receiver="Screen", Data=msg)
             self.send(MsgType=MsgType.Text, Receiver="SpeechSynthesis", Data=msg)
@@ -308,7 +310,7 @@ class Device(MsgProcess):
             Volume.set(value)
             msg = '音量已设置为{}%'.format(value)
             mqtt = {'action': 'DEVICE_VOLUME',
-                    'data': {"code": "0000", "msg": value}}
+                    'info': {"code": "0000", "msg": value}}
             self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=mqtt)
             self.send(MsgType=MsgType.Text, Receiver="Screen", Data=msg)
             if not SoundCardIsPlay():
@@ -319,7 +321,7 @@ class Device(MsgProcess):
             value = Data['value']
             msg = '设置屏幕{}并重启生效'.format(rotate_array[str(value)])
             mqtt = {'action': 'DEVICE_RTURN',
-                    'data': {"code": "0000", "msg": msg}}
+                    'info': {"code": "0000", "msg": msg}}
                     
             self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=mqtt)
             self.send(MsgType=MsgType.Text, Receiver="Screen", Data=msg)
@@ -329,7 +331,7 @@ class Device(MsgProcess):
             return
         
         elif Data['action'] == 'DEVICE_CITY':  # 修改天气城市
-            city = Data['data']
+            city = Data['info']
             self.config['LOCATION']['city'] = city['name']
             self.config['LOCATION']['city_cnid'] = city['cnid']
             self.saveConfig()
@@ -340,12 +342,25 @@ class Device(MsgProcess):
             time.sleep(1)
             msg = "天气预报城市已修改为{}".format(city['name'])
             mqtt = {'action': 'DEVICE_CITY',
-                    'data': {"code": "0000", "msg": msg}}            
+                    'info': {"code": "0000", "msg": msg}}            
             self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=mqtt)
             self.send(MsgType=MsgType.Text, Receiver="Screen", Data=msg)
             self.send(MsgType=MsgType.Text, Receiver="SpeechSynthesis", Data=msg)
+
+        elif Data['action'] == 'DEVICE_WIFI':  # 设置WiFi网络
+            import bin.Setnet as Setnet
+            if isinstance(Data, dict) and 'wifiname' in Data.keys():
+                Setnet.Wificore().config_wifi(Data)
+                os.system('mpg123 -q '+ os.path.join("bin/setWifi/voice", '配网成功.mp3'))
+                time.sleep(0.3)
+                os.system("sudo reboot")
+            if isinstance(Data, dict) and 'kill' in Data.keys():
+                os.system('sudo ifconfig wlan0 down')
+                os.system('sudo killall udhcpc')
+                os.system('sudo killall wpa_supplicant')
+
     
-    def http_urllib(self, postdata):        
+    def http_urllib(self, postdata):
         try:
             url = self.config['httpapi'] + r'/raspberry/getcityid.html'
             data = urlencode({"cityname": postdata})

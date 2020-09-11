@@ -3,6 +3,7 @@ import os
 from .ApiBase import ApiBase
 from package.mylib import mylib
 
+# 设置所有配置
 class set_config(ApiBase):
 
     def main(self):

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# @Author: GuanghuiSun
+# @Author: drbdrb
 # @Date: 2020-01-08 09:05:25
 # @LastEditTime: 2020-03-26 01:07:50
 # @Description:  音乐播放器 主要是从聊天机器处得到一串dict 解析下载播放
@@ -237,9 +237,9 @@ class Music(MsgProcess):
     def sendMQTT(self):
         ''' 将当前播放状态和歌单发送到MQTT '''
         songnames = [song['songname'] for song in self.playlist]
-        data = {"playindex": self.playindex, "PlayState": self.playState.name,
+        data = {"action": "MUSIC_LIST","playindex": self.playindex, "PlayState": self.playState.name,
                 'sound': self.getVolume(), 'playlist': songnames}                 
-        self.send(MsgType.Text, Receiver='MqttProxy', Data=data)        
+        self.send(MsgType.Text, Receiver='MqttProxy', Data=data)
                 
     def getVolume(self):        
         ''' 取得音量大小 ''' 

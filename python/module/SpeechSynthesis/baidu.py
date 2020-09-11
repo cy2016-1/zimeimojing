@@ -1,6 +1,9 @@
 from api.BDaip import AipSpeech, config
 
 class baidu():
+    '''
+    百合语音合成模块
+    '''
 
     def __init__(self, CUID):
         self.config = config()

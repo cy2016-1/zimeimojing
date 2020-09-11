@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# @Author: GuanghuiSun
+# @Author: drbdrb
 # @Date: 2019-12-31 15:57:55
 # @LastEditTime: 2020-01-12 17:19:39
 # @Description: 本插件语音播报本机IP。因功能简单可作其它插件的写作参模板。

@@ -58,11 +58,11 @@ class User(MsgProcess):
 
     def user_bind(self, jsonText):
         '''用户绑定'''
-        # print('user_bind arg: jsonText:', jsonText)
-        jsonText = jsonText['data']
-        re_json = {"code": '9999', "msg": "绑定操作失败，请重新操作"}       
+        jsonText = jsonText['info']
         info = self.data.user_reg(jsonText)
         logging.info('read from database %s ' % info)
+
+        re_json = {"code": '9999', "msg": "绑定操作失败，请重新操作"}
         if info['state'] < 0:  
             re_json = {"code": '1001', "msg": info['msg']}
             logging.warning('用户信息格式错误')
@@ -76,20 +76,17 @@ class User(MsgProcess):
             logging.info('绑定新用户信息成功')
             re_json = {"code": '0000',"uid": info['data']['uid'], "msg": info['msg']}
 
-        mqtt = {"action": "USER_REG", "data": re_json}
-        self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
-        # self.say(mqtt)
+        mqtt = {"action": "USER_REG", "info": re_json}
+        self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)
 
         if int(info['state']) >= 1:
             uid = info['data']['uid']
             self.uid = uid
             self.user_face_bind(uid)
-            mqtt = {"action": "USER_REG","msg": "恭喜您，注册绑定成功！", "data": {"code": '0003'}}
-            # self.say(mqtt)
+            mqtt = {"action": "USER_REG","msg": "恭喜您，注册绑定成功！", "info": {"code": '0003'}}
             self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
         else:            
-            mqtt = {"action": "USER_REG", "msg": '绑定新用户信息失败', "data": {"code": '9999'}}
-            # self.say(mqtt)
+            mqtt = {"action": "USER_REG", "msg": '绑定新用户信息失败', "info": {"code": '9999'}}
             self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
 
         self.Stop()
@@ -102,8 +99,7 @@ class User(MsgProcess):
             self.send(MsgType.Text, Receiver='Screen',Data=data)  # 取消显示二维码导航消息
 
             re_json = {"code": '0003', "msg": '未检测到摄像头'}
-            mqtt = {"action": "USER_REG", "data": re_json}
-            # self.say(mqtt)
+            mqtt = {"action": "USER_REG", "info": re_json}
             self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
             return True
 
@@ -113,9 +109,8 @@ class User(MsgProcess):
             self.send(MsgType.Text, Receiver='Screen',Data=data)  # 取消显示二维码导航消息
 
             re_json = {"code": '0003', "msg": '系统配置为不启用摄像头'}
-            mqtt = {"action": "USER_REG", "data": re_json}
-            self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
-            # self.say(mqtt)
+            mqtt = {"action": "USER_REG", "info": re_json}
+            self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)
             return True
 
         picfile = "runtime/photo/" + str(uid) + ".jpg"    
@@ -131,24 +126,19 @@ class User(MsgProcess):
     # 获取当前设备用户列表
     def user_list(self):
         u_list = self.data.user_list_get()
-        mqtt = {"action": "USER_LIST", "data": u_list}
-        logging.debug(mqtt)
-        self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
-        # self.say(mqtt)
-
+        mqtt = {"action": "USER_LIST", "info": u_list}
+        self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)
 
     # 用户注销
     def user_dels(self, jsonText):
         have = self.data.user_del(jsonText["data"]["uid"])
-
         if have["state"]:
             re_json = {"code": '0000', "msg": "注销用户信息成功"}
         else:
             re_json = {"code": '2001', "msg": "注销用户信息失败"}
 
-        mqtt = {"action": "USER_DEL", "data": re_json}
-        self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
-        # self.say(mqtt)
+        mqtt = {"action": "USER_DEL", "info": re_json}
+        self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)
         return have
 
      # 用户修改
@@ -165,7 +155,6 @@ class User(MsgProcess):
         else:
             re_json = {"code": '2001', "msg": "用户修改信息失败"}
 
-        mqtt = {"action": "USER_EDIT", "data": re_json}
+        mqtt = {"action": "USER_EDIT", "info": re_json}
         self.send(MsgType.Text, Receiver='MqttProxy', Data=mqtt)  
-        # self.say(mqtt)
         return have

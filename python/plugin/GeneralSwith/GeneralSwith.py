@@ -4,28 +4,38 @@ from MsgProcess import MsgProcess, MsgType
 class GeneralSwith(MsgProcess):
     '''万能开关插件'''
 
-    def Text(self, message):
-        Data = message['Data']
-        if isinstance(Data, dict) and Data['receive'] == 'system':
-            # 这是万能开关传过来数据
-            wnkg_data = Data['data']
-            if wnkg_data['type'] == 'switch':
-                if wnkg_data['state'] == 1:
-                    self.say('灯已打开')
-                elif wnkg_data['state'] == 0:
-                    self.say('灯已关闭')
+    def switch(self, data):
+        if data[0:2] == '打开':
+            state = 1
+        else:
+            state = 0
 
-            if wnkg_data['type'] == 'dht':
-                wnkg_data = Data['data']
-                state = {'humidity': wnkg_data['state']['humidity']+'%', 'temperature': wnkg_data['state']['temperature']+'℃'}
-                # self.say(state, False, 'MqttProxy')
-                self.send(MsgType.Text, "MqttProxy", state)
+        send_data = {'type': 'switch', 'state': state, 'pin': 2}
+        self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=send_data)
+
+    def Text(self, message):
+
+        print(message)
+        Data = message['Data']
+        if isinstance(Data, dict):
+            if 'type' in dict(Data).keys():
+                # 这是万能开关传过来数据
+                if Data['type'] == 'switch':
+                    if Data['state'] == 1:
+                        msg = '灯已打开'
+                        self.send(MsgType=MsgType.Text, Receiver='SpeechSynthesis', Data=msg)
+                        self.send(MsgType=MsgType.Text, Receiver='Screen', Data=msg)
+                    elif Data['state'] == 0:
+                        msg = '灯已关闭'
+                        self.send(MsgType=MsgType.Text, Receiver='SpeechSynthesis', Data=msg)
+                        self.send(MsgType=MsgType.Text, Receiver='Screen', Data=msg)
+
+                    state = {'action': 'switch', 'switch': int(Data['state']), 'statustext': msg}
+                    self.send(MsgType.Text, "MqttProxy", state)
+            
+            elif 'initstate' in dict(Data).keys() and Data['initstate'] == 'onLoad':
+                send_data = {'type': 'switch', 'pin': 2}
+                self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=send_data)
         else:
             if Data[-1:] == '灯':
                 self.switch(Data)
-
-            elif Data[-2:] == '光感':
-                self.light(Data)
-
-            elif Data[-2:] == '温度':
-                self.dhtfunc(Data)

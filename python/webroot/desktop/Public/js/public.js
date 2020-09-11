@@ -113,12 +113,5 @@ $(function() {
     });
 });
 
-// 发送到后端数据接口
-$.extend({
-    send: function(data) {
-        ipcRenderer.send('toPython', data);
-    }
-})
-
 // 加载动画
 $(window).load(function() { $("#loading").fadeOut(500); });

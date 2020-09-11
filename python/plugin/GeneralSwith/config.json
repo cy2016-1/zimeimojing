@@ -1,7 +1,7 @@
 {
     "name": "GeneralSwith",
-	"displayName": "万能开关",
-	"description": "官方插件之万能开关插件",
+	"displayName": "万能开关默认插件",
+	"description": "官方插件之万能开关默认事件处理插件，此插件会处理所有没有绑到对应插件的万能开关设备消息。",
 	"IsEnable": true,
 	"IsSystem": false,
 	"AutoLoader": true,
@@ -9,44 +9,36 @@
 	"icon":"2",
 	"version": "0.0.1",
     "updateTime":"2020-02-11 12:25:00",
-	"triggerwords":["打开客厅灯","关闭客厅灯","打开卧室灯","关闭卧室灯","打开光感","关闭光感","打开温度","关闭温度"],
+	"triggerwords":["打开指示灯","关闭指示灯"],
 	"control":[
 		{
-			"lable":"灯类开关",
+			"lable":"指示灯（例子灯）开关状态演示",
 			"body":[
 				{
 					"type":"switch",
-					"setvalue":{"1":"打开客厅灯","0":"关闭客厅灯"},
-					"text":"客厅灯"
+					"getvalue":"switch",
+					"setvalue":{"1":"打开指示灯","0":"关闭指示灯"},
+					"text":"指示灯"
 				},
 				{
-					"type":"switch",
-					"setvalue":{"1":"打开卧室灯","0":"关闭卧室灯"},
-					"text":"卧室灯"
+					"type":"input",
+					"text":"自定义指令：",
+					"placeholder": "如：打开/关闭指示灯"
 				}
 			]
 		},
 		{
-			"lable":"温度湿度",
+			"lable":"指示灯状态",
 			"body":[
 				{
-					"type":"switch",
-					"setvalue":{"1":"打开温度","0":"关闭温度"},
-					"text":"是否启用"
-				},
-				{
 					"type":"text",
-					"getvalue":"temperature",
-					"text":"温度："
-				},
-				{
-					"type":"text",
-					"getvalue":"humidity",
-					"text":"湿度："
+					"getvalue":"statustext",
+					"text":"状态："
 				}
 			]
 		}
 	],
+	"initControl": 1,
     "repository": {
 		"type": "git",
 		"url": "https://gitee.com/kxdev/plugin_wnkg.git"

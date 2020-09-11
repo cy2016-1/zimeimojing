@@ -35,7 +35,7 @@ var api = import("/admin/api/index.js");
 module.exports = {
   data() {
     return {
-      timer: '',
+      timer: "",
       cputemp: 0,
       cpuuse: 0,
       ramuse: 0,
