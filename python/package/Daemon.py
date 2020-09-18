@@ -7,7 +7,6 @@ from urllib.request import Request, urlopen
 import RPi.GPIO as GPIO
 from MsgProcess import MsgProcess, MsgType
 from bin.Device import Device
-from bin.Setnet import Setnet
 from package.data import data as db
 from package.mylib import mylib
 
@@ -70,7 +69,10 @@ class Daemon(MsgProcess):
                     return
 
                 if self.config['initWifi'] == 'ApHot':
-                    Setnet().main()
+                    from bin.Setnet import Setnet
+                    Netst = Setnet(self.config).main()
+                    if Netst:
+                        self.send(MsgType.Start, Receiver='MqttProxy')  # 启动mqtt
                     return
     
     def Start(self, message):
@@ -158,7 +160,8 @@ class Daemon(MsgProcess):
             'detect_netstate', 
             'detect_cpuwd',
             'detect_man',
-            'detect_setnet']
+            'detect_setnet'
+        ]
         i = 0
         while True: 
             eval('self.'+allTasks[i]+'()')

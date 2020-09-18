@@ -39,7 +39,7 @@
 
 <script>
 
-var api = import('../../admin/api/plugin.js');
+var api = import('/admin/api/plugin.js');
 
 module.exports = {
   filters: {

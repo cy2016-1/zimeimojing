@@ -299,29 +299,37 @@ class MqttProxy(MsgProcess):
         "lasttime" TEXT,
         "offtime" TEXT
         );'''
-        db = sqlite3.connect(database=self.dbfile)
-        cursor = db.cursor()
-        cursor.execute(create_tb_cmd)        
-        cursor.execute("SELECT * FROM LIST WHERE devid='" + deviceid + "'")  
-        intable = len(cursor.fetchall()) >= 1        
-        if intable:
-            cursor.execute("UPDATE LIST SET lasttime=? WHERE devid=?", (timestamp, deviceid))   
-        else:
-            cursor.execute("INSERT INTO LIST (devid,name,regtime,lasttime) VALUES (?,?,?,?)", (deviceid, deviceid, timestamp, timestamp))    
-        cursor.close()
-        db.commit()
-        db.close()
+        try:
+            db = sqlite3.connect(database=self.dbfile)
+            cursor = db.cursor()
+            cursor.execute(create_tb_cmd)        
+            cursor.execute("SELECT * FROM LIST WHERE devid='" + deviceid + "'")  
+            intable = len(cursor.fetchall()) >= 1        
+            if intable:
+                cursor.execute("UPDATE LIST SET lasttime=? WHERE devid=?", (timestamp, deviceid))   
+            else:
+                cursor.execute("INSERT INTO LIST (devid,name,regtime,lasttime) VALUES (?,?,?,?)", (deviceid, deviceid, timestamp, timestamp))    
+            cursor.close()
+            db.commit()
+            db.close()
+        except:
+            pass
 
     # 根据万能开关设备ID查找对应的插件名
     # 返回：插件名数组列表
     def getPluginName(self, deviceid):
-        db = sqlite3.connect(database=self.dbfile)
-        cursor = db.cursor()
-        cursor.execute("SELECT devid,plugin FROM LIST WHERE devid='" + deviceid + "'")
-        rs = cursor.fetchall()
-        cursor.close()
-        db.commit()
-        db.close()
+        rs = []
+        try:
+            db = sqlite3.connect(database=self.dbfile)
+            cursor = db.cursor()
+            cursor.execute("SELECT devid,plugin FROM LIST WHERE devid='" + deviceid + "'")
+            rs = cursor.fetchall()
+            cursor.close()
+            db.commit()
+            db.close()
+        except:
+            rs = []
+
         PluginTab = []
         for row in rs:
             if row[1] != None and row[1] != '':
@@ -332,18 +340,22 @@ class MqttProxy(MsgProcess):
     # 根据插件名查找指定的万能开关设备ID
     # 返回：设备ID数组列表
     def getDeviceId(self, plugin):
-        db = sqlite3.connect(database=self.dbfile)
-        cursor = db.cursor()
         if plugin == self.wnkg_default_plugin:
             where = "plugin is null or plugin='"+ self.wnkg_default_plugin +"'"
         else:
             where = "plugin='"+ plugin +"'"
+        rs = []
+        try:
+            db = sqlite3.connect(database=self.dbfile)
+            cursor = db.cursor()
+            cursor.execute("SELECT devid,plugin FROM LIST WHERE "+ where)
+            rs = cursor.fetchall()
+            cursor.close()
+            db.commit()
+            db.close()
+        except:
+            rs = []
 
-        cursor.execute("SELECT devid,plugin FROM LIST WHERE "+ where)
-        rs = cursor.fetchall()
-        cursor.close()
-        db.commit()
-        db.close()
         PluginTab = []
         for row in rs:
             if row[0] != None and row[0] != '':
@@ -353,12 +365,17 @@ class MqttProxy(MsgProcess):
 
     # 获取扩展设备列表
     def getDeviceList(self):
-        db = sqlite3.connect(database=self.dbfile)
-        cursor = db.cursor()
-        cursor.execute("SELECT id,devid,name,plugin,lasttime FROM LIST")
-        rs = cursor.fetchall()
-        cursor.close()
-        db.commit()
+        rs = []
+        try:
+            db = sqlite3.connect(database=self.dbfile)
+            cursor = db.cursor()
+            cursor.execute("SELECT id,devid,name,plugin,lasttime FROM LIST")
+            rs = cursor.fetchall()
+            cursor.close()
+            db.commit()
+            db.close()
+        except:
+            rs = []
         
         SwitchTab = []
         for row in rs:
@@ -372,18 +389,23 @@ class MqttProxy(MsgProcess):
                 'plugin': str(plugin)
             }
             SwitchTab.append(item)
-        db.close()
+        
         return SwitchTab
 
     # 获取单个设备信息
     def getDeviceInfo(self, deviceid):
-        db = sqlite3.connect(database=self.dbfile)
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM LIST WHERE devid='" + deviceid + "' LIMIT 1")
-        col_list = [tuple[0] for tuple in cursor.description]  #得到域的名字
-        rs = cursor.fetchall()
-        cursor.close()
-        db.commit()
+        rs = []
+        try:
+            db = sqlite3.connect(database=self.dbfile)
+            cursor = db.cursor()
+            cursor.execute("SELECT * FROM LIST WHERE devid='" + deviceid + "' LIMIT 1")
+            col_list = [tuple[0] for tuple in cursor.description]  #得到域的名字
+            rs = cursor.fetchall()
+            cursor.close()
+            db.commit()
+            db.close()
+        except:
+            rs = []
 
         line_arr = {}
         if len(rs) > 0:
@@ -392,28 +414,33 @@ class MqttProxy(MsgProcess):
 
         if line_arr['plugin'] is None or str(line_arr['plugin']) == 'None':
             line_arr['plugin'] = self.wnkg_default_plugin
-
-        db.close()
+        
         return line_arr
 
     # 设置设备信息
     def setDeviceInfo(self, setdata):
-        db = sqlite3.connect(database=self.dbfile)
-        dev_id = setdata['devid']
-        set_info = setdata['info']
-        cursor = db.cursor()
-        for key,val in set_info.items():
-            up_sql = "UPDATE LIST SET {}='{}' WHERE devid='{}'".format(key, val, dev_id)
-            cursor.execute(up_sql)
-        cursor.close()
-        db.commit()
-        db.close()
+        try:
+            db = sqlite3.connect(database=self.dbfile)
+            dev_id = setdata['devid']
+            set_info = setdata['info']
+            cursor = db.cursor()
+            for key,val in set_info.items():
+                up_sql = "UPDATE LIST SET {}='{}' WHERE devid='{}'".format(key, val, dev_id)
+                cursor.execute(up_sql)
+            cursor.close()
+            db.commit()
+            db.close()
+        except:
+            pass
 
     # 删除设备
     def delDevice(self, devid):
-        db = sqlite3.connect(database=self.dbfile)
-        cursor = db.cursor()
-        cursor.execute("DELETE FROM LIST WHERE devid='{}'".format(devid))
-        cursor.close()
-        db.commit()
-        db.close()
+        try:
+            db = sqlite3.connect(database=self.dbfile)
+            cursor = db.cursor()
+            cursor.execute("DELETE FROM LIST WHERE devid='{}'".format(devid))
+            cursor.close()
+            db.commit()
+            db.close()
+        except:
+            pass

@@ -137,8 +137,7 @@ var control = {
         conn.on("error", (code, reason) => {
           console.log("[JS]:异常关闭");
         });
-      })
-      .listen(8103);
+    }).listen(8103);
     server.on("connection", (client_sock) => {
       console.log("[JS]:有客户端接入");
       _this.relay_to_python(client_sock);
