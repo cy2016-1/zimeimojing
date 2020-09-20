@@ -39,6 +39,7 @@ def init():
     cfg = "config.yaml"
     if not os.path.exists(cfg) or os.path.getsize(cfg) < 10:       
         os.system('sudo cp -f %s %s ' % (bak, cfg))
+        os.system('sudo chown pi.pi %s' % cfg)
         os.system('sudo chmod 0666 %s' % cfg)
         print("修复配置文件 %s ,以前配置丢失。 " % cfg)
 

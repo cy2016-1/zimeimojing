@@ -190,45 +190,6 @@ class Install():
 
         self.print_str("[完成]",'p')
 
-
-    # 设置默认声卡
-    def set_soundcard(self):
-        self.print_str("设置默认声卡" ,'n','n')
-
-        cardtext = os.popen("aplay -l").read()
-        restr = r'card\s(\d)\:\swm8960soundcard'
-        matc = re.search( restr, cardtext, re.M|re.I )
-        cardnum = 0
-        if matc!=None:
-            cardnum = matc.group(1)
-        else:
-            return
-
-        alsa_conf = '/usr/share/alsa/alsa.conf'
-        f = open(alsa_conf,"r")
-        fstr = f.read()
-        f.close()
-
-        is_write = False
-        restr = r'^defaults.ctl.card\s+\d\s*$'
-        matc = re.search( restr, fstr, re.M|re.I )
-        if matc!=None:
-            fstr = re.sub(restr, "defaults.ctl.card "+ str(cardnum), fstr, 1, re.M|re.I )
-            is_write = True
-
-        restr = r'^defaults.pcm.card\s+\d\s*$'
-        matc = re.search( restr, fstr, re.M|re.I )
-        if matc!=None:
-            fstr = re.sub(restr, "defaults.pcm.card "+ str(cardnum), fstr, 1, re.M|re.I )
-            is_write = True
-
-        if is_write:
-            fo = open(alsa_conf, "w")
-            fo.write( fstr )
-            fo.close()
-
-        self.print_str("[完成]",'p')
-
     # 开始清理工作
     def vacuuming(self):
         self.print_str("开始清理工作" ,'n','n')
@@ -260,17 +221,16 @@ class Install():
     # 重置WiFi网络
     def reset_wifi(self):
         self.print_str("正在重置WiFi网络……",'n','n')
-        restr = '''ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-update_config=1
-'''
-        sys_supplicant = '/etc/wpa_supplicant/wpa_supplicant.conf'
-        fo = open(sys_supplicant, "w")
-        fo.write( restr )
-        fo.close()
+        os.system("sudo wpa_supplicant -B -Dnl80211 -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf")
+        os.system("sudo wpa_cli -i wlan0 set country CN")
+        os.system("sudo wpa_cli -i wlan0 remove_network all")
+        os.system("sudo wpa_cli -i wlan0 save_config")
+        os.system("sudo wpa_cli -i wlan0 reconfigure")
+        os.system("sudo /etc/init.d/networking restart")
 
         self.print_str('[完成]','p')
 
-    #清理当前install位置和深层所有的__pycache__
+    # 清理当前install位置和深层所有的__pycache__
     def del_pycache(self, file_dir = "./"):
         self.print_str("开始清理__pycache__" ,'n')
         for root, dirs, files in os.walk(file_dir):
@@ -279,6 +239,7 @@ update_config=1
                     self.print_str("正在删除-->"+root+"/"+x, 'n', 'n')
                     os.system("sudo rm -r "+root+"/"+x)
                     self.print_str('[完成]','p')
+        del files
 
     def main(self, argv=''):
         '''
@@ -298,10 +259,12 @@ update_config=1
             self.reset_wifi()           # 重置WiFi网络
 
         self.add_crontab()              # 管理计划任务
-        # self.set_soundcard()          # 设置默认声卡
         self.vacuuming()                # 开始清理工作
         self.calibration_time()         # 正在设置时间核对
         self.del_pycache(self.root_path)
+
+        self.cmd('sudo chown -R pi.pi', 'python/')
+        self.cmd('sudo chown -R pi.pi', 'app/')
 
         self.print_str("安装工作全部完成*_^ ",'p')
 
