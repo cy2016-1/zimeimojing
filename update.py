@@ -38,10 +38,10 @@ class update():
         self.SYSTEM_DIR = os.path.join(self.SYSTEM_ROOT, 'keyicx')
 
         #升级目录
-        self.UPDATE_DIR = os.path.join(self.SYSTEM_ROOT, 'zmupdate')
+        self.UPDATE_DIR = '/tmp/zmupdate'
 
         #升级进度文件
-        self.UPDATE_FILE = os.path.join(self.SYSTEM_ROOT, 'tmp/zmprogress')
+        self.UPDATE_FILE = '/tmp/zmprogress'
 
         #升级库URL
         self.GITEE_URL = 'https://gitee.com/kxdev/zimeimojing'
