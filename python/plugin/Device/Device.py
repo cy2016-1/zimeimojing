@@ -331,7 +331,7 @@ class Device(MsgProcess):
             return
         
         elif Data['action'] == 'DEVICE_CITY':  # 修改天气城市
-            city = Data['info']
+            city = Data['data']
             self.config['LOCATION']['city'] = city['name']
             self.config['LOCATION']['city_cnid'] = city['cnid']
             self.saveConfig()
