@@ -86,36 +86,68 @@ class Screen():
     @staticmethod
     def getRotate():
         ''' 屏幕旋转状态 '''
-        config = '/boot/config.txt'
-        f = open(config, "r")
-        fstr = f.read()
-        f.close()
-        restr = r'^display_rotate\s*=\s*(\d)'
-        rotate_val = 0
-        rema = re.search(restr, fstr, re.M | re.I)
-        if rema:
-            rotate_val = rema.group(1)
-        return rotate_val
+        if "Pi 4" in os.popen("cat /proc/device-tree/model").read():
+            config = '/etc/profile.d/hdmi.sh'
+            if os.path.exists(config):
+                with open(config, "r") as f:
+                    fstr = f.read()
+                if "left" in fstr :
+                    return 1
+                if "right" in fstr:
+                    return 2
+                if "inverted" in fstr:
+                    return 3
+            return 0
+
+        else:
+            config = '/boot/config.txt'
+            f = open(config, "r")
+            fstr = f.read()
+            f.close()
+            restr = r'^display_rotate\s*=\s*(\d)'
+            rotate_val = 0
+            rema = re.search(restr, fstr, re.M | re.I)
+            if rema:
+                rotate_val = rema.group(1)
+            return rotate_val
+
 
     @staticmethod
     def setRotate(val=0):
-        ''' 旋转屏幕 val 度 '''
-        config = '/boot/config.txt'
-        f = open(config, "r")
-        fstr = f.read()
-        f.close()
 
-        restr = r'^display_rotate\s*=\s*(\d)'
-        rema = re.search(restr, fstr, re.M | re.I)
-        new_api = 'display_rotate=' + str(val)
-        if rema:
-            cmd = "sudo sed -i s/^display_rotate\s*=\s*[0-9]*/'"+ new_api +"'/g "+ config
+        if "Pi 4" in os.popen("cat /proc/device-tree/model").read():
+
+            ''' 旋转屏幕 val 度 '''
+            config = '/etc/profile.d/hdmi.sh'
+            if not os.path.exists(config):
+                os.system("sudo touch "+config)
+                os.system("sudo chmod 777 "+config)
+            direction = ("xrandr -o normal","xrandr -o left","xrandr -o right","xrandr -o inverted")
+            val=int(val)
+            if val<4:
+                with open(config, "w") as f:
+                    f.write(direction[val])
+                    os.system(direction[val])
+            return
+
         else:
-            appstr = "\n" + str(new_api) + "\n"
-            cmd = "sudo sh -c 'echo \""+ appstr +"\" >> "+ config +"'"
 
-        os.system(cmd)
-        os.system('sudo reboot')
+            config = '/boot/config.txt'
+            f = open(config, "r")
+            fstr = f.read()
+            f.close()
+
+            restr = r'^display_rotate\s*=\s*(\d)'
+            rema = re.search(restr, fstr, re.M | re.I)
+            new_api = 'display_rotate=' + str(val)
+            if rema:
+                cmd = "sudo sed -i s/^display_rotate\s*=\s*[0-9]*/'"+ new_api +"'/g "+ config
+            else:
+                appstr = "\n" + str(new_api) + "\n"
+                cmd = "sudo sh -c 'echo \""+ appstr +"\" >> "+ config +"'"
+
+            os.system(cmd)
+            os.system('sudo reboot')
 
 
 def get_ip_address():
