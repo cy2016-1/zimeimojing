@@ -279,7 +279,7 @@ class MqttProxy(MsgProcess):
 
     # 发布消息
     def publish(self, topic, msgbody):
-        self.client.publish(topic, msgbody, qos=2)
+        self.client.publish(topic, msgbody, qos=0)
 
 
     # ======================== 数据库操作 =============================
