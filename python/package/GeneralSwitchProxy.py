@@ -22,7 +22,7 @@ class GeneralSwitchProxy(MsgProcess):
         self.topic = '/public/almight/admin'        # 公共话题
 
         self.dbfile = "./data/device.db"            # 管理数据库
-    
+
 
     def Start(self, message):
         if not self.isconnect:
@@ -77,7 +77,7 @@ class GeneralSwitchProxy(MsgProcess):
         }
         '''
         self.client.publish(topic, msgbody, qos=2)
-       
+
     def Text(self, message):
         '''
         回调函数,收到插件发来的文本消息 转发到万能开关服务器
@@ -87,7 +87,7 @@ class GeneralSwitchProxy(MsgProcess):
             "Data": {
                 'deviceid':'设备ID',
                 'data': {
-                    'type':'switch',    开关类型，分为：switch-开关 / 
+                    'type':'switch',    开关类型，分为：switch-开关 /
                     'pin': 14,          控制引脚
                     'state':state       状态
                 }
@@ -104,7 +104,7 @@ class GeneralSwitchProxy(MsgProcess):
                 data = Data['data']
                 send_json = {"sender":Sender, "receive":receive, "data": data}
                 self.publish(self.topic, send_json)
-                
+
     def write2db(self, jsontext):
         deviceid = jsontext['data']['deviceid']
         timestamp = time.time()
@@ -119,12 +119,12 @@ class GeneralSwitchProxy(MsgProcess):
         "offtime" TEXT
         );'''
         cursor = db.cursor()
-        cursor.execute(create_tb_cmd)        
-        cursor.execute("SELECT * FROM LIST WHERE devid='" + deviceid + "'")  
-        intable = len(cursor.fetchall()) >= 1        
+        cursor.execute(create_tb_cmd)
+        cursor.execute("SELECT * FROM LIST WHERE devid='" + deviceid + "'")
+        intable = len(cursor.fetchall()) >= 1
         if intable:
-            cursor.execute("UPDATE LIST SET lasttime=? WHERE devid=?", (timestamp, deviceid))   
+            cursor.execute("UPDATE LIST SET lasttime=? WHERE devid=?", (timestamp, deviceid))
         else:
-            cursor.execute("INSERT INTO LIST (devid,name,regtime,lasttime) VALUES (?,?,?,?)", (deviceid, deviceid, timestamp, timestamp))    
+            cursor.execute("INSERT INTO LIST (devid,name,regtime,lasttime) VALUES (?,?,?,?)", (deviceid, deviceid, timestamp, timestamp))
         cursor.close()
         db.commit()

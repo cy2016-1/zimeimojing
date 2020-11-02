@@ -14,8 +14,9 @@ initWifi:
 AudioOutput:
   note: 音频输出
   select:
-    Inside: 驱动板自带的喇叭 
-    External: 使用树莓派的HDMI
+    Device: 自美驱动板输出
+    HDMI: 树莓派的HDMI输出
+    Inside: 树莓派3.5mmAUX输出
 
 IsGeekMode:
   note: 极客连续对话模式

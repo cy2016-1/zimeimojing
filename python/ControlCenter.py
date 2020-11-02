@@ -25,7 +25,7 @@ class ControlCenter(MsgProcess):
         self.msgQueue = msgQueue
         self.ProcessPool = list()     # 进程池
         self.plugTriggers = dict()    # 插件激活词
-        self.lastSystemPlugin = None  # 最近,正在运行的系统插件    
+        self.lastSystemPlugin = None  # 最近,正在运行的系统插件
         self.isGeekTalk = False       # 连续对话模式
         self.awakeresponse = list()
         self.AwakeInit()
@@ -37,8 +37,8 @@ class ControlCenter(MsgProcess):
         logFile = logging.FileHandler(self.config['Logging']['File'], mode=self.config['Logging']['Mode'], encoding='utf-8')
         logging.basicConfig(level=self.config['Logging']['Level'],
                             format='%(asctime)s [%(module)s.%(funcName)s] %(levelname)s: %(message)s',
-                            handlers=[screen, logFile])  
-     
+                            handlers=[screen, logFile])
+
         # 加载各模块
         for (module, isEnable) in (self.config["LoadModular"]).items():
             if isEnable:
@@ -88,6 +88,9 @@ class ControlCenter(MsgProcess):
         '''被唤醒时自动执行'''
         logging.debug('唤醒')
         self.Silence()
+        for pro in self.ProcessPool:
+            self.send(MsgType=MsgType.Awake, Receiver=pro.name)
+
         randarr = random.choice(self.awakeresponse)
         os.popen(r'aplay -q {}'.format(randarr['path']))
         time.sleep(randarr['waittime'])
@@ -103,7 +106,7 @@ class ControlCenter(MsgProcess):
             return
 
         self.send(MsgType.Stop, Receiver=module)
-        
+
         package = r'package.' + module
         try:
             package = importlib.import_module(package)
@@ -118,7 +121,7 @@ class ControlCenter(MsgProcess):
         process = moduleClass(self.msgQueue)
         process.start()
         self.ProcessPool.append(process)  # 加入进程池
-        
+
     def Text(self, message):
         ''' 处理文本内容 调用相关插件 '''
         text = message['Data']
@@ -128,7 +131,7 @@ class ControlCenter(MsgProcess):
         if text == '重启控制中心':
             self.ControlCenterQuit()
             return
-        
+
         TriggerWords = [r'\b打开极客模式\b', r'\b开启极客模式\b', r'\b极客模式\b']
         if any(map(lambda trigger: re.search(trigger, text), TriggerWords)):
             self.config["IsGeekMode"] = True
@@ -176,8 +179,9 @@ class ControlCenter(MsgProcess):
                     # notLoadTrigger = r'\b暂停\b|\b继续\b|\b停止\b|\b取消\b'
                     # if re.search(notLoadTrigger, plugtext) is None:
                     self.LoadPlugin(plugin)
+                    # self.lastSystemPlugin = plugin
                 return
-        
+
         # 没有任何激活词转最后一个插件处理
         last = self.config["LastDefaultPlugin"]
         self.send(MsgType.Text, Receiver=last, Data=text)
@@ -210,7 +214,7 @@ class ControlCenter(MsgProcess):
 
     def Stop(self, message):
         ''' 当控制中心收到各模块的退出消息 '''
-        self.ProcessPool = list(filter(lambda p: p.name != message['Sender'], self.ProcessPool))        
+        self.ProcessPool = list(filter(lambda p: p.name != message['Sender'], self.ProcessPool))
         configfile = os.path.join("plugin", message['Sender'], 'config.json')
         if os.path.exists(configfile):
             with open(configfile) as f:
@@ -289,7 +293,7 @@ class ControlCenter(MsgProcess):
             with open(configfile) as fd:
                 pluginConfig = json.load(fd)
                 IsEnable = pluginConfig['IsEnable']
-                IsSystem = pluginConfig['IsSystem']
+                # IsSystem = pluginConfig['IsSystem']
                 AutoLoader = pluginConfig['AutoLoader']
                 if not IsEnable:
                     logging.info('插件[%s]配置为不启用!' % pluginName)
@@ -310,9 +314,11 @@ class ControlCenter(MsgProcess):
                 process = pluginClass(self.msgQueue)
                 process.start()
                 self.ProcessPool.append(process)  # 加入进程池
-                if IsSystem:
-                    self.lastSystemPlugin = pluginName
-                logging.info('加载插件: [%s] ' % pluginName)
+
+        # 这里改为不管是什么插件，只要是最后运行的都给给最后处理插件
+        # if IsSystem:
+        self.lastSystemPlugin = pluginName
+        logging.info('加载插件: [%s] ' % pluginName)
 
 
 if __name__ == "__main__":

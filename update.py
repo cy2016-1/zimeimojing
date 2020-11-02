@@ -61,7 +61,7 @@ class update():
             print("\033[?25h")
             is_print = 0
 
-    
+
     def print_str(self, tistr = '', status = 'n', ln = ''):
         '''
         富文本提示
@@ -117,8 +117,8 @@ class update():
     def versionCompare(self, v1="1.1.1", v2="1.2"):
         v1 = re.sub(r'^\D', "", v1)
         v2 = re.sub(r'^\D', "", v2)
-        v1_check = re.match("\d+(\.\d+){0,2}", v1)
-        v2_check = re.match("\d+(\.\d+){0,2}", v2)
+        v1_check = re.match(r"\d+(\.\d+){0,2}", v1)
+        v2_check = re.match(r"\d+(\.\d+){0,2}", v2)
         if v1_check is None or v2_check is None or v1_check.group() != v1 or v2_check.group() != v2:
             return -2   #"版本号格式不对，正确的应该是x.x.x,只能有3段"
         v1_list = v1.split(".")

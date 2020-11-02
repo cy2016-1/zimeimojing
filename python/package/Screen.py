@@ -108,4 +108,4 @@ class Screen(MsgProcess):
             logging.warning('未知格式，直接发送: %s ' % Data['data'])
 
     def Stop(self, message=None):
-        super().Stop(message)  
+        super().Stop(message)

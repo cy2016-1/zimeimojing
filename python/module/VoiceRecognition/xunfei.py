@@ -6,9 +6,7 @@ import base64
 import json,logging
 
 class xunfei():
-    """
-    讯飞语音识别模块
-    """
+    """讯飞语音识别模块"""
 
     def __init__(self):
         self.config = config.config()
@@ -58,7 +56,7 @@ class xunfei():
             logging.debug('语音识别已返回')
             return  printf
         except Exception as f:
-            logging.error("语音识别遇到错误") 
+            logging.error("语音识别遇到错误")
 
 
 
@@ -92,7 +90,7 @@ class xunfei():
 
 
         # logging.info('语音识别...')
-        # try:       
+        # try:
         #     bdResult = client.asr(speech=data, options={ 'cuid': self.CUID})
         # except Exception as e:
         #     logging.error('网络故障! %s' % e)
@@ -114,12 +112,12 @@ class xunfei():
         # elif bdResult['err_no'] == 3302:  # 鉴权失败
         #     text = '鉴权失败，请与开发人员联系。'
         #     logging.warning(text)
-        #     return 
+        #     return
 
         # elif bdResult['err_no'] == 3304 or bdResult['err_no'] == 3305:  # 请求超限
         #     text = '请求超限，请与开发人员联系。'
         #     logging.warning(text)
-        #     return 
+        #     return
 
         # text = '语音识别错误,代码{}'.format(bdResult['err_no'])
-        # logging.error(text)    
+        # logging.error(text)

@@ -29,7 +29,7 @@ def init():
     os.system("sudo amixer set Capture 70%")  # 设置话筒
     os.system("alsactl --file data/conf/asound.state restore")  # 加载音量设置
     os.system("amixer set Capture 70%")  # 设置话筒
-    
+
     # 设定目录权限 特别是pi
     os.system("sudo chmod -R 0777 data")
     os.system("sudo chmod -R 0777 runtime")
@@ -37,7 +37,7 @@ def init():
 
     bak = "data/conf/configBAK.yaml"
     cfg = "config.yaml"
-    if not os.path.exists(cfg) or os.path.getsize(cfg) < 10:       
+    if not os.path.exists(cfg) or os.path.getsize(cfg) < 10:
         os.system('sudo cp -f %s %s ' % (bak, cfg))
         os.system('sudo chown pi.pi %s' % cfg)
         os.system('sudo chmod 0666 %s' % cfg)
@@ -49,14 +49,14 @@ def init():
     if mojing is False:
         global tasks
         tasks = tasks[1:]
-        
+
 
 tasks = [
     {"pname": "moJing",                     "cmd": "export DISPLAY=:0.0 & ../app/moJing", "sleep": 3},    # 前端必须在第一位
-    {"pname": "WebServer.py",               "cmd": "sudo python3 WebServer.py", "sleep": 1},    
+    {"pname": "WebServer.py",               "cmd": "sudo python3 WebServer.py", "sleep": 1},
     {"pname": "ControlCenter.py",           "cmd": "python3 ControlCenter.py", "sleep": 1},
     {"pname": os.path.basename(__file__),   "cmd": __file__, "sleep": 1}]           # 自已必须在最后一位
-  
+
 if __name__ == '__main__':
     args = str(sys.argv[1:]).lower()
     if 'stop' in args:
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     if 'debug' in args:
         tasks[0]['cmd'] += " debug"
         tasks[1]['cmd'] += " debug"
-        
+
     # {"pname": "mosquitto",                  "cmd": "mosquitto -d"},
     os.system("mosquitto -d")
     # 检测自己是否已运行
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     if int(os.popen("id -u").read()) == 0:
         isroot = 1
     thisfile = os.path.basename(__file__)
-    cmd = "sudo ps ax | grep {} | grep -v grep | wc -l".format(thisfile) 
+    cmd = "sudo ps ax | grep {} | grep -v grep | wc -l".format(thisfile)
     n = int(os.popen(cmd).read()) - isroot
     if n >= 2:
         print("\033[31m{}已经运行!  \033[0m结束任务用: ./{} stop".format(thisfile, thisfile))
@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     while True:
         for task in tasks:
-            if not processExist(task['pname']):     
+            if not processExist(task['pname']):
                 print("\033[32mRun Task: %s\033[0m" % task['pname'])
                 subprocess.Popen(args=task['cmd'], shell=True)
             time.sleep(task['sleep'])

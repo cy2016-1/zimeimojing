@@ -17,6 +17,7 @@ class MqttProxy(MsgProcess):
 
     def __init__(self, msgQueue):
         super().__init__(msgQueue)
+        self.client = ''
         self.isconnect = False
         self.dbfile = "./data/device.db"            # 管理数据库
 
@@ -51,7 +52,7 @@ class MqttProxy(MsgProcess):
         f.close()
 
     def Start(self, message):
-        if not self.isconnect:         
+        if not self.isconnect:
             self.isconnect = True
             self.getConfig()
             mqtt_conf = self.config['MQTT']
@@ -59,7 +60,7 @@ class MqttProxy(MsgProcess):
             self.__port = int(mqtt_conf["port"])         # 1883
             self.__clientid = mqtt_conf["clientid"]      # 设备id
             self.__mqtt_name = mqtt_conf["mqttname"]     # 用户名
-            self.__mqtt_pass = mqtt_conf["mqttpass"]      # 密码
+            self.__mqtt_pass = mqtt_conf["mqttpass"]     # 密码
             self.client = mclient.Client(client_id=self.__clientid)
             self.client.username_pw_set(self.__mqtt_name, self.__mqtt_pass)
             self.client.on_connect = self.on_connect
@@ -112,7 +113,7 @@ class MqttProxy(MsgProcess):
                     "list": SwitchTab
                 }
             }
-        
+
         # 获取单个扩展设备信息
         elif data['type'] == 'getinfo':
             deviceid = data['devid']
@@ -247,7 +248,7 @@ class MqttProxy(MsgProcess):
                 if json_Data['type'] == 'offline':
                     self.say('万能开关设备已断开')
                     return
-                
+
                 Receive = self.getPluginName(json_Sender)
                 if len(Receive) <= 0:
                     Receive = self.wnkg_default_plugin
@@ -279,7 +280,8 @@ class MqttProxy(MsgProcess):
 
     # 发布消息
     def publish(self, topic, msgbody):
-        self.client.publish(topic, msgbody, qos=0)
+        if self.client:
+            self.client.publish(topic, msgbody, qos=0)
 
 
     # ======================== 数据库操作 =============================
@@ -302,13 +304,13 @@ class MqttProxy(MsgProcess):
         try:
             db = sqlite3.connect(database=self.dbfile)
             cursor = db.cursor()
-            cursor.execute(create_tb_cmd)        
-            cursor.execute("SELECT * FROM LIST WHERE devid='" + deviceid + "'")  
-            intable = len(cursor.fetchall()) >= 1        
+            cursor.execute(create_tb_cmd)
+            cursor.execute("SELECT * FROM LIST WHERE devid='" + deviceid + "'")
+            intable = len(cursor.fetchall()) >= 1
             if intable:
-                cursor.execute("UPDATE LIST SET lasttime=? WHERE devid=?", (timestamp, deviceid))   
+                cursor.execute("UPDATE LIST SET lasttime=? WHERE devid=?", (timestamp, deviceid))
             else:
-                cursor.execute("INSERT INTO LIST (devid,name,regtime,lasttime) VALUES (?,?,?,?)", (deviceid, deviceid, timestamp, timestamp))    
+                cursor.execute("INSERT INTO LIST (devid,name,regtime,lasttime) VALUES (?,?,?,?)", (deviceid, deviceid, timestamp, timestamp))
             cursor.close()
             db.commit()
             db.close()
@@ -376,7 +378,7 @@ class MqttProxy(MsgProcess):
             db.close()
         except:
             rs = []
-        
+
         SwitchTab = []
         for row in rs:
             plugin = row[3]
@@ -389,7 +391,7 @@ class MqttProxy(MsgProcess):
                 'plugin': str(plugin)
             }
             SwitchTab.append(item)
-        
+
         return SwitchTab
 
     # 获取单个设备信息
@@ -414,7 +416,7 @@ class MqttProxy(MsgProcess):
 
         if line_arr['plugin'] is None or str(line_arr['plugin']) == 'None':
             line_arr['plugin'] = self.wnkg_default_plugin
-        
+
         return line_arr
 
     # 设置设备信息

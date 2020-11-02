@@ -2,7 +2,7 @@
 	"name": "Remind",
 	"triggerwords":["提醒","取消提醒","关闭提醒"],
 	"IsEnable": true,
-	"IsSystem": false,
+	"IsSystem": true,
 	"AutoLoader": false,
 
 	"displayName": "提醒",

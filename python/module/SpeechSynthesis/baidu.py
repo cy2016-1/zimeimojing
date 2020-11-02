@@ -8,7 +8,7 @@ class baidu():
     def __init__(self, CUID):
         self.config = config()
         self.CUID = CUID
-    
+
     def main(self, text, fileName):
         APP_ID =  self.config['APP_ID']
         API_KEY =  self.config['API_KEY']

@@ -58,7 +58,7 @@ class Chat(MsgProcess):
         post_json = {"query": query}
         post_json = urlencode(post_json).encode('utf-8')
         try:
-            page = urllib.request.urlopen(url, data=post_json, timeout=5)  # 响应时间定为了5秒
+            page = urllib.request.urlopen(url, data=post_json, timeout=30)  # 响应时间定为了30秒
         except Exception as e:
             msg = "和腾讯连接失败"
             logging.warning("{}:{}".format(msg, e))

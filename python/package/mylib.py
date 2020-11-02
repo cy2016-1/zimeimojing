@@ -38,7 +38,7 @@ class mylib:
         ''' 读取config.yaml 取得全局配置  '''
         file = 'config.yaml'
         return mylib.yamlLoad(yamlfile=file)
-       
+
     @staticmethod
     def saveConfig(config):
         ''' 保存全局配置数据到config.yaml'''
@@ -81,7 +81,7 @@ class mylib:
     @staticmethod
     def SoundCardIsPlay():
         ''' 声卡是否在播放   是则返回True 否则返回False '''
-        cmd = 'cat /proc/asound/wm8960soundcard/pcm0p/sub0/status' 
+        cmd = 'cat /proc/asound/wm8960soundcard/pcm0p/sub0/status'
         return "RUNNING" in os.popen(cmd).read()
 
     @staticmethod
@@ -127,13 +127,13 @@ class mylib:
         lenStr = len(oriStr)
         aProStr = ''
         if lenStr == 0:
-            return aProStr 
+            return aProStr
         hasNumStart = False
         numberStr = ''
         for idx in range(lenStr):
             if oriStr[idx] in num_str_start_symbol:
                 if not hasNumStart:
-                    hasNumStart = True 
+                    hasNumStart = True
                 numberStr += oriStr[idx]
             else:
                 if hasNumStart:
@@ -146,7 +146,7 @@ class mylib:
                         hasNumStart = False
                         aProStr += numResult
                 aProStr += oriStr[idx]
-                pass 
+                pass
         if len(numberStr) > 0:
             resultNum = chinese2digits(numberStr)
             aProStr += str(resultNum)
@@ -158,7 +158,7 @@ class mylib:
         比较版本号
         v1 原版本号，v2 新版本号
         返回：
-        1 - 需要更新/0 - 不需要/ -1 - 不需要/ -2 -- 格式错误 
+        1 - 需要更新/0 - 不需要/ -1 - 不需要/ -2 -- 格式错误
         '''
         v1 = re.sub(r'^\D', "", v1)
         v2 = re.sub(r'^\D', "", v2)

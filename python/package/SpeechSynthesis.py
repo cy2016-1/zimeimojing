@@ -31,11 +31,11 @@ class SpeechSynthesis(MsgProcess):
     # 开始合成，由接口类重写这个方法
     def SpeechSynthesis(self, text, fileName):
         pass
-    
+
     def Text(self, message):
-        text = message['Data'] 
+        text = message['Data']
         if text and isinstance(text, str) and len(text) < 1024:
-            logging.info('[%s] request Speech: %s' %(message['Sender'],text))           
+            logging.info('[%s] request Speech: %s' %(message['Sender'],text))
             name = md5(text.encode('utf-8')).hexdigest() + r'.mp3'
             CachePath = r'runtime/soundCache'
             fileName = os.path.join(CachePath, name)
@@ -48,7 +48,7 @@ class SpeechSynthesis(MsgProcess):
         # self.send(MsgType=MsgType.JobsDone, Receiver = message['Sender'])
 
     def playSound(self, fileName):
-        '''播放音乐文件fileName 可能会实现一个player类 暂用mpg123 '''        
+        '''播放音乐文件fileName 可能会实现一个player类 暂用mpg123 '''
         CacheFileManager.add(fileName)
         logging.debug('墦放 %s ' % fileName)
         os.system("mpg123  -q  {} ".format(fileName))

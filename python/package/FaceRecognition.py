@@ -38,7 +38,7 @@ class FaceRecognition():
         else:
             return 0, 0
 
-    
+
     def IsFace(self, imgfile):
         """ 人脸识别，文件imgfile是包含人脸图片吗? 是返回True 其它返回Flase 默认分值大于80才会返回True"""
         pass
@@ -49,7 +49,7 @@ class FaceRecognition():
         pass
 
     def FromCaptureGetFaceImg(self, picfile, showFocus=False, timeOut=10):
-        """ 打开摄像头,拍摄一张人脸照片并保存到picfile 
+        """ 打开摄像头,拍摄一张人脸照片并保存到picfile
         timeOut超时失败退出时间。默认10秒
         参数showFocus显示聚焦框，并且只从聚焦框内取图
         仅在注册时才需要置为True
@@ -77,7 +77,7 @@ class FaceRecognition():
         if classfier.empty():
             logging.error('载入脸分类器失败')
             return False
-        startTime = time.time()    
+        startTime = time.time()
         while time.time() - startTime <= timeOut:
             ret, frame = cap.read()
             flip = int(CAMERA['flip'])

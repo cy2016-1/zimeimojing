@@ -3,11 +3,11 @@ import base64
 
 class faceBaidu():
     '''人脸对比 -- 百度接口'''
-    
+
     def __init__(self):
         self.config = config()
         # self.CUID = hex(uuid.getnode())
-    
+
     def IsFace(self, imgfile):
         '''图片是否为人脸'''
 

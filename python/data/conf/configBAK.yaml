@@ -2,13 +2,13 @@
 
 RecSeclet: pyAlsa               # 录音 可选 ScoketRec:从unixSocket录音 pyAlsa:调用pyalsa.so录音 Pyaudio:用Pyaudio录音
 initWifi: ApHot                 # wifi配网 可选 SoundWave 声波配网 ApHot 热点配网
-AudioOutput: Inside             # 音频输出 可选 Inside:驱动板自带的喇叭 External:使用树莓派的HDMI和3.5mmAUX输出(HDMI优先)
+AudioOutput: Device             # 音频输出 可选 Device:驱动板自带的喇叭 / Inside: 树莓派3.5mmAUX输出 / HDMI: 树莓派的HDMI
 IsGeekMode: False               # 是否采用极客连续对话模式,此选项仅影响唤醒时的对话,对插件的连续对话不影响
 
 ApiConfig:
   AwakeEngine: XFAwake          # 唤醒引擎 可选: XFAwake / snowboy
   SpeechSynthesis: Baidu        # 语音合成 可选: Baidu / Xunfei
-  VoiceRecognition: Baidu       # 语音识别 可选: Baidu / Xunfei
+  VoiceRecognition: Xunfei      # 语音识别 可选: Baidu / Xunfei
   FaceRecognition: Baidu        # 人脸识别 可选: Baidu
 
 LoadModular:                    # 系统预加载模块 true:启用 false:禁用 Start:启用并需要一个Start消息
@@ -35,7 +35,7 @@ GPIO:
   fengshan_kg: 13               # 降温风扇开关控制脚，0 -- 为关闭此功能
   deng_kg: 11                   # 装饰灯控制脚
   setnet_pin: 31                # 配网控制按钮脚
-  detect_man: 16                # 人体探测
+  detect_man: 16                # 人体探测，如果为0 则关闭此功能
   powersavetime: 0              # 持续n分钟都没有人,则关闭屏幕节能.可选数值[1~65536] 如果为0 则关闭此功能
   cputemp:                      # CPU温度到最高后启用降温风扇
     high: 70

@@ -1,34 +1,25 @@
-# Inside
+# Inside 3.5MM
 
 pcm.!default {
-	type asym
-	playback.pcm {
-		type plug
-		slave.pcm "output"
-	}
-	capture.pcm {
-		type plug
-		slave.pcm "input"
-	}
-}
-
-pcm.output 
-{
+  type asym
+  playback.pcm {
     type plug
-    slave.pcm "dmixed"
+    slave.pcm "output"
+  }
+  capture.pcm {
+    type plug
+    slave.pcm "input"
+  }
 }
 
-pcm.dmixed 
-{
-    type dmix
-    slave.pcm "hw:wm8960soundcard"
-    ipc_key 555555 
+pcm.output {
+  type hw
+  card 1
 }
 
-ctl.!default 
-{
-	type hw
-	card "wm8960soundcard"
+ctl.!default {
+  type hw
+  card 1
 }
 
 pcm.input
@@ -41,3 +32,4 @@ pcm.input
     }
     ipc_key 666666
 }
+

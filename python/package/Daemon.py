@@ -60,10 +60,11 @@ class Daemon(MsgProcess):
             else:
                 self.arr_setnet.clear()
 
-            if len(self.arr_setnet) >= 2:
+            if len(self.arr_setnet) >= 5:
                 self.isSettingNet = True
+                os.system("sudo rfkill unblock wifi && sudo rfkill unblock all")
                 if self.config['initWifi'] == 'SoundWave':
-                    self.send(MsgType.Stop, Receiver="Awake")                    
+                    self.send(MsgType.Stop, Receiver="Awake")
                     from bin.setWifi.soundSetNet import soundSetNet
                     soundSetNet()
                     return
@@ -74,7 +75,7 @@ class Daemon(MsgProcess):
                     if Netst:
                         self.send(MsgType.Start, Receiver='MqttProxy')  # 启动mqtt
                     return
-    
+
     def Start(self, message):
         ''' 起动守护线程 '''
         Thread(target=self.detectAll, args=(), daemon=True).start()
@@ -106,7 +107,7 @@ class Daemon(MsgProcess):
                     if Device.online():                                 # 设备成功上线
                         self.showBindNav()                              # 显示绑定页
                         self.send(MsgType.Start, Receiver='MqttProxy')  # 启动mqtt
-                    if self.playreadygo:                        
+                    if self.playreadygo:
                         # 准备好了。可以互动了
                         self.playreadygo = False
                         path = 'data/audio/readygo.wav'
@@ -141,31 +142,54 @@ class Daemon(MsgProcess):
                 GPIO.output(self.pin_fengshan_kg, GPIO.LOW)
                 logging.info('关闭CPU风扇')
         return res
-    
+
     def detect_man(self):
-        ''' 人体探测 关闭屏幕节能 '''
+        ''' 人体探测 '''
+        if self.pin_detect_man > 0:
+            detect_val = GPIO.input(self.pin_detect_man)
+            if detect_val>0:
+                now_time = int(time.time())
+                with open('runtime/detectval', 'w+' ) as f:
+                    f.write( str(now_time) )
+
+    def onoff_screen(self):
+        '''开关屏幕'''
         if self.powersavetime > 0:
-            if GPIO.input(self.pin_detect_man):
-                self.detect_man_time = time.time()
-                os.system('sudo vcgencmd display_power 1 > /dev/null')
-            else:
-                if time.time() - self.detect_man_time >= self.powersavetime * 60:
-                    os.system('sudo vcgencmd display_power 0 > /dev/null')
+            with open('runtime/detectval', 'r') as f:
+                val = f.read()
+                if val:
+                    if (time.time() - int(val)) >= self.powersavetime * 60:
+                        on_staut = os.popen('sudo vcgencmd display_power').read()
+                        starr = on_staut.strip().split('=')
+                        if int(starr[1])==1:
+                            os.system('sudo vcgencmd display_power 0 > /dev/null')
+                    else:
+                        on_staut = os.popen('sudo vcgencmd display_power').read()
+                        starr = on_staut.strip().split('=')
+                        if int(starr[1])==0:
+                            os.system('sudo vcgencmd display_power 1 > /dev/null')
+
 
     def detectAll(self):
-        time.sleep(5)       # 等待屏幕启动，以免丢失网络图标
-        Device.setSoundCard()     # 设置默认声卡
+        time.sleep(5)               # 等待屏幕启动，以免丢失网络图标
+        Device.setSoundCard()       # 设置默认声卡
         ''' 无限循环依次执行allTasks中的任务。每个任务执行后睡眠一秒 '''
         allTasks = [
-            'detect_netstate', 
-            'detect_cpuwd',
-            'detect_man',
-            'detect_setnet'
+            {'name': 'detect_netstate', 'sleep': 5},
+            {'name': 'detect_cpuwd', 'sleep': 28},
+            {'name': 'detect_man', 'sleep': 2},
+            {'name': 'onoff_screen', 'sleep': 9},
+            {'name': 'detect_setnet', 'sleep': 1}
         ]
         i = 0
-        while True: 
-            eval('self.'+allTasks[i]+'()')
-            i += 1
-            i %= len(allTasks)
+        taske_i = [0]*len(allTasks)
+        while True:
+            for i in range(len(taske_i)):
+                taske_i[i] += 1
+
+                if taske_i[i] == allTasks[i]['sleep']:
+                    eval('self.'+allTasks[i]['name']+'()')
+                    taske_i[i] = 0
+
             time.sleep(1)
 

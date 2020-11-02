@@ -1,4 +1,4 @@
-# Device
+# Device WM8960
 
 pcm.!default {
 	type asym
@@ -15,16 +15,29 @@ pcm.!default {
 pcm.output 
 {
     type plug
-    slave.pcm "hw:ALSA,0"
+    slave.pcm "dmixed"
+}
+
+pcm.dmixed 
+{
+    type dmix
+    slave.pcm "hw:wm8960soundcard"
+    ipc_key 555555 
+}
+
+ctl.!default 
+{
+	type hw
+	card "wm8960soundcard"
 }
 
 pcm.input
 {
     type dsnoop
-    slave 
+    slave
     {
-        pcm "hw:Device"
-        channels 1
+        pcm "hw:wm8960soundcard"
+        channels 2
     }
     ipc_key 666666
 }

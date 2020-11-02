@@ -37,5 +37,5 @@ class GeneralSwith(MsgProcess):
                 send_data = {'type': 'switch', 'pin': 2}
                 self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=send_data)
         else:
-            if Data[-1:] == '灯':
+            if "指示灯" in Data:
                 self.switch(Data)

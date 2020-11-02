@@ -17,7 +17,7 @@ from bin.pyAlsa import pyAlsa
 
 class SocketRec:
     """ 直接通过在后台运行的awake唤醒程序发来的录音包来录音 """
-    def __init__(self, buffSize=3200):        
+    def __init__(self, buffSize=3200):
         self.BindFilePath = '/tmp/Record.zimei'
         self.server = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         if os.path.exists(self.BindFilePath):
@@ -27,12 +27,12 @@ class SocketRec:
         self.buffSize = buffSize  # 取决于 awake.ini中的 frames
         logging.debug("BindFilePath=%s buffSize=%d" % (self.BindFilePath, buffSize))
 
-    def read(self):   
+    def read(self):
         data, address = self. server.recvfrom(self.buffSize)
         return data
-    
+
     def close(self):
-        os.unlink(self.BindFilePath)       
+        os.unlink(self.BindFilePath)
 
 
 class Pyaudio:
@@ -42,17 +42,17 @@ class Pyaudio:
         self.CHUNK = buffSize / 2
         FORMAT = pyaudio.paInt16
         CHANNELS = 1
-        RATE = 16000  # 16k采样率      
+        RATE = 16000  # 16k采样率
         self.pa = pyaudio.PyAudio()
         self.stream = self.pa.open(rate=RATE, channels=CHANNELS, format=FORMAT, input=True, frames_per_buffer=self.CHUNK)
 
     def read(self):
         return self.stream.read(self.CHUNK)
-     
+
     def close(self):
         self.stream.close()
         self.pa.terminate()
-      
+
 
 class Record(MsgProcess):
     def __init__(self, msgQueue):
@@ -69,7 +69,7 @@ class Record(MsgProcess):
             self.send(MsgType.Text, Receiver='Screen', Data='请说，我正在聆听...')
             return
         os.popen('aplay -q data/audio/ding.wav')
-        time.sleep(0.4) 
+        time.sleep(0.4)
         self.currentRecThread = Thread(target=self.RecordThread, args=(message,))
         self.currentRecThread.start()         # 启动录音线程
 
@@ -96,14 +96,14 @@ class Record(MsgProcess):
     def RecordThread(self, message):
         if self.config['RecSeclet'] == 'ScoketRec':
             stream = SocketRec(buffSize=4000)                                                    # 使用unix socket录音
-        elif self.config['RecSeclet'] == 'pyAlsa':            
-            stream = pyAlsa.pyAlsa()                                                             # 使用pyalsa.so录音       
+        elif self.config['RecSeclet'] == 'pyAlsa':
+            stream = pyAlsa.pyAlsa()                                                             # 使用pyalsa.so录音
         elif self.config['RecSeclet'] == 'Pyaudio':
             stream = Pyaudio(buffSize=4000)
         else:
             logging.error('未知录音配置 config.yaml')
             return
-     
+
         NoSpeechCheck = 4           # 常量,参考frames大小而定
         MinSpeechCHUNK = 4          # 常量,参考frames大小而定
         MAXRECLAN = 5               # 最长录音时间,秒
@@ -118,20 +118,20 @@ class Record(MsgProcess):
         # info = {'type':'mic',      类型：dev 设备
         #        'state': 'start'}  状态：start / stop / 1 / 0
 
-        info = {'type': 'mic', 'state': 'start'} 
+        info = {'type': 'mic', 'state': 'start'}
         self.send(MsgType=MsgType.Text, Receiver='Screen', Data=info)       # 显示mic
         info = {'type': 'mic', 'state': 1}
         # logging.info('开始录音...')
         while (time.time() - record_T < MAXRECLAN):
-            info['state'] = ('1' if info['state'] == '0' else '0')            
-            self.send(MsgType=MsgType.Text, Receiver='Screen', Data=info)   # 前端mic动画            
+            info['state'] = ('1' if info['state'] == '0' else '0')
+            self.send(MsgType=MsgType.Text, Receiver='Screen', Data=info)   # 前端mic动画
             if (self.isReset):
                 logging.info('录音重置')
-                frames.clear()                
+                frames.clear()
                 record_T = time.time()
                 Speech_CHUNK_Counter = 0
                 NoSpeechCHUNK = 0
-                self.isReset = False                
+                self.isReset = False
             data = stream.read()
             frames.append(data)
             if self.is_speech(data) >= 0.6:
@@ -149,7 +149,7 @@ class Record(MsgProcess):
                     Speech_CHUNK_Counter = 0
                     frames.clear()
 
-        info = {'type': 'mic', 'state': 'stop'} 
+        info = {'type': 'mic', 'state': 'stop'}
         self.send(MsgType=MsgType.Text, Receiver='Screen', Data=info)  # 不显示mic
         stream.close()
         logging.info('录音结束')
@@ -183,4 +183,3 @@ class Record(MsgProcess):
         w.setframerate(16000)
         w.writeframes(frames)
 
-        

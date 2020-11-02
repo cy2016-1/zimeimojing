@@ -15,7 +15,7 @@ class VoiceRecognition(MsgProcess):
             from module.VoiceRecognition.baidu import baidu
             vr = baidu()
             self.Voicerecognition = vr.main
-        
+
         if self.config['ApiConfig']['VoiceRecognition'] == 'Xunfei':
             from module.VoiceRecognition.xunfei import xunfei
             vr = xunfei()

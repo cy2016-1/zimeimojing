@@ -15,7 +15,7 @@ class data():
         self.db = model(database)
 
     # 关闭数据库
-    def close(self): 
+    def close(self):
         self.db.close()
 
     def search_list(self, lists, key):

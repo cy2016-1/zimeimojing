@@ -30,14 +30,14 @@ class Music(MsgProcess):
         super().__init__(msgQueue)
         self.playState = PlayState.Stop
         self.playlist = list()
-        self.playindex = 0  
+        self.playindex = 0
         self.player = None
         self.autoNextSongThread = None
         self.music_cache_path = "/music/cache"
         if not os.path.exists(self.music_cache_path):
             os.makedirs(self.music_cache_path)
 
-    def Text(self, message):        
+    def Text(self, message):
         data = message['Data']
         # 歌单格式: songList =[{'songname':name,'songurl':url},{...}...]
 

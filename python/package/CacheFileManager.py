@@ -13,10 +13,10 @@ import logging
 
 class CacheFileManager:
     '''
-    cache文件管理办法,为减少开销,所有方法都是静态方法,直接调用即可,每次在创建cache文件或访问时 
+    cache文件管理办法,为减少开销,所有方法都是静态方法,直接调用即可,每次在创建cache文件或访问时
     用add(file)方法加入到管理列表,以后可以用delfile(days)方法删除超出days天的文件.
     只有这两个函数.
-    '''    
+    '''
     accessTimeFile = r'./data/CacheFileAccessTime.json'
     dtfmt = r"%Y-%m-%d %H:%M:%S"
     @staticmethod
@@ -26,7 +26,7 @@ class CacheFileManager:
                 with open(CacheFileManager.accessTimeFile, 'r') as fp:
                     try:
                         data = json.load(fp)
-                        return dict(data)                 
+                        return dict(data)
                     except:
                         logging.warning('重建:%s' % CacheFileManager.accessTimeFile)
         return dict()
@@ -35,7 +35,7 @@ class CacheFileManager:
     def __writeDict2file(dicts):
         with open(CacheFileManager.accessTimeFile, 'w') as fp:
             json.dump(dicts, fp, ensure_ascii=False, indent=4, sort_keys=True)
-            
+
     @staticmethod
     def scanCacheFile(cacheFolder):
         now = datetime.datetime.now()
@@ -43,19 +43,19 @@ class CacheFileManager:
         for file in os.listdir(cacheFolder):
             absFile = os.path.abspath(os.path.join(cacheFolder, file))
             if os.path.isfile(absFile) and (absFile not in accessTime.keys()):
-                accessTime[absFile] = now.strftime(CacheFileManager.dtfmt)                
+                accessTime[absFile] = now.strftime(CacheFileManager.dtfmt)
         CacheFileManager.__writeDict2file(accessTime)
 
     @staticmethod
     def add(file):
         '''将文件file加入管理列表,在创建文件和访问文件时都必须调用此方法'''
-        file = os.path.abspath(file)        
+        file = os.path.abspath(file)
         accessTime = CacheFileManager.__readFile2dict()
         accessTime[file] = datetime.datetime.now().strftime(CacheFileManager.dtfmt)
         CacheFileManager.__writeDict2file(accessTime)
-        
+
     @staticmethod
-    def delfile(days=60):            
+    def delfile(days=60):
         '''将管理列表中超出days天没有访问的文件删除,days也可以为小数!'''
         Folder = [r'./runtime/record', r'./runtime/soundCache', r'/music/cache']
         for f in Folder:
@@ -72,7 +72,7 @@ class CacheFileManager:
                 delfiles.append(file)
         for file in delfiles:
             print('删除cache文件:', file)
-            accessTime.pop(file)        
+            accessTime.pop(file)
             if os.path.exists(file):
                 os.remove(file)
         CacheFileManager.__writeDict2file(accessTime)
@@ -80,4 +80,3 @@ class CacheFileManager:
 
 if __name__ == "__main__":
     CacheFileManager.delfile()
-    

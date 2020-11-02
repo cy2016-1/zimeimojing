@@ -17,7 +17,7 @@ class baidu():
         # client.setSocketTimeoutInMillis = 5000  # 传输数据超时毫秒
 
         logging.info('语音识别...')
-        try:       
+        try:
             bdResult = client.asr(speech=data, options={'dev_pid': 1536, 'cuid': self.CUID})
         except Exception as e:
             logging.error('网络故障! %s' % e)
@@ -39,12 +39,12 @@ class baidu():
         elif bdResult['err_no'] == 3302:  # 鉴权失败
             text = '鉴权失败，请与开发人员联系。'
             logging.warning(text)
-            return 
+            return
 
         elif bdResult['err_no'] == 3304 or bdResult['err_no'] == 3305:  # 请求超限
             text = '请求超限，请与开发人员联系。'
             logging.warning(text)
-            return 
+            return
 
         text = '语音识别错误,代码{}'.format(bdResult['err_no'])
-        logging.error(text)    
+        logging.error(text)
