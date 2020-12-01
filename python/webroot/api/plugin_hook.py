@@ -16,23 +16,30 @@ class plugin_hook(ApiBase):
         self.pluginpath = r'./plugin'
 
 
+
     # 加载本地插件列表
     def __load_pugin_html(self, fileext = '.css'):
         file_docs = ''
-
+        file_list = ""
+        
         for filedir in os.listdir(self.pluginpath):
             if os.path.isdir(os.path.join(self.pluginpath, filedir)) and filedir != '__pycache__':
                 html_path = os.path.join(self.pluginpath, filedir, 'html')
+              
                 if os.path.isdir(html_path):
                     for s in os.listdir(html_path):
+
                         cssjs = os.path.join(html_path, s)
                         if os.path.isfile(cssjs) and os.path.splitext(cssjs)[1] == fileext:
                             if fileext=='.js':
-                                return cssjs.replace('./plugin','/plugin',1)
-                            with open(cssjs, 'r') as f:
-                                file_docs += f.read()
-
-        return file_docs
+                                file_list+=cssjs.replace('./plugin','/plugin',1)
+                                file_list+=","
+                            if fileext!='.js':
+                                with open(cssjs, 'r') as f:
+                                    file_docs += f.read()
+        if fileext==".js":
+            return file_list[:-1]
+        return  file_docs
 
     def main(self):
         # 获取所有插件中HTML代码

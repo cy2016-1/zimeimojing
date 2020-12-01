@@ -145,7 +145,9 @@ var control = {
   },
 
   load_plugin_html: function (objtype) {
+
     var plugin_hook = html_root + "api/plugin_hook.py?get=" + objtype;
+
     const request = net.request(plugin_hook);
     request.on("response", (response) => {
       response.on("data", (chunk) => {
@@ -157,11 +159,14 @@ var control = {
         } else if (objtype == "css") {
           control.mainWindow.webContents.insertCSS(`${chunk}`);
         } else if (objtype == "js") {
-          var inc_html = 'var fileref = document.createElement("script");';
-          inc_html += 'fileref.setAttribute("type","text/javascript");';
-          inc_html += 'fileref.setAttribute("src","' + chunk.toString("utf8") + '");';
-          inc_html += 'document.getElementsByTagName("head")[0].appendChild(fileref);';
-          control.mainWindow.webContents.executeJavaScript(inc_html);
+          var file_list=chunk.toString("utf8").split(',');
+          for(x in file_list) {
+            var inc_html = 'var fileref = document.createElement("script");';
+            inc_html += 'fileref.setAttribute("type","text/javascript");';
+            inc_html += 'fileref.setAttribute("src","' + file_list[x] + '");';
+            inc_html += 'document.getElementsByTagName("head")[0].appendChild(fileref);';
+            control.mainWindow.webContents.executeJavaScript(inc_html);
+          }
         }
       });
       response.on("end", () => {});
@@ -180,6 +185,7 @@ var control = {
     this.mainWindow.webContents.on("did-finish-load", function () {
       let thisurl = control.mainWindow.webContents.getURL();
       if (thisurl.substr(-19, 19) == "/desktop/black.html") return;
+
       control.load_plugin_html("html");
       control.load_plugin_html("css");
       control.load_plugin_html("js");
