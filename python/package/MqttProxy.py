@@ -95,10 +95,13 @@ class MqttProxy(MsgProcess):
             jsonText = json.loads(jsonText)
 
             for pub in self.pubscribe:
-                topic = pub.replace(r'%clientid%', self.__clientid)
+                try:
+                    topic = pub.replace(r'%clientid%', self.__clientid)
 
-                self.publish(topic, json.dumps(jsonText, ensure_ascii=False))
-                logging.debug('MQTT SEND topic:%s %s' % (topic, jsonText))
+                    self.publish(topic, json.dumps(jsonText, ensure_ascii=False))
+                    logging.debug('MQTT SEND topic:%s %s' % (topic, jsonText))
+                except:
+                    pass
 
     # 加载万能开关列表
     def load_generalswitch_list(self, data):
