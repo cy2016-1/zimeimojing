@@ -13,6 +13,7 @@ import time
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from MsgProcess import MsgProcess, MsgType
+from module.WebApi.hefeng import hefeng
 
 # 旋转屏幕数值对应表
 rotate_array = {
@@ -23,7 +24,7 @@ rotate_array = {
     "0x10000": "左右翻转",
     "0x20000": "上下翻转"
 }
-    
+
 class Volume:
     @staticmethod
     def isWm8960(self):
@@ -174,40 +175,49 @@ def get_ip_address():
         }
         re_json.append(ethjson)
     return re_json
- 
- 
+
+def process(name):
+    taskcmd = 'ps ax | grep '+name
+    out = os.popen(taskcmd).read()
+    pat = re.compile(r'(\d+).+({0})'.format( name))
+    return pat.findall(out)
+
 def SoundCardIsPlay():
     ''' 声卡是否在播放   是则返回True 否则返回False '''
-    cmd = 'cat /proc/asound/wm8960soundcard/pcm0p/sub0/status' 
-    return "RUNNING" in os.popen(cmd).read()
-    
-    
+    #cmd = 'cat /proc/asound/wm8960soundcard/pcm0p/sub0/status'
+    #return "RUNNING" in os.popen(cmd).read()
+
+    for x in ["mplay","mpg123","aplay"]:
+        if len(process(x)) >=3:
+            return 1
+    return 0
+
 class Device(MsgProcess):
     def Text(self, message):
         Data = message['Data']
         if isinstance(Data, dict) and 'action' in Data.keys():
-            self.mqttProcess(Data)         
+            self.mqttProcess(Data)
         elif isinstance(Data, str):
-            self.worldsProcess(Data)            
+            self.worldsProcess(Data)
         self.Stop()  # 任务完成退出。
 
     def worldsProcess(self, Data):
         ''' 处理语言消息 '''
-        
         Triggers = ["天气地址", "修改位置"]
         if any(map(lambda trig: trig in Data, Triggers)):
-            while True:    
-                res = self.http_urllib(Data)
-                logging.debug(res)
-                if isinstance(res, dict) and 'cid' in res.keys() and res['type'] == 'city' and res['cnty'] == '中国':                   
-                    data = {'action': 'DEVICE_CITY', 'info':
-                            {'name': res['location'], 'cnid': res['cid']}}
-                    self.mqttProcess(data)
-                    return
-                else:
-                    self.say("设置天气预报的地址失败，请说出正确城市名，比如北京市，铜陵市")
-                    Data = self.listen()    
-                        
+            res = Data[4:]
+            if "天气地址修改为" in Data or "天气地址设置为" in Data:
+                res = Data[7:]
+            if "天气地址改为" in Data:
+                res = Data[6:]
+            if "修改位置为" in Data or  "天气地址是" in Data  or  "天气地址为" in Data:
+                res = Data[5:]
+
+            logging.debug(res)
+            data = {'action': 'DEVICE_CITY', 'data': res}
+            self.mqttProcess(data)
+            return 
+
         Triggers = ["打开屏幕", "打开显示"]
         if any(map(lambda trig: trig in Data, Triggers)):
             Screen.setPower(1)
@@ -223,14 +233,14 @@ class Device(MsgProcess):
             return
 
         Triggers = ["重启"]
-        if any(map(lambda trig: trig in Data, Triggers)):            
+        if any(map(lambda trig: trig in Data, Triggers)):
             msg = '好的，现在重启'
             self.say(msg)
             os.system("sudo reboot")
             return
 
         Triggers = ["关机"]
-        if any(map(lambda trig: trig in Data, Triggers)):            
+        if any(map(lambda trig: trig in Data, Triggers)):
             msg = '好的，正在关机'
             self.say(msg)
             os.system("sudo shutdown now")
@@ -238,7 +248,7 @@ class Device(MsgProcess):
 
         Triggers = ["声音", "音量"]
         if any(map(lambda trig: trig in Data, Triggers)):
-            
+
             secondTriggers = ['最大', '最强', '最响']
             if any(map(lambda trig: trig in Data, secondTriggers)):
                 Volume.set(100)
@@ -246,14 +256,14 @@ class Device(MsgProcess):
                 if not SoundCardIsPlay():
                     self.say(msg)
                 return
-                            
+
             secondTriggers = ['最小', '最弱', '最低']
             if any(map(lambda trig: trig in Data, secondTriggers)):
                 Volume.set(25)
                 if not SoundCardIsPlay():
                     self.say('音量已设置为最小了')
                 return
-            
+
             secondTriggers = ["小一点", "小点", "小一些", "小1点", "小1些", "小些", "太大", "好大"]
             if any(map(lambda trig: trig in Data, secondTriggers)):
                 value = (Volume.get() - 10) if Volume.get() >= 25 else 25
@@ -261,7 +271,7 @@ class Device(MsgProcess):
                 if not SoundCardIsPlay():
                     self.say('音量已设置为{}'.format(value))
                 return
-            
+
             secondTriggers = ["大点", "大一点", "大一些", "大1点", "大1些", "大些", "太小", "好小"]
             if any(map(lambda trig: trig in Data, secondTriggers)):
                 value = (Volume.get() + 10) if Volume.get() <= 90 else 100
@@ -284,7 +294,7 @@ class Device(MsgProcess):
                     if not SoundCardIsPlay():
                         self.say("太难理解啦?")
                 return
-    
+
     def mqttProcess(self, Data):
         ''' 处理1.xx版本的mqtt消息  '''
         if Data['action'] == 'DEVICE_STATE':
@@ -295,7 +305,7 @@ class Device(MsgProcess):
                         "info": {"code": "0000", "sound": volume}
                         }
                 self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=mqtt)
-           
+
             elif state == 'screen':  # 屏幕状态
                 screen = Screen.getPower()
                 mqtt = {"action": "DEVICE_STATE",
@@ -309,7 +319,7 @@ class Device(MsgProcess):
                 screenrotate = Screen.getRotate()
                 ipAddrs = get_ip_address()
                 city = self.config['LOCATION']
-                weathcity = {'city': city['city'], 'city_cnid': city['city_cnid']}                                     
+                weathcity = {'city': city['city'], 'city_cnid': city['city_cnid']}
                 mqtt = {"action": "DEVICE_STATE",
                         "info": {
                             "sound": volume,
@@ -348,36 +358,39 @@ class Device(MsgProcess):
             if not SoundCardIsPlay():
                 self.send(MsgType=MsgType.Text, Receiver="SpeechSynthesis", Data=msg)
             return
-        
+
         elif Data['action'] == 'DEVICE_RTURN':  # 旋转屏幕
             value = Data['value']
             msg = '设置屏幕{}并重启生效'.format(rotate_array[str(value)])
-            mqtt = {'action': 'DEVICE_RTURN',
-                    'info': {"code": "0000", "msg": msg}}
-                    
+            mqtt = {'action': 'DEVICE_RTURN','info': {"code": "0000", "msg": msg}}
+
             self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=mqtt)
             self.send(MsgType=MsgType.Text, Receiver="Screen", Data=msg)
             self.send(MsgType=MsgType.Text, Receiver="SpeechSynthesis", Data=msg)
             time.sleep(4)
             Screen.setRotate(value)
             return
-        
+
         elif Data['action'] == 'DEVICE_CITY':  # 修改天气城市
-            city = Data['data']
-            self.config['LOCATION']['city'] = city['name']
-            self.config['LOCATION']['city_cnid'] = city['cnid']
-            self.saveConfig()
-            
-            msgJson = {'type': 'nav', 'data': {"event": "close"}}
-            self.send(MsgType.Text, Receiver='Screen', Data=msgJson)
-            self.send(MsgType.Text, Receiver='Screen', Data=msgJson)
-            time.sleep(1)
-            msg = "天气预报城市已修改为{}".format(city['name'])
-            mqtt = {'action': 'DEVICE_CITY',
-                    'info': {"code": "0000", "msg": msg}}            
-            self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=mqtt)
-            self.send(MsgType=MsgType.Text, Receiver="Screen", Data=msg)
-            self.send(MsgType=MsgType.Text, Receiver="SpeechSynthesis", Data=msg)
+            data = Data['data']
+            city = self.http_urllib(data)
+            if city:
+                self.config['LOCATION']['city'] = city['name']
+                self.config['LOCATION']['city_cnid'] = city['id']
+                self.saveConfig()
+
+                msgJson = {'type': 'nav', 'data': {"event": "close"}}
+                self.send(MsgType.Text, Receiver='Screen', Data=msgJson)
+                self.send(MsgType.Text, Receiver='Screen', Data=msgJson)
+                time.sleep(1)
+                msg = "天气预报城市已修改为{}".format(city['name'])
+                mqtt = {'action': 'DEVICE_CITY','info': {"code": "0000", "msg": msg}}
+                self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=mqtt)
+                self.send(MsgType=MsgType.Text, Receiver="Screen", Data=msg)
+                self.send(MsgType=MsgType.Text, Receiver="SpeechSynthesis", Data=msg)
+
+            else:
+                self.say("设置天气预报的地址失败，请说出城市名，比如:天气地址是北京")
 
         elif Data['action'] == 'DEVICE_WIFI':  # 设置WiFi网络
             import bin.Setnet as Setnet
@@ -391,19 +404,10 @@ class Device(MsgProcess):
                 os.system('sudo killall udhcpc')
                 os.system('sudo killall wpa_supplicant')
 
-    
+
     def http_urllib(self, postdata):
-        try:
-            url = self.config['httpapi'] + r'/raspberry/getcityid.html'
-            data = urlencode({"cityname": postdata})
-            req = Request(url, data.encode('utf-8'))
-            f = urlopen(req, timeout=10)
-            if f.getcode() == 200:
-                response = json.loads(f.read().decode())
-                return response[0]
-        except Exception as e:        
-            logging.debug(e)
-            return False
+        heapi = hefeng()
+        return heapi.getcityid(postdata)
 
     def Stop(self, message=None):
         # 保存音量信息

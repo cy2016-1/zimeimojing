@@ -31,22 +31,22 @@ class myThread(threading.Thread):
 class update():
 
     def __init__(self):
-        #运行自美系统的根目录
+        # 运行自美系统的根目录
         self.SYSTEM_ROOT = '/'
 
-        #系统目录
-        self.SYSTEM_DIR = os.path.join(self.SYSTEM_ROOT, 'keyicx')
+        # 系统目录
+        self.SYSTEM_DIR  = os.path.join(self.SYSTEM_ROOT, 'keyicx')
 
-        #升级目录
-        self.UPDATE_DIR = '/tmp/zmupdate'
+        # 升级目录
+        self.UPDATE_DIR  = '/tmp/zmupdate'
 
-        #升级进度文件
+        # 升级进度文件
         self.UPDATE_FILE = '/tmp/zmprogress'
 
-        #升级库URL
+        # 升级库URL
         self.GITEE_URL = 'https://gitee.com/kxdev/zimeimojing'
 
-        #进度条
+        # 进度条
         self.th_ress = myThread(1,"Thprog")
         self.th_ress.start()
 
@@ -61,6 +61,25 @@ class update():
             print("\033[?25h")
             is_print = 0
 
+    # 彩虹字生成
+    def rainbow(self,text):
+        rein_arr = [
+            '\033[40;31m{}\033[0m',
+            '\033[40;33m{}\033[0m',
+            '\033[40;32m{}\033[0m',
+            '\033[40;36m{}\033[0m',
+            '\033[40;34m{}\033[0m',
+            '\033[40;35m{}\033[0m'
+        ]
+        rein_i = 0
+        new_text = ''
+        for x in text:
+            new_text += rein_arr[rein_i].format(x)
+            rein_i += 1
+            if rein_i >= len(rein_arr):
+                rein_i = 0
+        return new_text
+
 
     def print_str(self, tistr = '', status = 'n', ln = ''):
         '''
@@ -74,9 +93,9 @@ class update():
         '''
         ti_str = tistr
         if status=='w':
-            ti_str = '\033[41m{0}\033[0m'.format(ti_str)
+            ti_str = '\033[43;31m{0}\033[0m'.format(ti_str)
         elif status=='p':
-            ti_str = '\033[42m{0}\033[0m'.format(ti_str)
+            ti_str = '\033[47;32m{0}\033[0m'.format(ti_str)
         if len(ln)>0:
             sys.stdout.write(ti_str)
         else:
@@ -85,28 +104,23 @@ class update():
 
     def menu(self):
         global exitFlag
-        tishi  = "━━━━━━☆ ★ ☆ 欢迎使用自美系统在线升级工具 V2.0 ☆ ★ ☆━━━━━━\n"
-        tishi += " 1、查看官方最新版本号\n"
-        tishi += " 2、查看本地版本号\n"
-        tishi += " 3、一键检测并升级系统\n"
-        tishi += " 4、退出\n"
-        tishi += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        tishi  = self.rainbow("━━━━━━ ☆ ★ ☆ 欢迎使用自美®系统在线升级工具 V2.0 ☆ ★ ☆ ━━━━━━")+"\n"
+        tishi += " 1、查看官方最新版本\n"
+        tishi += " 2、一键检测并升级系统\n"
+        tishi += " x、退出\n"
+        tishi += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         tishi += "直接输入操作命令前面的数字序号（回车）:"
 
         os.system('clear')
         a = input(tishi)
         if a == "1":
-            self.menu_ckver('git')
+            self.menu_checkupdate()
             time.sleep(5)
             return self.menu()
         elif a == "2":
-            self.menu_ckver('local')
-            time.sleep(5)
-            return self.menu()
-        elif a == "3":
             self.menu_startup()
             return self.menu()
-        elif a == "4":
+        elif a == "x" or a == "X":
             exitFlag = 1
             self.th_ress.join()
             exit()
@@ -200,10 +214,11 @@ class update():
             back_path = self.SYSTEM_DIR +'_'+str(datetime)
 
             self.print_str('正在备份原系统，请稍候……','n')
+            self.print_str('将原系统备份到：' + back_path, 'w')
             self.progress(1)
 
             if os.path.isdir(self.SYSTEM_DIR):
-                cmd = 'sudo mv '+ self.SYSTEM_DIR +' '+ back_path
+                cmd = 'sudo cp -a '+ self.SYSTEM_DIR +' '+ back_path
                 os.system( cmd )
                 self.progress(0)
             else:
@@ -213,7 +228,7 @@ class update():
             self.progress(1)
             time.sleep(1)
 
-            cmd = 'sudo rsync -aq --exclude=.git '+ self.UPDATE_DIR +'/ '+ self.SYSTEM_DIR +'/'
+            cmd = 'sudo rsync -aq --existing --exclude=.git '+ self.UPDATE_DIR +'/ '+ self.SYSTEM_DIR +'/'
             os.system( cmd )
 
             self.print_str('[完成]','p')
@@ -229,43 +244,47 @@ class update():
         True    --    需要更新
         False   --    不需要
     '''
-    def diff_ver(self):
-        git_newver = self.get_new_ver()      #获取最新的发行版本
-
-        file_ver = self.get_local_ver()      #获取本地版本号
+    def diff_ver(self, is_show = True):
+        git_newver = self.get_new_ver()      # 获取最新的发行版本
+        file_ver = self.get_local_ver()      # 获取本地版本号
 
         if file_ver:
-            self.print_str('当前系统版本号-->'+ file_ver)
-            self.print_str('官方最新版本号-->'+ git_newver)
+            if is_show:
+                self.print_str('\033[41m官方最新版本\033[0m --> '+ git_newver)
+                self.print_str('\033[42m当前系统版本\033[0m --> '+ file_ver)
 
             diffver = self.versionCompare( file_ver, git_newver )
             if diffver > 0:
-                self.print_str('官方最新版本高于当前版本，需要升级！','w')
+                if is_show: self.print_str('官方最新版本高于当前版本，需要升级！','w')
                 return True
             else:
-                self.print_str('当前系统版本已经是最新版本，无需升级！','p')
+                if is_show: self.print_str('当前系统版本已经是最新版本，无需升级！','p')
                 return False
         else:
-            self.print_str('当前系统版本文件丢失，需更新升级！','w')
+            if is_show: self.print_str('当前系统版本文件丢失，需更新升级！','w')
             #没有版本文件，默认即将更新的版本大于当前版本
             return True
 
-    #查看版本号
+    # 检测是否要升级
+    def menu_checkupdate(self):
+        self.diff_ver()
+
+    # 菜单中 - 查看版本号
     def menu_ckver(self, ty = 'git'):
         if ty=='git':
             git_newver = self.get_new_ver()      #获取最新的发行版本
             self.set_progress({'remotever': git_newver})
-            self.print_str('官方最新版本号-->'+ git_newver,'w')
+            self.print_str('官方最新版本 --> '+ git_newver,'w')
         if ty=='local':
             file_ver = self.get_local_ver()      #获取本地版本号
             self.set_progress({'localver': file_ver})
-            self.print_str('当前系统版本号-->'+ file_ver,'p')
+            self.print_str('当前系统版本 --> '+ file_ver,'p')
 
-    #开始升级
+    # 菜单中 - 开始升级
     def menu_startup(self):
         self.down_newfile()
         self.set_progress({'progress': 30})
-        is_up = self.diff_ver()
+        is_up = self.diff_ver(False)
         if is_up is True:
             opis = self.move_dir()
             self.set_progress({'progress': 70})

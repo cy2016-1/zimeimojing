@@ -79,10 +79,17 @@ class MqttProxy(MsgProcess):
             jsonText = jsonText.replace(r'%data%', json.dumps(Data))
             jsonText = json.loads(jsonText)
 
+            # 如果指定了设备ID，则向指定设备发送消息
+            if 'deviceid' in dict(Data).keys():
+                topic = '/'+ Data['deviceid'] + '/wnkg/admin'
+                self.publish(topic, json.dumps(jsonText, ensure_ascii=False))
+                logging.debug('MQTT SEND topic:%s %s' % (topic, jsonText))
+                return
+
+            # 根据插件名，向所有设备发消息
             devidTab = self.getDeviceId(plugin)
             for devid in devidTab:
                 topic = '/'+ devid + '/wnkg/admin'
-
                 self.publish(topic, json.dumps(jsonText, ensure_ascii=False))
                 logging.debug('MQTT SEND topic:%s %s' % (topic, jsonText))
             return
@@ -95,13 +102,10 @@ class MqttProxy(MsgProcess):
             jsonText = json.loads(jsonText)
 
             for pub in self.pubscribe:
-                try:
-                    topic = pub.replace(r'%clientid%', self.__clientid)
+                topic = pub.replace(r'%clientid%', self.__clientid)
 
-                    self.publish(topic, json.dumps(jsonText, ensure_ascii=False))
-                    logging.debug('MQTT SEND topic:%s %s' % (topic, jsonText))
-                except:
-                    pass
+                self.publish(topic, json.dumps(jsonText, ensure_ascii=False))
+                logging.debug('MQTT SEND topic:%s %s' % (topic, jsonText))
 
     # 加载万能开关列表
     def load_generalswitch_list(self, data):
@@ -246,12 +250,15 @@ class MqttProxy(MsgProcess):
             if json_Receive == 'WnkgProxy':
                 if json_Data['type'] == 'online':
                     self.write2db(json_Data)
-                    self.say('万能开关设备已连接')
+                    self.send(MsgType=MsgType.Text, Receiver="Screen", Data="万能开关设备已连接")
+                    self.send(MsgType=MsgType.Text, Receiver="SpeechSynthesis", Data="万能开关设备已连接")
                     return
                 if json_Data['type'] == 'offline':
-                    self.say('万能开关设备已断开')
+                    self.send(MsgType=MsgType.Text, Receiver="Screen", Data="万能开关设备已断开")
+                    self.send(MsgType=MsgType.Text, Receiver="SpeechSynthesis", Data="万能开关设备已断开")
                     return
 
+                # 根据万能开关设备ID查找对应的插件名
                 Receive = self.getPluginName(json_Sender)
                 if len(Receive) <= 0:
                     Receive = self.wnkg_default_plugin
@@ -260,8 +267,8 @@ class MqttProxy(MsgProcess):
                     return
                 else:
                     for Receive_item in Receive:
-                        self.send(MsgType=MsgType.Text, Receiver=Receive_item, Data=json_Data)
-                        self.send(MsgType=MsgType.LoadPlugin, Receiver='ControlCenter', Data=Receive_item)
+                        self.send(MsgType=MsgType.Text, Receiver=Receive_item, Data=json_Data, Sender=json_Sender)
+                        self.send(MsgType=MsgType.LoadPlugin, Receiver='ControlCenter', Data=Receive_item, Sender=json_Sender)
                     return
 
                 return

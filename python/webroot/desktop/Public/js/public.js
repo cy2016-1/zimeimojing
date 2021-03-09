@@ -1,7 +1,8 @@
 /**
  * 全局JS，网络状态，显示提示文字
  **/
-const { ipcRenderer } = require('electron');
+const { ipcRenderer } = window.require('electron');
+
 var html = '<div class="top_status" id="statusbar"><span class="iconfont" id="network"></span></div><div id="tishiText"></div>';
 $(function() {
     if (!$('#statusbar').length) { $('.main-body').append(html); }

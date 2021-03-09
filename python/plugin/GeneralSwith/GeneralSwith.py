@@ -30,10 +30,12 @@ class GeneralSwith(MsgProcess):
                         self.send(MsgType=MsgType.Text, Receiver='SpeechSynthesis', Data=msg)
                         self.send(MsgType=MsgType.Text, Receiver='Screen', Data=msg)
 
+                    # 消息体中有 action 字段，将消息发送给小程序
                     state = {'action': 'switch', 'switch': int(Data['state']), 'statustext': msg}
                     self.send(MsgType.Text, "MqttProxy", state)
-            
+
             elif 'initstate' in dict(Data).keys() and Data['initstate'] == 'onLoad':
+                # 消息体中有 type 字段，将消息发送给万能开关
                 send_data = {'type': 'switch', 'pin': 2}
                 self.send(MsgType=MsgType.Text, Receiver="MqttProxy", Data=send_data)
         else:

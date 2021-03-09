@@ -51,9 +51,9 @@ var weather = {
 			//定义颜色
 			obj_bg_r = parseInt((255 * bfb)/100);
 			obj_bg_g = 255 - parseInt((255 * bfb)/100);
-			rgb = 'rgb('+ obj_bg_r +','+ obj_bg_g +',0)';
+			rgb = 'linear-gradient(to right, rgba('+ obj_bg_r +','+ obj_bg_g +',0),rgba('+ obj_bg_r +','+ obj_bg_g +',125))';
 
-			life_html += '<ul><li class="brf_len" style="width:'+obj_w+'px;background-color:'+ rgb +'"></li><li class="brf_text">'+ brf +'</li></ul>';
+			life_html += '<ul><li class="brf_len" style="width:'+obj_w+'px;background-image:'+ rgb +'"></li><li class="brf_text">'+ brf +'</li></ul>';
 			life_html += '</dd></dl>';
 		}
 
@@ -133,7 +133,7 @@ var weather = {
 			data: {op:'getweather'},
 			dataType: "json",
 			success: function(data) {
-				// console.log( data );
+				//console.log( data );
 				if (data){
 					try{
 						_this.set_html(data)
@@ -163,6 +163,7 @@ var weather = {
 var dateclass = {
 	is_re_date: true,	// 是否刷新日期
 	is_re_time: true,	// 是否刷新时，分
+	is_sec_show: true,	// 秒钟跳动
 	weeks : ["日","一","二","三","四","五","六"],
 	chinese_date : ['今天','明天','后天'],
 	daily_date: {},		// 日常 日期称呼
@@ -237,6 +238,13 @@ var dateclass = {
 			$('#hours').text( this.buling(json.hours));
 			$('#minutes').text( this.buling(json.minutes));
 			this.is_re_time = false;
+		}
+		if (this.is_sec_show) {
+			$('.secmaohao').css('opacity','1');
+			this.is_sec_show = false;
+		} else {
+			$('.secmaohao').css('opacity','0.1');
+			this.is_sec_show = true;
 		}
 		$('#seconds').text( this.buling(json.seconds));
 	},

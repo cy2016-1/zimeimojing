@@ -293,12 +293,12 @@ class ControlCenter(MsgProcess):
             with open(configfile) as fd:
                 pluginConfig = json.load(fd)
                 IsEnable = pluginConfig['IsEnable']
-                # IsSystem = pluginConfig['IsSystem']
+                IsSystem = pluginConfig['IsSystem']
                 AutoLoader = pluginConfig['AutoLoader']
                 if not IsEnable:
                     logging.info('插件[%s]配置为不启用!' % pluginName)
                     return
-                if AutoLoader == "Start":
+                if AutoLoader == "Start" or AutoLoader is True:
                     self.send(MsgType=MsgType.Start, Receiver=pluginName)
                 package = r'plugin.' + pluginName + '.' + pluginName
                 try:
@@ -315,9 +315,9 @@ class ControlCenter(MsgProcess):
                 process.start()
                 self.ProcessPool.append(process)  # 加入进程池
 
-        # 这里改为不管是什么插件，只要是最后运行的都给给最后处理插件
-        # if IsSystem:
-        self.lastSystemPlugin = pluginName
+            # 如果是系统插件，将最后运行的插件赋值给他
+            if IsSystem:
+                self.lastSystemPlugin = pluginName
         logging.info('加载插件: [%s] ' % pluginName)
 
 

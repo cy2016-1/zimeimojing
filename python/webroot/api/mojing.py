@@ -4,22 +4,21 @@ import os
 
 from .ApiBase import ApiBase
 from package.mylib import mylib
+from module.WebApi.hefeng import hefeng
 
 class mojing(ApiBase):
 
     def main(self):
         # 获取配置
-        
+
         if self.query['op'] == 'getconfig':
             return json.dumps(self.config)
 
         # 获取天气数据
         elif self.query['op'] == 'getweather':
-            url = self.config['httpapi'] + '/raspberry/getweather.html'
             city_json = self.config['LOCATION']
-            post_data = {'cnid': city_json['city_cnid'], 'city': city_json['city']}
-            ret = mylib.http_post(url, post_data)
-            return ret['data']
+            hf = hefeng().getweather(city_json['city_cnid'], city_json['city'])
+            return hf
 
         # 获取老黄历
         elif self.query['op'] == 'laohuangli':

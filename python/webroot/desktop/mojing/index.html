@@ -7,8 +7,8 @@
     <title>自美系统</title>
     <link rel="stylesheet" type="text/css" href="../Public/css/base.css" />
     <link rel="stylesheet" type="text/css" href="css/index.css" />
-    <link rel="stylesheet" type="text/css" href="css/myweather_ico.css" />
-    <link rel="stylesheet" type="text/css" href="css/myweathern_ico.css" />
+    <link rel="stylesheet" type="text/css" href="css/weather128_ico.css" />
+    <link rel="stylesheet" type="text/css" href="css/weather128n_ico.css" />
 </head>
 
 <body>
@@ -55,9 +55,9 @@
             <div class="cr"></div>
             <div class="clock">
                 <code id="hours"></code>
-                <span id="hours-fh">:</span>
+                <span id="hours-fh" class="secmaohao">:</span>
                 <code id="minutes"></code>
-                <span id="minutes-fh">:</span>
+                <span id="minutes-fh" class="secmaohao">:</span>
                 <code id="seconds"></code>
             </div>
             <div id="solarlunar2" class="yiji">
@@ -178,7 +178,7 @@
             dateclass.now_time();
             setInterval(function() {
                 dateclass.now_time()
-            }, 1000);
+            }, 500);
 
             $(window).resize(function() {
                 window.location.reload()

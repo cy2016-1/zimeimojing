@@ -23,7 +23,7 @@ class PlayState(Enum):
     Pause = 2      # 暂停
     Stop = 4       # 停止
     Buffering = 8  # 缓冲
-    
+
 
 class Music(MsgProcess):
     def __init__(self, msgQueue):
@@ -67,7 +67,7 @@ class Music(MsgProcess):
                 self.playlist = self.playlist[:15]      # 选择 15 首
                 self.Start()
                 return
-                       
+
             Triggers = ['暂停歌曲', '暂停播放']
             if any(map(lambda w: data.__contains__(w), Triggers)):
                 self.Pause()
@@ -121,7 +121,7 @@ class Music(MsgProcess):
         if self.autoNextSongThread is None:
             self.autoNextSongThread = Thread(target=self.autoNextSong, args=())
             self.autoNextSongThread.start()
-        
+
         if len(self.playlist) >= 1:
             file = self.cacheMusic(self.playindex, showinfo=True)
             CacheFileManager.add(file)
@@ -133,8 +133,8 @@ class Music(MsgProcess):
             for n in range(1, 4):
                 nextPlayIndex = (self.playindex + n) % len(self.playlist)
                 Thread(target=self.cacheMusic, args=(nextPlayIndex,)).start()
-          
-            self.sendMQTT()               
+
+            self.sendMQTT()
             # self.consoleShow()
 
         else:
@@ -144,29 +144,29 @@ class Music(MsgProcess):
     def Pause(self, message=None):
         if self.playState == PlayState.Play:
             # os.system('clear')
-            logging.info('Pause')            
+            logging.info('Pause')
             self.player.pause()
             self.playState = PlayState.Pause
-                        
+
     def Resume(self, message=None):
         if self.playState == PlayState.Pause:
             self.player.pause()
             self.playState = PlayState.Play
             self.sendMQTT()
             # self.consoleShow()
-          
+
     def Stop(self, message=None):
-        if self.playState != PlayState.Stop:          
-            # os.system('clear')            
+        if self.playState != PlayState.Stop:
+            # os.system('clear')
             self.playState = PlayState.Stop
             self.player.stop()
             self.player.quit()
-            os.system('sudo killall mplayer > /dev/null 2>&1 ')              
+            os.system('sudo killall mplayer > /dev/null 2>&1 ')
             super().Stop()
 
     def cacheMusic(self, index, showinfo=False):
-        ''' 从指定的url下载歌曲返回完整的带有路径的歌名str  '''       
-  
+        ''' 从指定的url下载歌曲返回完整的带有路径的歌名str  '''
+
         url = self.playlist[index]['songurl']
         songname = self.playlist[index]['songname']
 
@@ -184,11 +184,11 @@ class Music(MsgProcess):
                 return songFileMp3
 
         # 从url下载
-        if showinfo:          
+        if showinfo:
             text = '缓冲歌曲: {}...'.format(songname)
             self.playState = PlayState.Buffering
             self.send(MsgType.Text, Receiver='Screen', Data=text)
-            
+
         result = urllib.parse.urlparse(url)
         m4afile = result.path
         m4afile = re.sub(r'\/', '', m4afile)
@@ -215,14 +215,14 @@ class Music(MsgProcess):
 
     def autoNextSong(self):
         while True:
-            time.sleep(0.5)      
+            time.sleep(0.5)
             if self.playState == PlayState.Stop:
                 logging.debug('Quit')
                 return
             if self.playState == PlayState.Play and self.player.filename is None:
                 self.playindex = (self.playindex + 1) % len(self.playlist)
                 self.Start()
-    
+
     def consoleShow(self):
         ''' 在控制台屏幕上模拟一个音乐播放器 '''
         os.system('clear')
@@ -230,19 +230,19 @@ class Music(MsgProcess):
         print('歌曲列表:')
         for (index, song) in enumerate(self.playlist):
             if self.playindex == index:
-                print("\033[5;32;40m[*{}]:{} \033[0m".format(index, song['songname']))                      
+                print("\033[5;32;40m[*{}]:{} \033[0m".format(index, song['songname']))
             else:
                 print("[{}]:{}".format(index, song['songname']))
-    
+
     def sendMQTT(self):
         ''' 将当前播放状态和歌单发送到MQTT '''
         songnames = [song['songname'] for song in self.playlist]
         data = {"action": "MUSIC_LIST","playindex": self.playindex, "PlayState": self.playState.name,
-                'sound': self.getVolume(), 'playlist': songnames}                 
+                'sound': self.getVolume(), 'playlist': songnames}
         self.send(MsgType.Text, Receiver='MqttProxy', Data=data)
-                
-    def getVolume(self):        
-        ''' 取得音量大小 ''' 
+
+    def getVolume(self):
+        ''' 取得音量大小 '''
         info = os.popen("sudo amixer sget Speaker").read()
         patten = r'Front\sLeft:\sPlayback\s(\d+)\s\[(\d+)\%\]'
         varStr = re.search(patten, info, re.M | re.I)

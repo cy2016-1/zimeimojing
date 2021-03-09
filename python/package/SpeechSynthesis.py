@@ -40,11 +40,16 @@ class SpeechSynthesis(MsgProcess):
             CachePath = r'runtime/soundCache'
             fileName = os.path.join(CachePath, name)
             if os.path.exists(fileName):
-                self.playSound(fileName)
-            else:
-                fileName = self.SpeechSynthesis(text, fileName)
-                if fileName:
+                #判断文件是否为0kb
+                if not "0" in os.popen("du -sh "+fileName).read()[0]:
+                    logging.debug('本地墦放')
                     self.playSound(fileName)
+                    return 1
+
+            fileName = self.SpeechSynthesis(text, fileName)
+            if fileName:
+                logging.debug('网络墦放')
+                self.playSound(fileName)
         # self.send(MsgType=MsgType.JobsDone, Receiver = message['Sender'])
 
     def playSound(self, fileName):

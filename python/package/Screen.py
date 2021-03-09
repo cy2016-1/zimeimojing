@@ -50,7 +50,7 @@ class Screen(MsgProcess):
 
     # 启用屏幕通讯服务器
     def StartServer(self):
-        self.sw = SocketScreen()
+        self.sw = SocketScreen(self.config['VIEW']['host'])
         self.sw.connection()
         self.openindex()
         p = Thread(target=self.on_message, args=(self.sw.sock,))

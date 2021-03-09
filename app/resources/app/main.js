@@ -10,20 +10,22 @@ app.on('window-all-closed', function() {
 });
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+app.disableHardwareAcceleration();
 
 app.on('ready', function() {
 	//隐藏菜单栏
 	//electron.Menu.setApplicationMenu(null);
 
 	var shared = {argv: process.argv}
-	var options = {width: 1024,height: 630}
+	var options = {}
 	if (shared.argv.length > 1){
-		if (shared.argv[1]=='Debug'){
-			options = {
-				backgroundColor: '#000000',
-				width: 1024,
-				height: 630,
-				webPreferences: {webSecurity: false,allowDisplayingInsecureContent:false}
+		options = {
+			backgroundColor: '#000000',
+			webPreferences: {
+				webSecurity: false,
+				allowDisplayingInsecureContent:false,
+				nodeIntegration: true,
+				contextIsolation: false
 			}
 		}
 	}else{
@@ -31,8 +33,14 @@ app.on('ready', function() {
 			backgroundColor: '#000000',
 			width: 1,
 			height: 1,
-			webPreferences:{devTools: false,webSecurity: false,allowDisplayingInsecureContent:false},
-			kiosk: true	//全屏模式
+			kiosk: true,	//全屏模式
+			webPreferences: {
+				devTools: false,
+				webSecurity: false,
+				allowDisplayingInsecureContent:false,
+				nodeIntegration: true,
+				contextIsolation: false
+			}
 		}
 	}
 

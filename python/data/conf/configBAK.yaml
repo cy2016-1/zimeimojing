@@ -48,6 +48,7 @@ SCREEN_MARGON:                  # 屏幕边距配置
   left: 10px
 
 VIEW:                           # 前端默认显示
+  host: 127.0.0.1               # 前端显示设备的IP
   index: index.html
   title: 自美魔镜
   path: desktop/mojing/
@@ -63,7 +64,7 @@ MQTT:
   port: 1883
   clientid:
   mqttname:
-  mqttpass: 
+  mqttpass:
 
 LOCATION:                       # 城市位置
   city:

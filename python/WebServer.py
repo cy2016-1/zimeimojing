@@ -166,7 +166,7 @@ class RequestHandler(BaseHTTPRequestHandler):
     # 处理身份验证
     def do_OPTIONS(self):
         result = parse.urlparse(self.path)
-        self.path  = result.path
+        self.path  = re.sub(r'^\/{2,}', "/",result.path)
         if result.query:
             self.query = result.query
         self.handle_request()
@@ -174,14 +174,14 @@ class RequestHandler(BaseHTTPRequestHandler):
     # 处理GET请求
     def do_GET(self):
         result = parse.urlparse(self.path)
-        self.path  = result.path
+        self.path  = re.sub(r'^\/{2,}', "/",result.path)
         self.query = result.query
         self.handle_request()
 
     # 处理POST请求
     def do_POST(self):
         result = parse.urlparse(self.path)
-        self.path  = result.path
+        self.path  = re.sub(r'^\/{2,}', "/",result.path)
         self.query = ''
         if result.query:
             self.query = result.query
