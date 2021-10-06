@@ -65,7 +65,7 @@ class Install():
         self.cmd('sudo mkdir -p', r'python/data/conf')
         self.cmd('sudo mkdir -p', r'python/runtime/log')
         self.cmd('sudo mkdir -p', r'python/runtime/photo')
-        self.cmd('sudo mkdir -p', r'python/runtime/soundCache')   
+        self.cmd('sudo mkdir -p', r'python/runtime/soundCache')
         self.cmd('sudo mkdir -p', r'/music/cache')
 
         #该目录下全部权限
@@ -124,7 +124,7 @@ class Install():
         bak_file = os.path.join(self.root_path, 'python/data/conf/configBAK.yaml')
         con_file = os.path.join(self.root_path, 'python/config.yaml')
         os.system('sudo cp -f ' + bak_file + ' ' + con_file)
-        os.system('sudo chmod 0666 python/config.yaml') 
+        os.system('sudo chmod 0666 python/config.yaml')
         self.print_str("[完成]",'p')
 
         self.print_str("初始化音量配置asound.state", 'n', 'n')
