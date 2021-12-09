@@ -40,6 +40,9 @@ class update():
         # 升级目录
         self.UPDATE_DIR  = '/tmp/zmupdate'
 
+        # 备份目录
+        self.BACKUP_DIR  = os.path.join(self.SYSTEM_ROOT, 'keyicx_bak')
+
         # 升级进度文件
         self.UPDATE_FILE = '/tmp/zmprogress'
 
@@ -166,19 +169,24 @@ class update():
 
     #获取Git最新的版本
     def get_new_ver(self):
-        url = self.GITEE_URL + '/raw/master/python/data/ver.txt'
         git_newver = ''
         try:
+            url = self.GITEE_URL + '/raw/master/data/ver.txt'
             response = requests.get(url, timeout=60)
             if int(response.status_code) == 200:
                 git_newver = response.text
+            else:
+                url = self.GITEE_URL + '/raw/master/python/data/ver.txt'
+                response = requests.get(url, timeout=60)
+                if int(response.status_code) == 200:
+                    git_newver = response.text
         except:
             pass
         return git_newver.strip()
 
     #获取本地版本号
     def get_local_ver(self):
-        this_verfile = os.path.join(self.SYSTEM_DIR, 'python/data/ver.txt')
+        this_verfile = os.path.join(self.SYSTEM_DIR, 'data/ver.txt')
         file_ver = ""
         if os.path.exists(this_verfile):
             fo = open(this_verfile, "r+")
@@ -190,7 +198,6 @@ class update():
     #下载新的文件
     def down_newfile(self):
         self.print_str('正在获取远程系统文件……','n','n')
-        self.reset_progress()
         self.progress(1)
         git_cmd = ''
         if os.path.exists( os.path.join( self.UPDATE_DIR, '.git') ):
@@ -211,7 +218,11 @@ class update():
     def move_dir(self):
         if os.path.exists(self.UPDATE_DIR):
             datetime = time.strftime("%Y%m%d%H%M%S", time.localtime())
-            back_path = self.SYSTEM_DIR +'_'+str(datetime)
+
+            if not os.path.isdir(self.BACKUP_DIR):
+                os.system('sudo mkdir -p '+ self.BACKUP_DIR)
+
+            back_path = os.path.join(self.BACKUP_DIR, str(datetime))
 
             self.print_str('正在备份原系统，请稍候……','n')
             self.print_str('将原系统备份到：' + back_path, 'w')
@@ -222,13 +233,13 @@ class update():
                 os.system( cmd )
                 self.progress(0)
             else:
-                os.system('sudo mkdir '+ self.SYSTEM_DIR)
+                os.system('sudo mkdir -p '+ self.SYSTEM_DIR)
 
             self.print_str('开始部署新系统，请稍候……（这里可能需要几分钟时间）','n')
             self.progress(1)
             time.sleep(1)
 
-            cmd = 'sudo rsync -aq --existing --exclude=.git '+ self.UPDATE_DIR +'/ '+ self.SYSTEM_DIR +'/'
+            cmd = 'sudo rsync -aq --existing --exclude={".git","plugin/*"} '+ self.UPDATE_DIR +'/ '+ self.SYSTEM_DIR +'/'
             os.system( cmd )
 
             self.print_str('[完成]','p')
@@ -261,7 +272,7 @@ class update():
                 if is_show: self.print_str('当前系统版本已经是最新版本，无需升级！','p')
                 return False
         else:
-            if is_show: self.print_str('当前系统版本文件丢失，需更新升级！','w')
+            if is_show: self.print_str('未能检测到系统版本号，需重新安装！','w')
             #没有版本文件，默认即将更新的版本大于当前版本
             return True
 
@@ -273,46 +284,46 @@ class update():
     def menu_ckver(self, ty = 'git'):
         if ty=='git':
             git_newver = self.get_new_ver()      #获取最新的发行版本
-            self.set_progress({'remotever': git_newver})
             self.print_str('官方最新版本 --> '+ git_newver,'w')
         if ty=='local':
             file_ver = self.get_local_ver()      #获取本地版本号
-            self.set_progress({'localver': file_ver})
             self.print_str('当前系统版本 --> '+ file_ver,'p')
 
     # 菜单中 - 开始升级
     def menu_startup(self):
+        self.reset_progress()
+        time.sleep(1)
+
+        self.set_progress('50')
+
         self.down_newfile()
-        self.set_progress({'progress': 30})
+        self.set_progress('75')
+
         is_up = self.diff_ver(False)
         if is_up is True:
             opis = self.move_dir()
-            self.set_progress({'progress': 70})
+            self.set_progress('99')
+
             if opis:
-                self.print_str('新版本文件环境部署完成！','p')
-                self.print_str('开始准备安装！')
-
-                self.set_progress({'progress': 100})
-                os.system('sudo python3 '+ self.SYSTEM_DIR +'/install.py update')
-
+                self.print_str('新版本文件环境部署完成！开始准备安装！','p')
+                os.system('sudo python3 '+ self.SYSTEM_DIR +'/install.py update &')
                 self.print_str('新系统安装成功，即将重启设备！','p')
 
-        self.set_progress({'progress': 100})
+        self.set_progress('100')
 
         time.sleep(5)
 
     # 保存进度
-    def set_progress(self, savejson):
-        wstr = json.dumps(savejson)
+    def set_progress(self, savestr):
         with open(self.UPDATE_FILE, 'w') as f:
-            f.write(wstr)
+            f.write( str(savestr) )
 
     def reset_progress(self):
         os.system('sudo rm -f '+ self.UPDATE_FILE)
 
     def main(self):
         argv = ''
-        if len(sys.argv)>1:
+        if len(sys.argv) > 1:
             argv = sys.argv[1]
 
         if argv=='isupdate':

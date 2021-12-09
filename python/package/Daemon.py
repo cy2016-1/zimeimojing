@@ -6,9 +6,9 @@ from threading import Thread
 from urllib.request import Request, urlopen
 import RPi.GPIO as GPIO
 from MsgProcess import MsgProcess, MsgType
-from bin.Device import Device
-from package.data import data as db
-from package.mylib import mylib
+from python.bin.Device import Device
+from python.package.Mylib import Mylib
+from python.module.WebApi.hefeng import hefeng
 
 
 class Daemon(MsgProcess):
@@ -17,38 +17,21 @@ class Daemon(MsgProcess):
         super().__init__(msgQueue)
         self.netStatus = False                                          # true为连网 false断网
         self.connectedTime = time.time()                                # 网络连网时间
-        self.pin_fengshan_kg = self.config['GPIO']['fengshan_kg']       # 降温风扇开关 0 - 为关闭此功能
-        self.pin_setnet = self.config['GPIO']['setnet_pin']             # 配网控制
-        self.pin_detect_man = self.config['GPIO']['detect_man']         # 人体探测
-        self.powersavetime = self.config['GPIO']['powersavetime']       # 节能时间
+        self.isScreen = self.config['LoadModular']['Screen']            # 是否有屏幕
+        self.pin_setnet = self.config['GPIO']['setnet_pin']             # 配网控制（引脚定义）
+        self.pin_fan_kg = self.config['GPIO']['fan_kg']                 # 降温风扇开关 0 - 为关闭此功能
         self.cputemp_high = self.config['GPIO']['cputemp']['high']      # CPU最高温度
         self.cputemp_low  = self.config['GPIO']['cputemp']['low']       # CPU最低温度
-        self.detect_man_time = time.time()  # 探测到人的时间
         self.playreadygo = True
         self.playno_network = True
         self.arr_setnet = []                                            # 配网按键控制
-        self.u_list = db().user_list_get()                              # 用户列表
-        self.showBind = True
         self.isSettingNet = False                                       # 是否正在配网中
         self.pin_fengshan_zt = 0
         self.set_time_i = 100                                           # 设置时间计时
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(self.pin_fengshan_kg, GPIO.OUT)
+        GPIO.setup(self.pin_fan_kg, GPIO.OUT)
         GPIO.setup(self.pin_setnet, GPIO.IN)
-        GPIO.setup(self.pin_detect_man, GPIO.IN)
-
-    def showBindNav(self):
-        ''' 显示用户绑定的二维码 '''
-        if self.netStatus and self.showBind:
-            self.config = mylib.getConfig()
-            if self.u_list is False:
-                clientid = self.config['httpapi']+'/xiaocx/dev/' + self.config['MQTT']['clientid']
-                nav_json = {"event": "open", "size": {
-                    "width": 380, "height": 380}, "url": "desktop/Public/bind_user.html?qr=" + clientid}
-                data = {'type': 'nav', 'data': nav_json}
-                self.send(MsgType.Text, Receiver='Screen', Data=data)
-                self.showBind = False
 
     def detect_setnet(self):
         ''' 检测配网按键 '''
@@ -65,12 +48,12 @@ class Daemon(MsgProcess):
                 os.system("sudo rfkill unblock wifi && sudo rfkill unblock all")
                 if self.config['initWifi'] == 'SoundWave':
                     self.send(MsgType.Stop, Receiver="Awake")
-                    from bin.setWifi.soundSetNet import soundSetNet
+                    from python.bin.setWifi.soundSetNet import soundSetNet
                     soundSetNet()
                     return
 
                 if self.config['initWifi'] == 'ApHot':
-                    from bin.Setnet import Setnet
+                    from python.bin.Setnet import Setnet
                     Netst = Setnet(self.config).main()
                     if Netst:
                         self.send(MsgType.Start, Receiver='MqttProxy')  # 启动mqtt
@@ -79,6 +62,20 @@ class Daemon(MsgProcess):
     def Start(self, message):
         ''' 起动守护线程 '''
         Thread(target=self.detectAll, args=(), daemon=True).start()
+
+    def setCity(self):
+        '''取如果全局配置没有城市数据 则设置城市位置'''
+        config = Mylib.getConfig()                  # 取全局配置
+        if config['LOCATION']['city'] is None:
+            data = hefeng().get_city()
+            if data:
+                re_json = {'city': data['name'], 'city_cnid': data['id']}
+                config['LOCATION']['city'] = re_json['city']
+                config['LOCATION']['city_cnid'] = re_json['city_cnid']
+                Mylib.saveConfig(config)             # 保存配置
+            else:
+                return False
+        return True
 
     def detect_netstate(self):
         '''  监控网络状态 '''
@@ -96,16 +93,18 @@ class Daemon(MsgProcess):
                     self.set_time_i = 0
                 # print( systime )
                 # data = {'type': 'dev', 'data':  {"netstatus": 1}}
-                # self.send(MsgType.Text, Receiver='Screen', Data=data)
+                # if self.isScreen is True:
+                #     self.send(MsgType.Text, Receiver='Screen', Data=data)
                 self.connectedTime = time.time()
                 if not self.netStatus:
                     self.netStatus = True
-                    data = {'type': 'dev', 'data':  {"netstatus": 1}}
-                    self.send(MsgType.Text, Receiver='Screen', Data=data)
+                    if self.isScreen is True:
+                        data = {'type': 'dev', 'data':  {"netstatus": 1}}
+                        self.send(MsgType.Text, Receiver='Screen', Data=data)
+                        self.send(MsgType.Text, Receiver='Screen', Data='网络已连接')
                     logging.info('网络已连接')
-                    self.send(MsgType.Text, Receiver='Screen', Data='网络已连接')
                     if Device.online():                                 # 设备成功上线
-                        self.showBindNav()                              # 显示绑定页
+                        self.setCity()                                  # 设置默认城市
                         self.send(MsgType.Start, Receiver='MqttProxy')  # 启动mqtt
                     if self.playreadygo:
                         # 准备好了。可以互动了
@@ -121,11 +120,11 @@ class Daemon(MsgProcess):
                 path = 'data/audio/meiyou_wangluo.wav'
                 os.system('aplay -q ' + path)
             self.netStatus = False
-            data = {'type': 'dev', 'data': {"netstatus": 0}}
-            self.send(MsgType.Text, Receiver='Screen', Data=data)
-            msg = '网络断开连接'
-            logging.warning(msg)
-            self.send(MsgType.Text, Receiver='Screen', Data=msg)
+            if self.isScreen is True:
+                data = {'type': 'dev', 'data': {"netstatus": 0}}
+                self.send(MsgType.Text, Receiver='Screen', Data=data)
+                self.send(MsgType.Text, Receiver='Screen', Data='网络断开连接')
+            logging.warning('网络断开连接')
 
     def detect_cpuwd(self):
         ''' 监控CPU温度 '''
@@ -134,51 +133,23 @@ class Daemon(MsgProcess):
         if wd >= self.cputemp_high:
             if self.pin_fengshan_zt == 0:
                 self.pin_fengshan_zt = 1
-                GPIO.output(self.pin_fengshan_kg, GPIO.HIGH)
+                GPIO.output(self.pin_fan_kg, GPIO.HIGH)
                 logging.info('启动CPU风扇')
         if wd < self.cputemp_low:
             if self.pin_fengshan_zt == 1:
                 self.pin_fengshan_zt = 0
-                GPIO.output(self.pin_fengshan_kg, GPIO.LOW)
+                GPIO.output(self.pin_fan_kg, GPIO.LOW)
                 logging.info('关闭CPU风扇')
         return res
-
-    def detect_man(self):
-        ''' 人体探测 '''
-        if self.pin_detect_man > 0:
-            detect_val = GPIO.input(self.pin_detect_man)
-            if detect_val>0:
-                now_time = int(time.time())
-                with open('runtime/detectval', 'w+' ) as f:
-                    f.write( str(now_time) )
-
-    def onoff_screen(self):
-        '''开关屏幕'''
-        if self.powersavetime > 0:
-            with open('runtime/detectval', 'r') as f:
-                val = f.read()
-                if val:
-                    if (time.time() - int(val)) >= self.powersavetime * 60:
-                        on_staut = os.popen('sudo vcgencmd display_power').read()
-                        starr = on_staut.strip().split('=')
-                        if int(starr[1])==1:
-                            os.system('sudo vcgencmd display_power 0 > /dev/null')
-                    else:
-                        on_staut = os.popen('sudo vcgencmd display_power').read()
-                        starr = on_staut.strip().split('=')
-                        if int(starr[1])==0:
-                            os.system('sudo vcgencmd display_power 1 > /dev/null')
 
 
     def detectAll(self):
         time.sleep(5)               # 等待屏幕启动，以免丢失网络图标
         Device.setSoundCard()       # 设置默认声卡
-        ''' 无限循环依次执行allTasks中的任务。每个任务执行后睡眠一秒 '''
+        ''' 无限循环依次执行allTasks中的任务。每个任务执行后睡眠秒数 '''
         allTasks = [
             {'name': 'detect_netstate', 'sleep': 5},
             {'name': 'detect_cpuwd', 'sleep': 28},
-            {'name': 'detect_man', 'sleep': 2},
-            {'name': 'onoff_screen', 'sleep': 9},
             {'name': 'detect_setnet', 'sleep': 1}
         ]
         i = 0

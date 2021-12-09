@@ -24,8 +24,7 @@ app.on('ready', function() {
 			webPreferences: {
 				webSecurity: false,
 				allowDisplayingInsecureContent:false,
-				nodeIntegration: true,
-				contextIsolation: false
+				nodeIntegration: true
 			}
 		}
 	}else{
@@ -38,8 +37,7 @@ app.on('ready', function() {
 				devTools: false,
 				webSecurity: false,
 				allowDisplayingInsecureContent:false,
-				nodeIntegration: true,
-				contextIsolation: false
+				nodeIntegration: true
 			}
 		}
 	}

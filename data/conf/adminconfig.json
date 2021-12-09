@@ -1,0 +1,98 @@
+[
+    {
+        "title": "首页",
+        "icon": "fa-home",
+        "path": "pages/index/index.html"
+    },
+    {
+        "title": "插件管理",
+        "icon": "fa-puzzle-piece",
+        "children": [
+            {
+                "path": "pages/plugin/myplugin.html",
+                "title": "已装插件"
+            },
+            {
+                "path": "pages/plugin/allplugin.html",
+                "title": "插件宝库"
+            },
+            {
+                "path": "pages/plugin/allplugin.html",
+                "title": "触发词管理",
+                "hide": true
+            }
+        ]
+    },
+    {
+        "title": "万能开关",
+        "icon": "fa-power-off",
+        "hide": true,
+        "children": [
+            {
+                "path": "pages/system/index.html",
+                "title": "设备管理"
+            },
+            {
+                "path": "pages/system/updata.html",
+                "title": "系统升级"
+            }
+        ]
+    },
+    {
+        "title": "自美系统管理",
+        "icon": "fa-gear",
+        "children": [
+            {
+                "path": "pages/system/index.html",
+                "title": "系统配置"
+            },
+            {
+                "path": "pages/system/setawake.html",
+                "title": "唤醒词设置",
+                "hide": true
+            },
+            {
+                "path": "pages/system/updata.html",
+                "title": "系统升级"
+            }
+        ]
+    },
+    {
+        "title": "开发者中心",
+        "icon": "fa-github-square",
+        "children": [
+            {
+                "path": "pages/develop/account.html",
+                "title": "开发者账号"
+            },
+            {
+                "path": "pages/develop/account.html",
+                "title": "创建插件",
+                "hide": true
+            },
+            {
+                "path": "pages/develop/message.html",
+                "title": "消息调试"
+            },
+            {
+                "path": "pages/develop/mqtt.html",
+                "title": "MQTT调试",
+                "hide": true
+            }
+        ]
+    },
+    {
+        "title": "树莓派系统",
+        "icon": "fa-linux",
+        "children": [
+            {
+                "path": "pages/linux/network.html",
+                "title": "网络配置"
+            },
+            {
+                "path": "pages/linux/user.html",
+                "title": "账户管理"
+            }
+        ]
+    }
+]

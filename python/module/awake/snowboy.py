@@ -1,8 +1,8 @@
 import os
 import socket
 import time
-from bin.pyAlsa import pyAlsa
-from api.snowboy import snowboydetect, config
+from python.bin.pyAlsa import pyAlsa
+from python.api.snowboy import snowboydetect, config
 
 class snowboy:
 
@@ -14,7 +14,7 @@ class snowboy:
         pass
 
     def main(self):
-        path = os.path.join(os.getcwd(), r'api/snowboy')
+        path = os.path.join(os.getcwd(), r'python/api/snowboy')
 
         resource = (os.path.join(path, 'common.res')).encode()
         model = (os.path.join(path, self.config['model'])).encode()

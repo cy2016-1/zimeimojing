@@ -4,7 +4,6 @@ from threading import Thread
 
 from MsgProcess import MsgProcess, MsgType
 
-
 class Awake(MsgProcess):
     '''语音唤醒类'''
 
@@ -22,7 +21,7 @@ class Awake(MsgProcess):
                 self.awakeThread = Thread(target=self.snowboyThread, args=())
 
             self.awakeThread.start()
-            logging.debug(self.awakeThread)
+            logging.debug('语音唤醒进程已启动！')
 
     def awakeSuccess(self):
         '''唤醒成功 - 回调使用'''
@@ -30,14 +29,14 @@ class Awake(MsgProcess):
 
     def snowboyThread(self):
         '''snowboy唤醒模块'''
-        from module.awake.snowboy import snowboy
+        from python.module.awake.snowboy import snowboy
         awak = snowboy()
         awak.awakeSuccess = self.awakeSuccess
         awak.main()
 
     def XFMonitorThread(self):
         '''讯飞唤醒模块'''
-        from module.awake.xunfei import xunfei
+        from python.module.awake.xunfei import xunfei
         awak = xunfei()
         awak.awakeSuccess = self.awakeSuccess
         awak.main()

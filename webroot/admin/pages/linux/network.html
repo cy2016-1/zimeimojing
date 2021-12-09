@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网络配置</title>
+    <link href="/static/bootstrap/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+    <link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="../../css/animate.min.css?v=4.0.0" rel="stylesheet">
+    <link href="../../css/style.min.css?v=4.0.0" rel="stylesheet">
+
+</head>
+
+<body class="gray-bg">
+    <div class="container-fluid topmenu">
+        <h2><i class="fa fa-sitemap"></i> 网络配置</h2>
+    </div>
+    <div class="container-fluid message-edit">
+
+        <!-- 内容 -->
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>有线网卡配置</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <!-- 页面内容 -->
+                        <div class="form-horizontal" id="eth_box">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>无线网卡配置</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <!-- 页面内容 -->
+                        <div class="form-horizontal" id="wlan_box">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>DNS服务配置</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <!-- 页面内容 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- 全局js -->
+    <script src="/static/jquery/jquery.min.js?v=2.1.4" type="text/javascript"></script>
+    <script src="/static/bootstrap/bootstrap.min.js?v=3.3.7" type="text/javascript"></script>
+    <script src="../../js/content.js?v=1.0.0"></script>
+
+    <!-- 自定义全局js -->
+    <script src="../../js-user/public.js" type="text/javascript"></script>
+    <script>
+        $(function () {
+            (init_get = function () {
+                var net_item = {};
+                net_item ={
+                    'IPv4': {
+                        'address': 'IPv4',
+                        'netmask': '子网掩码',
+                        'broadcast': '路由器'
+                    },
+                    'IPv6': {
+                        'address': 'IPv6',
+                        'netmask': '子网掩码',
+                        'broadcast': '路由器'
+                    },
+                    'MacAdd': {
+                        'address': 'MAC地址'
+                    }
+                };
+                var urlapi = '/api/linux_network.py?op=getnetwork&r=' + Math.random();
+                $.ajax({
+                    type: "GET",
+                    url: urlapi,
+                    dataType: 'json',
+                    success: function (jsonstr) {
+                        //console.log(jsonstr);
+
+                        if (jsonstr.code == '0000') {
+                            var data = jsonstr.data;
+                            if ($.type(data.eth0)=='object'){
+                                // 有线网卡信息
+                                var eth_html = '';
+                                if ( $.type(data.eth0['IPv4']) != 'object') {
+                                    eth_html += '<div class="form-group">';
+                                    eth_html += '<label class="col-sm-3 control-label">网络状态：</label>';
+                                    eth_html += '<div class="col-sm-9">';
+                                    eth_html += '<p class="form-control-static">未连接</p>';
+                                    eth_html += '</div></div>';
+                                };
+                                $.each(data.eth0, function(k ,v){
+                                    if ($.type(v)=='object'){
+                                        $.each(v, function(i, n){
+                                            eth_html += '<div class="form-group">';
+                                            eth_html += '<label class="col-sm-3 control-label">'+net_item[k][i]+'：</label>';
+                                            eth_html += '<div class="col-sm-9">';
+                                            eth_html += '<p class="form-control-static">'+ n +'</p>';
+                                            eth_html += '</div></div>';
+                                        });
+                                    }
+                                });
+                                $('#eth_box').html( eth_html );
+                            }
+                            if ($.type(data.wlan0)=='object'){
+                                // 无线网卡信息
+                                var eth_html = '';
+                                if ( $.type(data.wlan0['IPv4']) != 'object') {
+                                    eth_html += '<div class="form-group">';
+                                    eth_html += '<label class="col-sm-3 control-label">网络状态：</label>';
+                                    eth_html += '<div class="col-sm-9">';
+                                    eth_html += '<p class="form-control-static">未连接</p>';
+                                    eth_html += '</div></div>';
+                                };
+                                $.each(data.wlan0, function(k ,v){
+                                    if ($.type(v)=='object'){
+                                        $.each(v, function(i, n){
+                                            eth_html += '<div class="form-group">';
+                                            eth_html += '<label class="col-sm-3 control-label">'+net_item[k][i]+'：</label>';
+                                            eth_html += '<div class="col-sm-9">';
+                                            eth_html += '<p class="form-control-static">'+ n +'</p>';
+                                            eth_html += '</div></div>';
+                                        });
+                                    }
+                                });
+                                $('#wlan_box').html( eth_html );
+                            }
+                        }
+                    }
+                });
+            })();
+
+        });
+    </script>
+</body>
+
+</html>

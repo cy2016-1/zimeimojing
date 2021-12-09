@@ -62,26 +62,26 @@ class Install():
         self.cmd('sudo chmod +x', 'python/bin/pyAlsa/*')
 
         #创建所需目录
-        self.cmd('sudo mkdir -p', r'python/data/conf')
-        self.cmd('sudo mkdir -p', r'python/runtime/log')
-        self.cmd('sudo mkdir -p', r'python/runtime/photo')
-        self.cmd('sudo mkdir -p', r'python/runtime/soundCache')
+        self.cmd('sudo mkdir -p', r'data/conf')
+        self.cmd('sudo mkdir -p', r'runtime/log')
+        self.cmd('sudo mkdir -p', r'runtime/photo')
+        self.cmd('sudo mkdir -p', r'runtime/soundCache')
         self.cmd('sudo mkdir -p', r'/music/cache')
 
         #该目录下全部权限
-        self.cmd('sudo chown -R pi.pi', 'python/data/')
-        self.cmd('sudo chmod -R 0777', 'python/data/')
+        self.cmd('sudo chown -R pi.pi', 'data/')
+        self.cmd('sudo chmod -R 0777', 'data/')
 
         #该目录下全部不可执行，可读可写
-        self.cmd('sudo chown -R pi.pi', 'python/runtime/')
-        self.cmd('sudo chmod -R 0777', 'python/runtime/')
+        self.cmd('sudo chown -R pi.pi', 'runtime/')
+        self.cmd('sudo chmod -R 0777', 'runtime/')
         self.cmd('sudo chown -R pi.pi', '/music/cache')
         self.cmd('sudo chmod -R 0777', '/music/')
 
         #该目录下全部仅执行
-        self.cmd('sudo chmod +x' , 'python/run.py')
-        self.cmd('sudo chmod +x' , 'python/ControlCenter.py')
-        self.cmd('sudo chmod +x' , 'python/WebServer.py')
+        self.cmd('sudo chmod +x' , 'run.py')
+        self.cmd('sudo chmod +x' , 'ControlCenter.py')
+        self.cmd('sudo chmod +x' , 'WebServer.py')
 
         self.print_str('[完成]','p')
 
@@ -99,8 +99,8 @@ class Install():
 
         # 备份数据库
         filename = time.strftime("%Y%m%d%H%M%S", time.localtime())
-        old_data = os.path.join(self.root_path, 'python/data/config.db')
-        mov_data = os.path.join(self.root_path, 'python/data/config_'+ str(filename) +'.db')
+        old_data = os.path.join(self.root_path, 'data/config.db')
+        mov_data = os.path.join(self.root_path, 'data/config_'+ str(filename) +'.db')
         os.system('sudo mv '+ old_data +' '+ mov_data)
 
         conn = sqlite3.connect(old_data)
@@ -121,15 +121,15 @@ class Install():
         self.print_str("[完成]",'p')
 
         self.print_str("设置系统配置文件config.yaml" ,'n','n')
-        bak_file = os.path.join(self.root_path, 'python/data/conf/configBAK.yaml')
-        con_file = os.path.join(self.root_path, 'python/config.yaml')
+        bak_file = os.path.join(self.root_path, 'data/conf/configBAK.yaml')
+        con_file = os.path.join(self.root_path, 'config.yaml')
         os.system('sudo cp -f ' + bak_file + ' ' + con_file)
-        os.system('sudo chmod 0666 python/config.yaml')
+        os.system('sudo chmod 0666 config.yaml')
         self.print_str("[完成]",'p')
 
         self.print_str("初始化音量配置asound.state", 'n', 'n')
-        bak_file = os.path.join(self.root_path, 'python/data/conf/asound.stateBAK')
-        con_file = os.path.join(self.root_path, 'python/data/conf/asound.state')
+        bak_file = os.path.join(self.root_path, 'data/conf/asound.stateBAK')
+        con_file = os.path.join(self.root_path, 'data/conf/asound.state')
         os.system('sudo cp -f '+ bak_file +' '+ con_file)
         os.system("sudo chown pi.pi "+ con_file)
         os.system("sudo chmod 777 "+ con_file)
@@ -144,7 +144,7 @@ class Install():
         fstr = f.read()
         f.close()
 
-        run_py = 'python/run.py'
+        run_py = 'run.py'
 
         run_file = os.path.join(self.root_path, run_py)
         run_cmd = '*/5 * * * * pi export DISPLAY=:0 && '+ run_file  + " &" #必须加 & 不然计划任务失效     #每隔5分钟检测一次
@@ -193,9 +193,9 @@ class Install():
     # 开始清理工作
     def vacuuming(self):
         self.print_str("开始清理工作" ,'n','n')
-        os.system('rm -f '+ os.path.join(self.root_path, "python/runtime/soundCache") +'/*')
-        os.system('rm -f '+ os.path.join(self.root_path, "python/runtime/photo") +'/*')
-        os.system('rm -f '+ os.path.join(self.root_path, "python/runtime/log") +'/*')
+        os.system('rm -f '+ os.path.join(self.root_path, "runtime/soundCache") +'/*')
+        os.system('rm -f '+ os.path.join(self.root_path, "runtime/photo") +'/*')
+        os.system('rm -f '+ os.path.join(self.root_path, "runtime/log") +'/*')
         self.print_str("[完成]",'p')
 
     # 校准时间的方法
@@ -256,7 +256,7 @@ class Install():
 
         if argv != 'update':
             self.CreateTables()         # 创建系统默认数据库
-            self.reset_wifi()           # 重置WiFi网络
+            # self.reset_wifi()           # 重置WiFi网络
 
         self.add_crontab()              # 管理计划任务
         self.vacuuming()                # 开始清理工作

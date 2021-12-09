@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQTT消息调试</title>
+    <link href="/static/bootstrap/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+    <link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="../../css/animate.min.css?v=4.0.0" rel="stylesheet">
+    <link href="../../css/style.min.css?v=4.0.0" rel="stylesheet">
+
+    <link href="../../css-user/develop.css" rel="stylesheet">
+</head>
+
+<body class="gray-bg">
+    <div class="container-fluid topmenu">
+        <h2><i class="fa fa-sitemap"></i> MQTT消息调试工具</h2>
+    </div>
+    <div class="container-fluid message-edit">
+        <!-- 介绍 -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>MQTT消息协议</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <p>jquery.validate.js 是一款优秀的jQuery表单验证插件。它具有如下特点：</p>
+                        <ul>
+                            <li>安装简单</li>
+                            <li>内置超过20种数据验证方法</li>
+                            <li>直列错误提示信息</li>
+                            <li>可扩展的数据验证方法</li>
+                            <li>使用内置的元数据或插件选项来指定您的验证规则</li>
+                            <li>优雅的交互设计</li>
+                        </ul>
+                        <p>官网：<a href="http://jqueryvalidation.org/" target="_blank">http://jqueryvalidation.org/</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容 -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>MQTT消息调试工具</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <form class="form-horizontal" id="pluginConfig">
+                            <div class="form-group">
+                                <label for="name" class="col-sm-2 control-label">
+                                    消息类型
+                                    <p class="text-muted">MsgType</p>
+                                </label>
+                                <div class="col-sm-10">
+                                    <select class="form-control m-b" name="account" style="width:160px">
+                                        <option>启动 Start</option>
+                                        <option>暂停 Pause</option>
+                                        <option>继续 Resume</option>
+                                        <option>停止 Stop</option>
+                                        <option selected>文本 Text</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="displayName" class="col-sm-2 control-label">
+                                    接受者
+                                    <p class="text-muted">Receiver</p>
+                                </label>
+                                <div class="col-sm-10">
+                                    <select class="form-control m-b" name="account" style="width:120px">
+                                        <option selected>系统模块</option>
+                                        <option>微信小程序</option>
+                                        <option>万能开关</option>
+                                        <option>插件</option>
+                                    </select>
+                                    <select class="form-control m-b" name="account" style="width:160px">
+                                        <option selected>录音模块</option>
+                                        <option>微信小程序</option>
+                                        <option>万能开关</option>
+                                        <option>插件</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="description" class="col-sm-2 control-label">
+                                    消息体
+                                    <p class="text-muted">Data</p>
+                                </label>
+                                <div class="col-sm-10">
+                                    <textarea class="form-control" rows="3" id="description" style="width: 45%;"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-10">
+                                    <button type="button" class="btn btn-success" id="saveConfig"> 发送 </button>&emsp;&emsp;
+                                    <a class="btn btn-default" href="myplugin.html" role="button">重置</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- 全局js -->
+    <script src="/static/jquery/jquery.min.js?v=2.1.4" type="text/javascript"></script>
+    <script src="/static/bootstrap/bootstrap.min.js?v=3.3.7" type="text/javascript"></script>
+    <script src="../../js/content.js?v=1.0.0"></script>
+
+    <!-- 自定义全局js -->
+    <script src="../../js-user/public.js" type="text/javascript"></script>
+    <script>
+        $(function(){
+
+        });
+    </script>
+</body>
+</html>

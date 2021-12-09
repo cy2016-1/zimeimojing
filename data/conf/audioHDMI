@@ -1,0 +1,34 @@
+# External HDMI
+
+pcm.!default {
+  type asym
+  playback.pcm {
+    type plug
+    slave.pcm "output"
+  }
+  capture.pcm {
+    type plug
+    slave.pcm "input"
+  }
+}
+
+pcm.output {
+  type hw
+  card 0
+}
+
+ctl.!default {
+  type hw
+  card 0
+}
+
+pcm.input
+{
+    type dsnoop
+    slave
+    {
+        pcm "hw:wm8960soundcard"
+        channels 2
+    }
+    ipc_key 666666
+}
