@@ -1,0 +1,16 @@
+.rotate180{ transform: rotateY(180deg);}
+
+.topmenu h3{float: left;}
+.topmenu a{margin: 18px 0px 0px 10px;}
+
+.plugin-edit p.text-muted{color: #979797;font-size: 50%;margin: 0px;font-weight: 400;}
+.plugin-edit .control-label{padding-top: 0px !important;}
+.plugin-edit .notrigger{font-size: 14px; color: #4b4b4b;font-weight: 400;}
+.plugin-edit .tab-content>.tab-pane{padding-top: 20px;}
+.plugin-edit .label-default{background-color: #ecf5ff;border-color: #d9ecff;padding: .3em .6em .4em !important;font-size: 12px;
+    color: #409EFF;font-weight: 400;}
+
+.plugin-edit .version input{float: left;}
+.plugin-edit .version span{float: left;padding: 5px 0px 5px 5px;line-height: 26px;}
+
+.plugin-edit .updatebox{ margin: 25px 10px 10px;padding: 0px 5px;border: 1px solid #ccc;border-radius: 5px;background-color: whitesmoke;}

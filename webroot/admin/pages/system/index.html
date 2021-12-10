@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>自美系统配置</title>
+    <link href="/static/bootstrap/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+    <link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="../../css/animate.min.css?v=4.0.0" rel="stylesheet">
+    <link href="../../css/style.min.css?v=4.0.0" rel="stylesheet">
+
+    <link href="../../css-user/system.css" rel="stylesheet">
+</head>
+
+<body class="gray-bg">
+    <div class="container-fluid topmenu">
+        <h2><i class="fa fa-cogs"></i> 自美系统配置</h2>
+    </div>
+    <div class="container-fluid system-edit">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>已安装插件列表</h5>
+                    </div>
+                    <div class="ibox-content">
+
+                        <form class="form-horizontal" id="systemConfig">
+
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全局js -->
+    <script src="/static/jquery/jquery.min.js?v=2.1.4" type="text/javascript"></script>
+    <script src="/static/bootstrap/bootstrap.min.js?v=3.3.7" type="text/javascript"></script>
+    <script src="../../js/content.js?v=1.0.0"></script>
+
+    <!-- 自定义全局js -->
+    <script src="../../js-user/public.js" type="text/javascript"></script>
+
+    <!-- 自定义js -->
+    <script>
+        $(function () {
+
+            var Data = {
+                init_config: {},
+                new_config: {}
+            };
+
+            // 解析表单
+            analysis_form = function (i, n) {
+                if (n.select) {
+                    var select_html = '<select class="form-control" name="' + i + '" style="width:200px;">';
+                    $.each(n.select, function (k, v) {
+                        select_html += '<option value="' + k + '">' + v + '</option>';
+                    });
+                    select_html += '</select>';
+                    return select_html;
+                }
+                if (n.switch) {
+                    var switch_html = '<div class="btn-group" id="' + i + '" data-toggle="buttons">';
+                    switch_html += '<label class="btn btn-white btn-sm"><input type="radio" name="' + i + '" value="true">是</label>';
+                    switch_html += '<label class="btn btn-white btn-sm"><input type="radio" name="' + i + '" value="false">否</label>';
+                    switch_html += '</div>';
+                    return switch_html;
+                }
+                if (n.radio) {
+                    var radio_html = '';
+                    $.each(n.radio, function (k, v) {
+                        radio_html += '<label class="radio-inline">';
+                        radio_html += '<input type="radio" name="' + i + '" value="' + k + '"> ' + v;
+                        radio_html += '</label>';
+                    });
+                    return radio_html;
+                }
+            };
+
+            // 设置表单值
+            setValue = function (name, value) {
+                var first = name.substr(0, 1), input, i = 0, val;
+                if (value === "") return;
+                if ("#" === first || "." === first) {
+                    input = $(name);
+                } else {
+                    input = $("[name='" + name + "']");
+                }
+
+                if (input.eq(0).is(":radio")) { //单选按钮
+                    input.filter("[value='" + value + "']").each(function () { this.checked = true }).parent('label').addClass('active');
+                } else if (input.eq(0).is(":checkbox")) { //复选框
+                    if (!$.isArray(value)) {
+                        val = new Array();
+                        val[0] = value;
+                    } else {
+                        val = value;
+                    }
+                    for (i = 0, len = val.length; i < len; i++) {
+                        input.filter("[value='" + val[i] + "']").each(function () { this.checked = true });
+                    }
+                } else {  //其他表单选项直接设置值
+                    input.val(value);
+                }
+            }
+
+            // 根据配置设置值
+            set_value = function (config) {
+                $.each(config, function (i, n) {
+                    if (typeof (n) == 'object') {
+                        $.each(n, function (k, y) {
+                            var obj = i + '.' + k;
+                            if ($('[name="' + obj + '"]').length > 0) {
+                                setValue(obj, y);
+                            }
+                        });
+                    } else {
+                        if ($('[name="' + i + '"]').length > 0) {
+                            setValue(i, n);
+                        }
+                    }
+                });
+            };
+
+            // 事件绑定
+            event_bind = function () {
+                var $form = $('form#systemConfig');
+
+                var set_configval = function (name, val) {
+                    if (val == 'true') val = true;
+                    if (val == 'false') val = false;
+
+                    if ($.isEmptyObject(Data['new_config'])) { Data['new_config'] = Data['init_config'] };
+
+                    if (name.indexOf('.') != -1) {
+                        var name_arr = name.split('.');
+                        if (!Data['new_config'][name_arr[0]]) {
+                            Data['new_config'][name_arr[0]] = {};
+                        }
+                        Data['new_config'][name_arr[0]][name_arr[1]] = val;
+                    } else {
+                        Data['new_config'][name] = val;
+                    }
+                };
+
+                // 选择框事件
+                $form.find('select').change(function () {
+                    var _this = $(this);
+                    var name = _this.attr('name');
+                    var val = _this.val();
+                    set_configval(name, val);
+                });
+
+                // 单选按钮事件
+                $form.find('input[type="radio"]').click(function () {
+                    var _this = $(this);
+                    var val = _this.val();
+                    var name = _this.attr('name');
+                    set_configval(name, val);
+                });
+
+                // 开关按钮事件
+                $form.find('[data-toggle="buttons"] label').click(function () {
+                    var _this = $(this).children('input[type="radio"]');
+                    var name = _this.attr('name');
+                    var val = _this.val();
+                    set_configval(name, val);
+                });
+
+                // 保证配置
+                $form.find('#saveConfig').click(function () {
+                    var _this = $(this);
+                    if (!$.isEmptyObject(Data['new_config'])) {
+
+                        var urlapi = '/api/set_config.py?op=setconfig&r=' + Math.random();
+                        var postdata = JSON.stringify(Data['new_config']);
+
+                        $.ajax({
+                            type: "POST",
+                            url: urlapi,
+                            data: { data: postdata },
+                            dataType: 'json',
+                            beforeSend: function () {
+                                _this.attr({ 'disabled': 'disabled' }).text('正在保存');
+                            },
+                            success: function (jsonstr) {
+                                if (jsonstr.code == '0000') {
+                                    parent.swal({ title: "恭喜您！", text: jsonstr.message, type: "success" }, function (value) {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    parent.swal("", jsonstr.message, "error");
+                                }
+                                _this.removeAttr('disabled').text('保存');
+                            }
+                        });
+                    } else {
+                        parent.swal({ title: "您没有更改任何配置，无需保存!", type: "error" });
+                        return false;
+                    }
+                });
+
+                // 重置表单
+                $form.find('#reset').click(function () {
+                    $('[data-toggle="buttons"] label').removeClass('active');
+                    set_value(Data['init_config']);
+                    Data['new_config'] = {};
+                });
+            };
+
+            // 加载设置
+            (load_set = function () {
+                var urlapi = '/api/set_config.py?op=getconfig&r=' + Math.random()
+                $.ajax({
+                    type: "POST",
+                    url: urlapi,
+                    dataType: 'json',
+                    success: function (msg) {
+                        if (msg.code == '0000') {
+                            var setconfig = msg.data.setconfig;
+                            var configval = msg.data.config;
+                            Data['init_config'] = configval;
+
+                            var set_html = '';
+                            $.each(setconfig, function (i, n) {
+                                set_html += '<div class="form-group">';
+                                set_html += '<label for="name" class="col-sm-2 control-label">';
+                                set_html += n.note;
+                                set_html += '<p class="text-muted">' + i + '</p>';
+                                set_html += '</label>';
+                                set_html += '<div class="col-sm-10">';
+                                if (n.more) {
+                                    var more_html = '<div class="row more">';
+                                    $.each(n.more, function (x, y) {
+                                        more_html += '<label for="name" class="col-sm-2 control-label">';
+                                        more_html += y.note;
+                                        more_html += '</label>';
+                                        more_html += '<div class="col-sm-10">';
+                                        var new_i = i + '.' + x;
+                                        more_html += analysis_form(new_i, y);
+                                        more_html += '</div>';
+                                    });
+                                    set_html += more_html + '</div>';
+                                } else {
+                                    set_html += analysis_form(i, n);
+                                }
+                                set_html += '</div>';
+                                set_html += '</div>';
+                            });
+                            set_html += '<div class="form-group"><div class="col-sm-offset-2 col-sm-10">';
+                            set_html += '<button type="button" class="btn btn-success" id="saveConfig"> 保 存 </button>&emsp;&emsp;';
+                            set_html += '<button type="button" class="btn btn-default" id="reset"> 重置 </button></div></div>';
+                            $('#systemConfig').html(set_html);
+                            set_value(configval);
+                            event_bind();
+                        }
+                    }
+                });
+            })();
+        });
+    </script>
+</body>
+
+</html>

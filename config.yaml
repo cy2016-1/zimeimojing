@@ -1,0 +1,56 @@
+# 自美系统的配置文件 请简单了解yaml语法后再小心修改,特别注意冒号':'后要跟一个空格再填数据.
+
+RecSeclet: pyAlsa
+initWifi: ApHot
+AudioOutput: Device
+IsGeekMode: false
+ApiConfig:
+  AwakeEngine: XFAwake
+  SpeechSynthesis: Baidu
+  VoiceRecognition: Xunfei
+  FaceRecognition: Baidu
+LoadModular:
+  SocketProxy: true
+  Daemon: Start
+  Screen: false
+  Record: true
+  SpeechSynthesis: true
+  MqttProxy: true
+  Awake: Start
+LastDefaultPlugin: Chat
+Logging:
+  Level: DEBUG
+  File: runtime/log/sys.log
+  Mode: w
+CAMERA:
+  enable: true
+  flip: -1
+GPIO:
+  setnet_pin: 31
+  fan_kg: 13
+  cputemp:
+    high: 70
+    low: 50
+SCREEN_MARGON:
+  top: 10px
+  right: 10px
+  bottom: 10px
+  left: 10px
+VIEW:
+  host: 127.0.0.1
+  index: index.html
+  title: 自美魔镜
+  path: desktop/mojing/
+ADMIN:
+  config: data/conf/adminconfig.json
+httpapi: https://hapi.16302.com
+MQTT:
+  warp: data/mqtt
+  server: mqtt.16302.com
+  port: 1883
+  clientid: k14853c00ef
+  mqttname: k14853c00ef
+  mqttpass: 5e60dcd8dd8ea666234d9cfc505c2f7a
+LOCATION:
+  city: 合肥
+  city_cnid: '101220101'

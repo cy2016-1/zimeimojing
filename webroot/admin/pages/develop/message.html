@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消息调试</title>
+    <link href="/static/bootstrap/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+    <link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="../../css/animate.min.css?v=4.0.0" rel="stylesheet">
+
+    <link href="../../css/plugins/codemirror/codemirror.css" rel="stylesheet">
+    <link href="../../css/plugins/codemirror/ambiance.css" rel="stylesheet">
+
+    <link href="../../css/style.min.css?v=4.0.0" rel="stylesheet">
+
+    <link href="../../css-user/base.css" rel="stylesheet">
+    <link href="../../css-user/develop.css" rel="stylesheet">
+</head>
+
+<body class="gray-bg">
+    <div class="container-fluid topmenu">
+        <h2><i class="fa fa-comments-o"></i> 模块间消息通讯调试工具</h2>
+    </div>
+    <div class="container-fluid message-edit">
+        <!-- 介绍 -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>消息队列通讯 简介</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <p>消息通知机制是自美系统最核心的架构思想，为了使开发工作足够的简单易上手，系统将各个模块（插件、微信小程序、万能开关）之间通讯都是采用消息发送的方式进行交互：</p>
+                        <ul>
+                            <li><kbd>MsgType</kbd> -- 消息类型</li>
+                            <li><kbd>Receiver</kbd> -- 消息接收者</li>
+                            <li><kbd>Data</kbd> -- 消息体（字符串、字典类型）</li>
+                            <li><kbd>Sender</kbd> -- 发送者，可以为空，为空默认取当前命令执行的类名</li>
+                        </ul>
+                        <p>具体协议格式说明请看这里：<a href="http://docs.16302.com/1996640" target="_blank">http://docs.16302.com/1996640</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容 -->
+        <div class="row">
+            <div class="col-sm-7">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>调试工具</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <form class="form-horizontal form-muted" id="pluginConfig">
+                            <div class="form-group">
+                                <label for="name" class="col-sm-2 control-label">
+                                    发送的消息类型
+                                    <p class="text-muted">MsgType</p>
+                                </label>
+                                <div class="col-sm-10">
+                                    <select class="form-control m-b" name="Msgtype" id="Msgtype" style="width:180px">
+                                        <option value="Start">启动 Start</option>
+                                        <option value="Pause">暂停 Pause</option>
+                                        <option value="Resume">继续 Resume</option>
+                                        <option value="Stop">停止 Stop</option>
+                                        <option value="Text" selected>文本 Text</option>
+                                        <option disabled="disabled" label="--- 以下是控制中心特有 ---"></option>
+                                        <option value="Awake">语音唤醒 Awake</option>
+                                        <option value="LoadPlugin">加载插件 LoadPlugin</option>
+                                        <option value="Silence">静音 Silence</option>
+                                        <option value="QuitGeekTalk">退出连续对话 QuitGeekTalk</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="displayName" class="col-sm-2 control-label">
+                                    选择接收者
+                                    <p class="text-muted">Receiver</p>
+                                </label>
+                                <div class="col-sm-10 ReceiverBox">
+                                    <select class="form-control m-b" name="ReceiverType" id="ReceiverType" style="width:120px">
+                                    </select>
+                                    <select class="form-control m-b" name="Receiver" id="Receiver" style="width:160px">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group" id="DataBox">
+                                <label for="description" class="col-sm-2 control-label">
+                                    发送的消息体
+                                    <p class="text-muted">Data</p>
+                                </label>
+                                <div class="col-sm-10" id="DataInput">
+                                    <textarea class="form-control" rows="3" id="Data" style="width: 45%;"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-10">
+                                    <button type="button" class="btn btn-success" id="SendMsg">发送</button>&emsp;&emsp;
+                                    <button type="reset" class="btn btn-default" role="button">重置</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>代码生成</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <textarea id="code1" style="width: 100%;"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- 全局js -->
+    <script src="/static/jquery/jquery.min.js?v=2.1.4" type="text/javascript"></script>
+    <script src="/static/bootstrap/bootstrap.min.js?v=3.3.7" type="text/javascript"></script>
+    <script src="../../js/content.js?v=1.0.0"></script>
+
+    <script src="../../js/plugins/codemirror/codemirror.js"></script>
+    <script src="../../js/plugins/codemirror/mode/javascript/javascript.js"></script>
+
+    <!-- 自定义全局js -->
+    <script src="../../js-user/public.js" type="text/javascript"></script>
+    <script src="../../js-user/message_type.js" type="text/javascript"></script>
+    <script>
+        $(function(){
+            var editor_one = CodeMirror.fromTextArea(document.getElementById("code1"), {
+                mode: {name: "javascript", json: true},
+                lineNumbers: true,
+                matchBrackets: true,
+                styleActiveLine: true,
+                lineWrapping: true,
+                theme: "default" //"ambiance"
+            });
+
+            var Msgtype      = $('#Msgtype');
+            var ReceiverType = $('#ReceiverType');
+            var Receiver     = $('#Receiver');
+            var DataBox      = $('#DataBox');
+            var DataInput    = $('#DataInput');
+            var Data         = $('#Data');
+
+            ajax_data = function(datastr, fu){
+                var urlapi = '/api/develop_tools.py?op='+ datastr +'&r=' + Math.random();
+                $.ajax({
+                    type: "GET",
+                    url: urlapi,
+                    dataType: 'json',
+                    success: function(jsonstr) {
+                        console.log( jsonstr )
+                        if (typeof(fu) == 'function') {
+                            fu(jsonstr)
+                        }
+                    }
+                });
+            };
+
+            code_shengcheng = function(Data_val){
+                var Msgtype_val = Msgtype.val();
+                var Receiver_val = Receiver.val();
+                var Data_val = Data_val ? Data_val : '';
+                editor_one.setValue('{"MsgType": "'+ Msgtype_val +'", "Receiver": "'+ Receiver_val +'", "Data": "'+ Data_val +'"}');
+            };
+
+            // 创建Data对象
+            create_Data_obj = function(dataobj){
+                if (!dataobj) return false;
+                if (typeof(dataobj) == 'string') {
+                    var DataHtml = '<textarea class="form-control" rows="3" id="Data" style="width: 45%;"></textarea>';
+                    DataInput.html( DataHtml );
+                    $('#Data').on("blur keyup mouseup",function(){
+                        var Data_val = $(this).val();
+                        code_shengcheng(Data_val);
+                    });
+                }else{
+                    var DataHtml  = '<select class="form-control m-b" name="Data" id="Data" style="width:160px">';
+                        DataHtml += '<option selected>请选择</option>';
+                    $.each(dataobj, function(k, v){
+                        DataHtml += '<option value="'+ k +'">'+ v.text +'</option>';
+                    });
+                    DataHtml += '</select>';
+                    DataInput.html( DataHtml );
+                    $('#Data').change(function(){
+                        var Data_val = $(this).val();
+                        code_shengcheng(Data_val);
+                    });
+                }
+            };
+
+            // 接收者
+            Receiver.change(function(){
+                DataInput.empty();
+
+                var Msgtype_val = Msgtype.val();
+                var ReceiverType_val = ReceiverType.val();
+                var val = $(this).val();
+
+                if( Message[Msgtype_val][ReceiverType_val]['Receiver'] == 'Ajax_plugin') {
+                    var Data_obj = Message[Msgtype_val][ReceiverType_val]['Data'];
+                    create_Data_obj(Data_obj);
+                    code_shengcheng();
+                    return;
+                }
+                var Receiver_obj = Message[Msgtype_val][ReceiverType_val]['Receiver'][val];
+
+                if (Receiver_obj['Data']) {
+                    if ( Receiver_obj['Data'] == 'Ajax_plugin'){
+                        ajax_data(Receiver_obj['Data'], function(ret){
+                            if (ret.code=='0000'){
+                                var data = ret.data;
+                                if (data.type=='select') {
+                                    create_Data_obj(data.list);
+                                }
+                            }
+                        });
+                    }else if(Receiver_obj['Data'] == 'textarea'){
+                        create_Data_obj(Receiver_obj['Data']);
+                    }
+                    DataBox.show();
+                }else{
+                    DataBox.hide();
+                }
+                code_shengcheng();
+            });
+
+            // 创建Receiver对象
+            create_Receiver_obj = function(dataobj){
+                var ReceiverHtml = '';
+                $.each(dataobj, function(k, v){
+                    ReceiverHtml += '<option value="'+ k +'">'+ v.text +'</option>';
+                });
+                Receiver.html( ReceiverHtml ).show();
+                var options = Receiver.find("option");
+                options.attr("selected", false);
+                options.eq(0).attr("selected", true);
+                Receiver.change();
+            };
+
+            // 接收者类型
+            ReceiverType.change(function(){
+                Receiver.empty();
+                DataInput.empty();
+
+                var Msgtype_val = Msgtype.val();
+                var val = $(this).val();
+                var Msgtype_obj = Message[Msgtype_val][val];
+
+                if( typeof(Msgtype_obj['Receiver']) == "object") {
+                    create_Receiver_obj(Msgtype_obj['Receiver']);
+                }else{
+                    ajax_data(Msgtype_obj['Receiver'], function(ret){
+                        if (ret.code=='0000'){
+                            var data = ret.data;
+                            if (data.type=='select') {
+                                create_Receiver_obj(data.list);
+                            }
+                        }
+                    });
+                }
+            });
+
+            // 消息类型改变事件
+            Msgtype.change(function(){
+                Receiver.hide();
+                DataBox.hide();
+                DataInput.empty();
+                var val = $(this).val();
+                $.each(Message, function(i,n){
+                    if (val==i.toString()) {
+                        var ReceiverTypeHtml = '';
+                        $.each(n, function(ii, nn){
+                            ReceiverTypeHtml += '<option value="'+ ii +'">'+ nn.text +'</option>';
+                        });
+                        ReceiverType.html( ReceiverTypeHtml );
+                        var options = ReceiverType.find("option");
+                        options.attr("selected", false);
+                        options.eq(0).attr("selected", true);
+                        ReceiverType.change();
+                    }
+                });
+
+                code_shengcheng();
+            });
+            $('#Msgtype').change();
+
+            $('#SendMsg').click(function(){
+                var _this = $(this);
+                var Msgtype_val  = $('#Msgtype').val();
+                var Receiver_val = $('#Receiver').val();
+                var Data_val = $('#Data').val();
+
+                var message = {
+                    MsgType: Msgtype_val,
+                    Receiver: Receiver_val,
+                    Data: Data_val ? Data_val : ''
+                }
+
+                var urlapi = '/api/develop_tools.py?op=debugmess&r=' + Math.random();
+                var postdata = JSON.stringify(message);
+
+                $.ajax({
+                    type: "POST",
+                    url: urlapi,
+                    data: { data: postdata },
+                    dataType: 'json',
+                    beforeSend: function() {
+                        _this.attr({ 'disabled': 'disabled' }).text('正在发送');
+                    },
+                    success: function(jsonstr) {
+                        _this.removeAttr('disabled').text('发送');
+                    }
+                });
+
+            });
+        });
+    </script>
+</body>
+</html>

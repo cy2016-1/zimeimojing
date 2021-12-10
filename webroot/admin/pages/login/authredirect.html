@@ -1,0 +1,45 @@
+<script src="../../../static/jquery/jquery-2.0.3.min.js"></script>
+<script>
+    $(function() {
+        var getQueryString = function() {
+            var after = window.location.href;
+            if (after.indexOf('?') === -1) return null;     // 如果url中没有传参直接返回空
+            after = after.replace('#/', '');
+            after = after.split('?')[1];
+            return after;
+        }
+
+        const hash = getQueryString();
+        if (hash) {
+            var theReq = {};
+            var strs = hash.split('&');
+            for (let i = 0; i < strs.length; i++) {
+                var item = strs[i].split('=');
+                theReq[item[0]] = decodeURI(item[1]);
+            }
+            if (theReq['state'] && theReq['state'] === 'yes') {
+                var urlapi = '/api/develop_user.py?op=saveaccount&r='+ Math.random()
+                var postdata = {
+                    webuid: theReq['webuid'],
+                    username: theReq['nickname']
+                }
+                $.ajax({
+                    type: "POST",
+                    url: urlapi,
+                    data: postdata,
+                    dataType: 'json',
+                    success: function(msg){
+                        if (window.localStorage) {
+                            window.localStorage.setItem('x-admin-oauth-code', hash);
+                            window.close();
+                        }
+                    }
+                });
+            }
+        }
+        if (window.localStorage) {
+            window.localStorage.setItem('x-admin-oauth-code', hash);
+            //window.close();
+        }
+    })
+</script>

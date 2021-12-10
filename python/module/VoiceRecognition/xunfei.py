@@ -9,19 +9,19 @@ class xunfei():
     """讯飞语音识别模块"""
 
     def __init__(self):
-        self.config = config.config()
-        self.URL = "http://openapi.xfyun.cn/v2/aiui"
-        self.APPID = self.config["APPID"]
-        self.API_KEY = self.config["API_KEY"]
-        self.AUE = "raw"
-        self.AUTH_ID = self.config["AUTH_ID"]
-        self.DATA_TYPE = "audio"
-        self.SAMPLE_RATE = "16000"
-        self.SCENE = "main"
-        self.RESULT_LEVEL = "complete"
-        self.LAT = "39.938838"
-        self.LNG = "116.368624"
-        self.FILE_PATH = "demo.wav"
+        self.config         = config.config()
+        self.URL            = "http://openapi.xfyun.cn/v2/aiui"
+        self.APPID          = self.config["APPID"]
+        self.API_KEY        = self.config["API_KEY"]
+        self.AUE            = "raw"
+        self.AUTH_ID        = self.config["AUTH_ID"]
+        self.DATA_TYPE      = "audio"
+        self.SAMPLE_RATE    = "16000"
+        self.SCENE          = "main"
+        self.RESULT_LEVEL   = "complete"
+        self.LAT            = "39.938838"
+        self.LNG            = "116.368624"
+        self.FILE_PATH      = "demo.wav"
 
     def buildHeader(self):
         curTime = str(int(time.time()))

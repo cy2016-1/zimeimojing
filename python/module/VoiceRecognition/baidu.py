@@ -3,16 +3,17 @@ import uuid
 import logging
 
 class baidu():
+    """百度语音识别模块"""
 
     def __init__(self):
         self.config = config()
         self.CUID = hex(uuid.getnode())
 
     def main(self, data):
-        APP_ID = self.config['APP_ID']
-        API_KEY = self.config['API_KEY']
-        SECRET_KEY = self.config['SECRET_KEY']
-        client = AipSpeech(APP_ID, API_KEY, SECRET_KEY)
+        APP_ID      = self.config['APP_ID']
+        API_KEY     = self.config['API_KEY']
+        SECRET_KEY  = self.config['SECRET_KEY']
+        client      = AipSpeech(APP_ID, API_KEY, SECRET_KEY)
         # client.setConnectionTimeoutInMillis = 5000  # 建立连接的超时毫秒
         # client.setSocketTimeoutInMillis = 5000  # 传输数据超时毫秒
 

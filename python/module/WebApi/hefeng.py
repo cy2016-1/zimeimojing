@@ -1,32 +1,35 @@
-import api.Weather.config as config
-from package.mylib import mylib
+import python.api.Weather.config as config
+from python.package.Mylib import Mylib
 import json,re
 import requests
 
 # 和风天气API接口
 class hefeng():
     '''和风天气API接口'''
+
     def __init__(self):
         self.config = config.config()
 
     def webpost(self, api_url, location=''):
         apiurl = api_url + "?key="+ self.config['key'] +"&lang=zh&location=" + location
-        ipstr = mylib.http_post(apiurl)
+        ipstr = Mylib.http_get(apiurl)
         return ipstr
 
     # ================================================================================
+    # 获取当前设备客户端IP地址
     def get_client_ip(self):
-        response  = requests.get(url="http://hapi.16302.com/raspberry/get_client_ip.html",timeout=5)
-        if response.status_code==200:
-            data = response.text
-            return data
-
         response  = requests.get(url="http://pv.sohu.com/cityjson",timeout=5)
         if response.status_code==200:
             data = response.text
             data = re.findall(r'({.*})', data)[0]
             data = json.loads(data)
             return data["cip"]
+
+        response  = requests.get(url="http://hapi.16302.com/raspberry/get_client_ip.html",timeout=5)
+        if response.status_code==200:
+            data = response.text
+            return data
+
         return ''
 
     # get_city 获取当前网络IP和城市名称

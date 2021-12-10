@@ -4,7 +4,7 @@
 # @Description: 语音合成类，可以增加多家产品,暂实现百度语音识别
 
 from MsgProcess import MsgProcess, MsgType
-from package.CacheFileManager import CacheFileManager
+from python.package.CacheFileManager import CacheFileManager
 from hashlib import md5
 import os
 import logging

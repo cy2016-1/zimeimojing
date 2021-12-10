@@ -9,7 +9,7 @@ import re
 import time
 from threading import Thread
 
-from bin.SocketScreen import SocketScreen
+from python.bin.SocketScreen import SocketScreen
 from MsgProcess import MsgProcess, MsgType
 
 class Screen(MsgProcess):
@@ -27,7 +27,7 @@ class Screen(MsgProcess):
                     if 'MsgType' not in mess.keys():
                         mess['MsgType'] = 'Text'
                     mess['MsgType'] = re.sub(r'MsgType\.','', mess['MsgType'])
-                    if str(mess['MsgType']) not in MsgType.__members__:
+                    if not hasattr(MsgType, str(mess['MsgType'])):
                         mess['MsgType'] = 'Text'
                     new_msgtype = MsgType[ mess['MsgType'] ]
                     self.send(MsgType = new_msgtype, Receiver = mess['Receiver'], Data = mess['Data'])

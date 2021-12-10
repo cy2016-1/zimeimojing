@@ -11,15 +11,15 @@ import re
 import time
 import cv2
 
-from package.mylib import mylib
+from python.package.Mylib import Mylib
 
 class FaceRecognition():
     '''人脸识别类'''
 
     def __init__(self):
-        self.faceconfig = mylib.getConfig()['ApiConfig']['FaceRecognition']
+        self.faceconfig = Mylib.getConfig()['ApiConfig']['FaceRecognition']
         if self.faceconfig == 'Baidu':
-            from module.ImageRecognition.faceBaidu import faceBaidu
+            from python.module.ImageRecognition.faceBaidu import faceBaidu
             face = faceBaidu()
             self.IsFace = face.IsFace
             self.IsSameFace = face.IsSameFace
@@ -55,7 +55,7 @@ class FaceRecognition():
         仅在注册时才需要置为True
         返回值: 如果拍到人脸照片 并通过百度打分80以上则返回True 超时或失败返回False
         """
-        CAMERA = mylib.getConfig()['CAMERA']
+        CAMERA = Mylib.getConfig()['CAMERA']
         if not CAMERA['enable']:
             logging.warning("摄像头配置为不启用")
             return False
@@ -130,7 +130,7 @@ class FaceRecognition():
         '''
         current = "runtime/photo/current.jpg"
         if self.FromCaptureGetFaceImg(current, showFocus=False, timeOut=60):
-            import package.data as db
+            import python.package.Database as db
             data = db.data()
             user_list = data.user_list_get()
             if user_list and len(user_list) > 0:
