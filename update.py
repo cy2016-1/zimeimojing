@@ -239,8 +239,16 @@ class update():
             self.progress(1)
             time.sleep(1)
 
-            cmd = 'sudo rsync -aq --existing --exclude={".git","plugin/*"} '+ self.UPDATE_DIR +'/ '+ self.SYSTEM_DIR +'/'
+            cmd = 'sudo rsync -aq --exclude={".git","plugin/*"} '+ self.UPDATE_DIR +'/ '+ self.SYSTEM_DIR +'/'
             os.system( cmd )
+            plugin_dir = os.path.join(self.SYSTEM_DIR, 'plugin/')
+            if not os.path.isdir( plugin_dir ):
+                os.system('sudo mkdir -p '+ plugin_dir)
+            if not os.listdir(plugin_dir):
+                cmd = 'sudo rsync -aq '+ os.path.join(self.UPDATE_DIR, 'plugin/') +'/ '+ plugin_dir +'/'
+                os.system( cmd )
+
+            os.system('sudo chown -R pi.pi '+ self.SYSTEM_DIR )
 
             self.print_str('[完成]','p')
             self.progress(0)
@@ -295,12 +303,12 @@ class update():
         time.sleep(1)
 
         self.set_progress('50')
-
-        self.down_newfile()
-        self.set_progress('75')
-
-        is_up = self.diff_ver(False)
+        is_up = self.diff_ver(True)
         if is_up is True:
+            # 需要升级，进行下面的操作
+            self.down_newfile()
+            self.set_progress('75')
+
             opis = self.move_dir()
             self.set_progress('99')
 

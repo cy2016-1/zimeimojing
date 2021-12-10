@@ -9,7 +9,7 @@ from python.bin.Device import Device
 
 class develop_user(ApiBase):
     '''开发者账号登录'''
-    RECPATH = r"./runtime/developuser"
+    RECPATH = r"./runtime/info/developuser"
 
     # 获取本机IP地址
     def get_localhost(self):

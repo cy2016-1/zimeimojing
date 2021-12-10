@@ -66,6 +66,8 @@ class Install():
         self.cmd('sudo mkdir -p', r'runtime/log')
         self.cmd('sudo mkdir -p', r'runtime/photo')
         self.cmd('sudo mkdir -p', r'runtime/soundCache')
+        self.cmd('sudo mkdir -p', r'runtime/record')
+        self.cmd('sudo mkdir -p', r'runtime/info')
         self.cmd('sudo mkdir -p', r'/music/cache')
 
         #该目录下全部权限
@@ -196,6 +198,8 @@ class Install():
         os.system('rm -f '+ os.path.join(self.root_path, "runtime/soundCache") +'/*')
         os.system('rm -f '+ os.path.join(self.root_path, "runtime/photo") +'/*')
         os.system('rm -f '+ os.path.join(self.root_path, "runtime/log") +'/*')
+        os.system('rm -f '+ os.path.join(self.root_path, "runtime/record") +'/*')
+        os.system('rm -f '+ os.path.join(self.root_path, "runtime/info") +'/*')
         self.print_str("[完成]",'p')
 
     # 校准时间的方法
@@ -263,8 +267,7 @@ class Install():
         self.calibration_time()         # 正在设置时间核对
         self.del_pycache(self.root_path)
 
-        self.cmd('sudo chown -R pi.pi', 'python/')
-        self.cmd('sudo chown -R pi.pi', 'app/')
+        self.cmd('sudo chown -R pi.pi', './')
 
         self.print_str("安装工作全部完成*_^ ",'p')
 
