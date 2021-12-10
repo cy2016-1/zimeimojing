@@ -1,0 +1,11 @@
+{
+    "name": "CNW",
+    "triggerwords": [],
+    "IsEnable": true,
+    "IsSystem": false,
+    "AutoLoader": true,
+    "displayName": "CNW软件接口",
+    "description": "将语音互动接口与CNW物联网管理软件进入对接",
+    "icon": "0",
+    "webAdminApi": "configapi.py"
+}

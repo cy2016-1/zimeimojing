@@ -1,0 +1,6 @@
+{
+    "sender": "Mqttproxy",
+    "receive": "equipm",
+    "plugin": "CNW",
+    "data": %data%
+}
