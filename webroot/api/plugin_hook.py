@@ -32,7 +32,7 @@ class plugin_hook(ApiBase):
                             if fileext == '.js':
                                 file_list += cssjs.replace('./plugin','/plugin',1)
                                 file_list += ","
-                            if fileext == '.css':
+                            if fileext == '.css' or fileext == '.html':
                                 with open(cssjs, 'r') as f:
                                     file_docs += f.read()
         if fileext==".js":

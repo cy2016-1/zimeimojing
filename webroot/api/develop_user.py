@@ -34,6 +34,14 @@ class develop_user(ApiBase):
         }
         save_str = json.dumps(save_dict,ensure_ascii=False)
         encode_str = Device.develop_encode(save_str)
+
+        temp_path  = os.path.dirname(self.RECPATH)
+        if not os.path.isdir( temp_path ):
+            try:
+                os.makedirs( temp_path )     #创建保存目录
+            except: pass
+        del temp_path
+
         with open(self.RECPATH, 'w') as fso:
             fso.write(encode_str)
 

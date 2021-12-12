@@ -72,7 +72,7 @@ class ControlCenter(MsgProcess):
             self.send(MsgType=MsgType.HeartBeat, Receiver=pro.name)
 
     def AwakeInit(self):
-        '''唤醒初始化工作'''
+        '''唤醒初始化工作,读取唤醒词'''
         echofilePath = r'data/audio/echo'
         for root, dirs, files in os.walk(echofilePath):
             for f in files:
@@ -254,11 +254,10 @@ class ControlCenter(MsgProcess):
                 except Exception as e:
                     logging.error("json file %s load error: %s " % (fd, e))
                     continue
-                pluginName = pluginConfig['name']
-                IsEnable = pluginConfig['IsEnable']
+                pluginName   = pluginConfig['name']
+                IsEnable     = pluginConfig['IsEnable']
                 TriggerWords = pluginConfig['triggerwords']
-                # IsSystem = pluginConfig['IsSystem']
-                AutoLoader = pluginConfig['AutoLoader']
+                AutoLoader   = pluginConfig['AutoLoader']
                 if IsEnable:
                     if AutoLoader:
                         self.LoadPlugin(pluginName)  # 如是插件是开机加载类型,现在加载

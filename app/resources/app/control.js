@@ -145,9 +145,7 @@ var control = {
     },
 
     load_plugin_html: function (objtype) {
-
         var plugin_hook = html_root + "/api/plugin_hook.py?get=" + objtype;
-
         const request = net.request(plugin_hook);
         request.on("response", (response) => {
             response.on("data", (chunk) => {
@@ -185,11 +183,16 @@ var control = {
         this.mainWindow.webContents.on("did-finish-load", function () {
             let thisurl = control.mainWindow.webContents.getURL();
             if (thisurl.substr(-19, 19) == "/desktop/black.html") return;
-
             control.load_plugin_html("html");
             control.load_plugin_html("css");
             control.load_plugin_html("js");
             control.inset_to_python();
+        });
+
+        this.mainWindow.on("resize", function () {
+            let thisurl = control.mainWindow.webContents.getURL();
+            if (thisurl.substr(-19, 19) == "/desktop/black.html") return;
+            control.mainWindow.loadURL(view_index);
         });
     },
 };
