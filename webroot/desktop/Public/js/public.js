@@ -111,6 +111,52 @@ $(function() {
             window.clearTimeout(timer1);
             timer1 = setTimeout(function() { $('#tishiText').empty(); }, 30000);
         }
+
+        // 向页面添加元素
+        if (json.type == 'addElement'){
+            if (!json.data) return;
+            var data = json.data;
+            if ( json.eletype == 'html' ){
+                var file_list = data.split(',');
+                for (x in file_list) {
+                    $.get(file_list[x],function(html){
+                        if (html){
+                            var divobj = document.createElement("div");
+                            divobj.innerHTML = html;
+                            document.body.appendChild(divobj);
+                        }
+                    });
+                }
+            }
+            if ( json.eletype == 'js' ){
+                var file_list = data.split(',');
+                for (x in file_list) {
+                    var fileref = document.createElement("script");
+                    fileref.setAttribute("type","text/javascript");
+                    fileref.setAttribute("src", file_list[x]);
+                    document.getElementsByTagName("head")[0].appendChild(fileref);
+                }
+            }
+            if ( json.eletype == 'css' ){
+                var file_list = data.split(',');
+                for (x in file_list) {
+                    $.get(file_list[x],function(css){
+                        if (css){
+                            var cssScript = document.createElement('style');
+                            cssScript.type = 'text/css';
+                            cssScript.innerHTML = css;
+                            document.getElementsByTagName("head")[0].appendChild(cssScript);
+                        }
+                    });
+                }
+            }
+            if ( json.eletype == 'jscode' ){
+                var newScript = document.createElement('script');
+                newScript.type = 'text/javascript';
+                newScript.innerHTML = data;
+                document.body.appendChild(newScript);
+            }
+        }
     });
 });
 

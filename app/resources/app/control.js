@@ -111,7 +111,8 @@ var control = {
     // 向前端注入通讯接口
     inset_to_python: function () {
         var inc_js = `if(typeof(ZM)=='undefined')window.ZM={};if(typeof(ZM.send)!='function'){ZM.send=function(data){require('electron').ipcRenderer.send('toPython',data);}}`;
-        control.mainWindow.webContents.executeJavaScript(inc_js);
+        json_str = {type: 'addElement',eletype: 'jscode',data: inc_js};
+        control.mainWindow.webContents.send("public", json_str);
     },
 
     //内部通信服务端
@@ -126,7 +127,8 @@ var control = {
                     //如果是导航消息，直接在这里处理
                     control.navigat(json_str);
                 } else if (json_str.type == "exejs") {
-                    control.mainWindow.webContents.executeJavaScript(json_str.data);
+                    var exec_js = `try{`+ json_str.data +`}catch(err){console.log("[Python]:" + err);}`;
+                    control.mainWindow.webContents.executeJavaScript(exec_js);
                 } else {
                     control.mainWindow.webContents.send("public", json_str);
                 }
@@ -139,33 +141,19 @@ var control = {
             });
         }).listen(8103);
         server.on("connection", (client_sock) => {
-            console.log("[JS]:有客户端接入");
+            console.log("[JS]:有服务端接入");
             _this.relay_to_python(client_sock);
         });
     },
 
+    // 加载插件内的HTML、CSS、JS类代码
     load_plugin_html: function (objtype) {
         var plugin_hook = html_root + "/api/plugin_hook.py?get=" + objtype;
         const request = net.request(plugin_hook);
         request.on("response", (response) => {
             response.on("data", (chunk) => {
-                if (objtype == "html") {
-                    var inc_html = 'var divobj = document.createElement("div");';
-                    inc_html += "divobj.innerHTML = `" + chunk.toString("utf8") + "`;";
-                    inc_html += "document.body.appendChild(divobj);";
-                    control.mainWindow.webContents.executeJavaScript(inc_html);
-                } else if (objtype == "css") {
-                    control.mainWindow.webContents.insertCSS(`${chunk}`);
-                } else if (objtype == "js") {
-                    var file_list = chunk.toString("utf8").split(',');
-                    for (x in file_list) {
-                        var inc_html = 'var fileref = document.createElement("script");';
-                        inc_html += 'fileref.setAttribute("type","text/javascript");';
-                        inc_html += 'fileref.setAttribute("src","' + file_list[x] + '");';
-                        inc_html += 'document.getElementsByTagName("head")[0].appendChild(fileref);';
-                        control.mainWindow.webContents.executeJavaScript(inc_html);
-                    }
-                }
+                json_str = {type: 'addElement', eletype: objtype, data: chunk.toString("utf8")};
+                control.mainWindow.webContents.send("public", json_str);
             });
             response.on("end", () => { });
         });
