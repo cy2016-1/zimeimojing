@@ -175,7 +175,7 @@
                     var _this = $(this);
                     if (!$.isEmptyObject(Data['new_config'])) {
 
-                        var urlapi = '/api/set_config.py?op=setconfig&r=' + Math.random();
+                        var urlapi = '../../py/set_config.py?op=setconfig&r=' + Math.random();
                         var postdata = JSON.stringify(Data['new_config']);
 
                         $.ajax({
@@ -213,7 +213,7 @@
 
             // 加载设置
             (load_set = function () {
-                var urlapi = '/api/set_config.py?op=getconfig&r=' + Math.random()
+                var urlapi = '../../py/set_config.py?op=getconfig&r=' + Math.random()
                 $.ajax({
                     type: "POST",
                     url: urlapi,

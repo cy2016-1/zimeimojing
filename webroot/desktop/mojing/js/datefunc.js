@@ -128,7 +128,7 @@ var weather = {
 	Init: function(){
 		var _this = this;
 		$.ajax({
-			url: '/api/desktop_mojing.py',
+			url: 'py/desktop_mojing.py',
 			type: "GET",
 			data: {op:'getweather'},
 			dataType: "json",
@@ -214,7 +214,7 @@ var dateclass = {
 	// 农历显示
 	nongli_show: function(){
 		$.ajax({
-			url: '/api/desktop_mojing.py',
+			url: 'py/desktop_mojing.py',
 			type: "GET",
 			data: {op:'laohuangli'},
 			dataType: "json",

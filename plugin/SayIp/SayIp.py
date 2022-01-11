@@ -6,9 +6,9 @@
 import os
 from MsgProcess import MsgProcess, MsgType
 
-
+        
 class SayIp(MsgProcess):
-    def Text(self, message):
+    def Text(self, message):  
         ipAddrs = os.popen("hostname -I").read()    # 取IP地址
         if ipAddrs:                                 # 如果有IP
             msgstr = '当前IP为：' + ipAddrs
@@ -17,10 +17,10 @@ class SayIp(MsgProcess):
         self.say(msgstr)                             # 语音和屏显IP地址
 
         # 语音交互最简例子
-        self.say('是要再播报一次吗？请说\"是的\"或者\"不是\"!')
+        self.say('是要再播报一次吗？请说\"是的\"或者\"不是\"!')        
         words = self.listen()
         if '是的' in words:
             self.say(msgstr)
-
+        
         self.Stop()  # 报完IP即退出。
 

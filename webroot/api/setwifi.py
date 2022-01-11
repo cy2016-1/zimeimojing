@@ -1,10 +1,11 @@
 import json
 import sys,os,re
 import math
-from .ApiBase import ApiBase
+
+from WebServer import RequestInit
 from python.bin.Setnet import Wificore
 
-class setwifi(ApiBase):
+class setwifi(RequestInit):
 
     # 设置WiFi配网信息
     def set_wifi_info(self, data):
@@ -85,10 +86,10 @@ class setwifi(ApiBase):
     def main(self):
         sys.stderr = open(os.devnull, 'w')
         ret_str = {"code":"9999","msg":"数据格式错误"}
-        if 'op' in dict(self.query).keys():
-            op = self.query['op']
+        if 'op' in dict(self._GET).keys():
+            op = self._GET['op']
             if op == 'setinfo':
-                return self.set_wifi_info(self.query)
+                return self.set_wifi_info(self._GET)
 
             if op == 'getinfo':
                 return self.get_equipm_id()

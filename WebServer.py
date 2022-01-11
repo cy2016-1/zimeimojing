@@ -10,6 +10,8 @@ from urllib import parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from multiprocessing import Process
 
+from MsgProcess import MsgType as Msg_Type
+
 #-------------------------------------------------------------------------------
 
 class ServerException(Exception):
@@ -56,20 +58,23 @@ class case_cgi_file(base_case):
     '''可执行脚本'''
 
     def run_cgi(self, handler):
-        basename = os.path.basename(handler.path)
+        basename = os.path.splitext(os.path.basename(handler.package_path))[0]
+        dirname  = os.path.dirname(handler.package_path)
 
-        if handler.IsPlugin:
-            root_package = str(handler.path).replace(r"/",".")
-            root_package = re.sub(basename,"",root_package)
-            root_package = root_package.strip('.')
+        root_package = str(dirname).replace(r"/",".")
+        root_package = root_package.strip('.')
+
+        module = root_package+'.'+basename
+        if module in sys.modules.keys():
+            # 模块已经存在
+            package = sys.modules[module]
+            importlib.reload(package)
         else:
-            root_package = 'webroot.api'
+            package = importlib.import_module(r'.'+basename, package=root_package)
 
-        module = basename[:-3]
-
-        package = importlib.import_module(r'.'+ module, package=root_package)
-        moduleClass = getattr(package, module)
+        moduleClass = getattr(package, basename)
         process = moduleClass(handler)
+
         data = process.main()
         del package,moduleClass,process
         gc.collect()
@@ -118,11 +123,83 @@ class case_always_fail(base_case):
         raise ServerException("Unknown object '{0}'".format(handler.path))
 
 #-------------------------------------------------------------------------------
+#===============================================================================
+
+class RequestInit():
+    ''' 请求初始化类，所有具体操作需继承此类，基本已封装好常用的常量和变量 '''
+
+    def __init__(self, handler):
+        self.mimetype = handler.mimetype
+        self.command = handler.command
+
+        if self.command=='OPTIONS':
+            handler.send_content('', self.mimetype, 200)
+            return
+
+        self._OPTIONS = handler.OPTIONS
+        self._POST = handler.POST
+        self._GET = handler.GET
+
+        self.handler = handler
+
+    # 发送字典类型的消息
+    def __send_dict(self, dictobj):
+        template = {"MsgType": '', "Receiver": ''}
+        if len(template.keys() & dictobj.keys()) != 2:
+            return '发送参数格式有误'
+        else:
+            Sender = 'WebServer'
+            if 'Sender' in dictobj.keys(): Sender = dictobj['Sender']
+            Data = ''
+            if 'Data' in dictobj.keys(): Data = dictobj['Data']
+            message = {"MsgType": dictobj['MsgType'], "Receiver": dictobj['Receiver'], "Data": Data, "Sender": Sender}
+            return self.handler.Sock.sendall(json.dumps(message).encode())
+
+
+    # 与消息队列通信的函数
+    def send(self, MsgType, Receiver=None, Data=None, Sender=None):
+        if isinstance(MsgType, dict):
+            # 如果是字典则不考虑后面的参数
+            return self.__send_dict(MsgType)
+        elif isinstance(MsgType, str):
+            if not hasattr(Msg_Type, str(MsgType)):
+                # 不是消息类型，先按JSON字符串处理
+                try:
+                    dictobj = json.loads(MsgType)
+                    # 继续进行格式判断
+                    return self.__send_dict(dictobj)
+                except:
+                    # 按一般字符串处理，默认发送到控制中心
+                    message = {"MsgType": "Text", "Receiver": "ControlCenter", "Data": MsgType, "Sender": "WebServer"}
+                    return self.handler.Sock.sendall(json.dumps(message).encode())
+            elif Receiver==None:
+                return '接收者（Receiver）参数不能为空'
+            else:
+                if Sender==None:Sender = "WebServer"
+                if Data==None:Data = ''
+                # 是消息类型写法
+                message = {"MsgType": MsgType, "Receiver": Receiver, "Data": Data, "Sender": Sender}
+                return self.handler.Sock.sendall(json.dumps(message).encode())
+
+    def main(self):
+        data = '感谢使用自美人工智能系统'
+        return data
+
+#===============================================================================
+#-------------------------------------------------------------------------------
 
 class RequestHandler(BaseHTTPRequestHandler):
-    Plug_Root = os.path.dirname(os.path.abspath(__file__))
-    Http_Root = os.path.join(Plug_Root, 'webroot')
-    IsPlugin = False
+    ''' 请求处理器 '''
+
+    System_Root = os.path.dirname(os.path.abspath(__file__))
+    Http_Root = os.path.join(System_Root, 'webroot')
+
+    OPTIONS = {}
+    GET = {}
+    POST = {}
+
+    IP_Port = ('127.0.0.1', 8183)
+    Sock = socket.socket()     # 创建套接字
 
     '''
     请求路径合法则返回相应处理
@@ -163,32 +240,37 @@ class RequestHandler(BaseHTTPRequestHandler):
         ('.avi', 'video/x-msvideo')
     ]
 
-
-    IP_Port = ('127.0.0.1', 8183)
-    Sock = socket.socket()     # 创建套接字
+    # 拆分web请求参数
+    def __parse_parse_qs(self, query):
+        argv_dict = {}
+        for item in query.split('&'):
+            if item.find("=") != -1:
+                item_tab = item.split('=')
+                argv_dict[item_tab[0]] = item_tab[1]
+        return argv_dict
 
     # 处理身份验证
     def do_OPTIONS(self):
         result = parse.urlparse(self.path)
         self.path  = re.sub(r'^\/{2,}', "/",result.path)
         if result.query:
-            self.query = result.query
+            self.OPTIONS = self.__parse_parse_qs(result.query)
         self.handle_request()
 
     # 处理GET请求
     def do_GET(self):
         result = parse.urlparse(self.path)
         self.path  = re.sub(r'^\/{2,}', "/",result.path)
-        self.query = result.query
+        if result.query:
+            self.GET = self.__parse_parse_qs(result.query)
         self.handle_request()
 
     # 处理POST请求
     def do_POST(self):
         result = parse.urlparse(self.path)
         self.path  = re.sub(r'^\/{2,}', "/",result.path)
-        self.query = ''
         if result.query:
-            self.query = result.query
+            self.GET = self.__parse_parse_qs(result.query)
 
         req_datas = self.rfile.read(int(self.headers['content-length'])) #重点在此步!
         query = req_datas.decode()
@@ -202,13 +284,11 @@ class RequestHandler(BaseHTTPRequestHandler):
                             item_tab = item.split('=')
                             query_dict[item_tab[0]] = item_tab[1]
                 else:
-                    query_dict = json.loads(query)
-
-                for qkey in query_dict:
-                    self.query += '&' + str(qkey) + '=' + str(query_dict[qkey])
-                self.query = self.query.strip('&')
+                    query_dict.update( json.loads(query) )
             except:
                 pass
+
+        self.POST = query_dict
 
         self.handle_request()
 
@@ -216,14 +296,19 @@ class RequestHandler(BaseHTTPRequestHandler):
         try:
             self.Sock.getpeername()
         except:
-            self.Sock.connect(self.IP_Port)
+            try:
+                self.Sock.connect(self.IP_Port)
+            except Exception as msg:
+                pass
 
         try:
             # 得到完整的请求路径
-            HttpRoot = self.Http_Root
             if (re.search( r'^/plugin/', self.path, re.M|re.I)):
-                self.IsPlugin = True
-                HttpRoot = self.Plug_Root
+                self.package_path = os.path.join('/plugin', re.sub(r'^/', '',self.path,1) )
+                HttpRoot = self.System_Root
+            else:
+                self.package_path = os.path.join('/webroot', re.sub(r'^/', '',self.path,1) )
+                HttpRoot = self.Http_Root
 
             self.full_path = HttpRoot + self.path
 

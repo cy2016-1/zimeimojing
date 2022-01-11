@@ -9,8 +9,8 @@
     <link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
     <link href="../../css/animate.min.css?v=4.0.0" rel="stylesheet">
 
-    <link href="../../css/plugins/codemirror/codemirror.css" rel="stylesheet">
-    <link href="../../css/plugins/codemirror/ambiance.css" rel="stylesheet">
+    <link href="../../../static/codemirror/css/codemirror.css" rel="stylesheet">
+    <link href="../../../static/codemirror/css/ambiance.css" rel="stylesheet">
 
     <link href="../../css/style.min.css?v=4.0.0" rel="stylesheet">
 
@@ -138,8 +138,8 @@
     <script src="/static/bootstrap/bootstrap.min.js?v=3.3.7" type="text/javascript"></script>
     <script src="../../js/content.js?v=1.0.0"></script>
 
-    <script src="../../js/plugins/codemirror/codemirror.js"></script>
-    <script src="../../js/plugins/codemirror/mode/javascript/javascript.js"></script>
+    <script src="../../../static/codemirror/codemirror.js"></script>
+    <script src="../../../static/codemirror/mode/javascript/javascript.js"></script>
 
     <!-- 自定义全局js -->
     <script src="../../js-user/public.js" type="text/javascript"></script>
@@ -163,7 +163,7 @@
             var Data         = $('#Data');
 
             ajax_data = function(datastr, fu){
-                var urlapi = '/api/develop_tools.py?op='+ datastr +'&r=' + Math.random();
+                var urlapi = '../../py/develop_tools.py?op='+ datastr +'&r=' + Math.random();
                 $.ajax({
                     type: "GET",
                     url: urlapi,
@@ -317,7 +317,7 @@
                     Data: Data_val ? Data_val : ''
                 }
 
-                var urlapi = '/api/develop_tools.py?op=debugmess&r=' + Math.random();
+                var urlapi = '../../py/develop_tools.py?op=debugmess&r=' + Math.random();
                 var postdata = JSON.stringify(message);
 
                 $.ajax({

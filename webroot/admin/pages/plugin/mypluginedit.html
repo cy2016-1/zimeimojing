@@ -284,7 +284,7 @@
     <script>
         $(function () {
             var name = $.getUrlParam('name');
-            var urlapi = '/api/plugin_list.py?op=getinfo&name=' + name + '&r=' + Math.random()
+            var urlapi = '../../py/plugin_list.py?op=getinfo&name=' + name + '&r=' + Math.random()
             $.ajax({
                 type: "POST",
                 url: urlapi,
@@ -350,7 +350,7 @@
             show_uplist = function () {
                 var pluginName = $('#name').text();
                 var userid = $('#developer_webuid').val();
-                var urlapi = '/api/plugin_list.py?op=getupinfo&r=' + Math.random();
+                var urlapi = '../../py/plugin_list.py?op=getupinfo&r=' + Math.random();
                 var postdata = {
                     name: pluginName,
                     userid: userid
@@ -447,7 +447,7 @@
                 var AutoLoader   = $form.find('#AutoLoader .active input').val();
                 var IsEnable     = $form.find('#IsEnable .active input').val();
 
-                var urlapi = '/api/plugin_list.py?op=setconfig&r=' + Math.random();
+                var urlapi = '../../py/plugin_list.py?op=setconfig&r=' + Math.random();
                 var postdata = {
                     pluginName: pluginName,
                     displayName: displayName,
@@ -519,7 +519,7 @@
                     return false;
                 }
 
-                var urlapi = '/api/plugin_update.py?op=release&r=' + Math.random();
+                var urlapi = '../../py/plugin_update.py?op=release&r=' + Math.random();
                 var postdata = {
                     name: name,
                     webuid: webuid,
@@ -554,7 +554,7 @@
                 var _this = $(this);
                 var name = $('#name').text();
                 var origin_version = $('#origin_version').text();
-                var urlapi = '/api/plugin_update.py?op=update&r=' + Math.random();
+                var urlapi = '../../py/plugin_update.py?op=update&r=' + Math.random();
                 var postdata = {
                     name: name,
                     version: origin_version
@@ -583,7 +583,7 @@
 
             // 卸载插件
             uninstall_plugin = function(thisobj, pluginName){
-                var urlapi = '/api/plugin_update.py?op=uninstall&r=' + Math.random();
+                var urlapi = '../../py/plugin_update.py?op=uninstall&r=' + Math.random();
                 var postdata = {
                     name: pluginName
                 };

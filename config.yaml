@@ -14,7 +14,7 @@ ApiConfig:
 LoadModular:                    # 系统预加载模块 true:启用 false:禁用 Start:启用并需要一个Start消息
   SocketProxy: True             # Socket代理服务
   Daemon: Start                 # 守护进程
-  Screen: True                  # 前端APP
+  Screen: Start                 # 屏幕显示服务
   Record: True                  # 提供录音服务
   SpeechSynthesis: True         # 提供文本转语音服务
   MqttProxy: True               # MQTT代理
@@ -45,7 +45,6 @@ SCREEN_MARGON:                  # 屏幕边距配置
   left: 10px
 
 VIEW:                           # 前端默认显示
-  host: 127.0.0.1               # 前端显示设备的IP
   index: index.html
   title: 自美魔镜
   path: desktop/mojing/

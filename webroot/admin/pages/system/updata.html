@@ -86,7 +86,7 @@
             // 加载本地版本号
             (load_localver = function () {
                 var isUpdate = $('#isUpdate');
-                var urlapi = '/api/system_update.py?op=remotever&r=' + Math.random()
+                var urlapi = '../../py/system_update.py?op=remotever&r=' + Math.random()
                 $.ajax({
                     type: "POST",
                     url: urlapi,
@@ -143,7 +143,7 @@
                 var ajax_int = self.setInterval(function(){
                     $.ajax({
                         type: "GET",
-                        url: '/api/system_update.py?op=updatestate&r=' + Math.random(),
+                        url: '../../py/system_update.py?op=updatestate&r=' + Math.random(),
                         dataType: 'json',
                         success: function (msg) {
                             if (msg.code=='0000'){
@@ -157,7 +157,7 @@
             // 开始升级操作
             $('#isUpdate').click(function(){
                 var _this = $(this);
-                var urlapi = '/api/system_update.py?op=startupdate&r=' + Math.random()
+                var urlapi = '../../py/system_update.py?op=startupdate&r=' + Math.random()
                 $.ajax({
                     type: "POST",
                     url: urlapi,

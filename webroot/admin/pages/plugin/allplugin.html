@@ -70,7 +70,7 @@
 
             // 插件升级
             plugin_updata = function (thisobj, pluginName, upversion) {
-                var urlapi = '/api/plugin_update.py?op=update&r=' + Math.random();
+                var urlapi = '../../py/plugin_update.py?op=update&r=' + Math.random();
                 var postdata = {
                     name: pluginName,
                     version: upversion
@@ -100,7 +100,7 @@
 
             // 插件安装
             plugin_install = function (thisobj, pluginName) {
-                var urlapi = '/api/plugin_update.py?op=install&r=' + Math.random();
+                var urlapi = '../../py/plugin_update.py?op=install&r=' + Math.random();
                 var postdata = {
                     name: pluginName
                 };
@@ -146,7 +146,7 @@
             };
 
             (load_pluginlist = function () {
-                var urlapi = '/api/plugin_list.py?op=getalllist&r=' + Math.random()
+                var urlapi = '../../py/plugin_list.py?op=getalllist&r=' + Math.random()
                 $.ajax({
                     type: "POST",
                     url: urlapi,

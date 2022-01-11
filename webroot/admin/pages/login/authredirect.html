@@ -18,7 +18,7 @@
                 theReq[item[0]] = decodeURI(item[1]);
             }
             if (theReq['state'] && theReq['state'] === 'yes') {
-                var urlapi = '/api/develop_user.py?op=saveaccount&r='+ Math.random()
+                var urlapi = '../../py/develop_user.py?op=saveaccount&r='+ Math.random()
                 var postdata = {
                     webuid: theReq['webuid'],
                     username: theReq['nickname']

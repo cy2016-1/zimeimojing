@@ -248,8 +248,8 @@
             document.getElementsByTagName('head')[0].appendChild(script);
         }
 
-        const baseURL = "../";
-        var menuapi = baseURL + 'api/admin_init.py?get=menu&r='+ Math.random();
+        const baseURL = "./";
+        var menuapi = baseURL + 'py/admin_init.py?get=menu&r='+ Math.random();
         $(function() {
             // 动态加载菜单
             $.ajax({

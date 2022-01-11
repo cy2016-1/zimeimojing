@@ -17,7 +17,6 @@ class Chat(MsgProcess):
     def __init__(self, msgQueue):
         super().__init__(msgQueue=msgQueue)
         self.gameTalk = False
-        self.isScreen = self.config['LoadModular']['Screen']
 
     # 处理文本消息
     def Text(self, message):
@@ -38,9 +37,7 @@ class Chat(MsgProcess):
         # 判断返回数据是否是字典,可能返回的是数字所以str
         if re.sub(r'{.*}', "", str(html)) == "":
             res = json.loads(html)['content']
-
-            if self.isScreen is True:
-                self.send(MsgType=MsgType.Text, Receiver='Screen', Data=res)
+            self.send(MsgType=MsgType.Text, Receiver='Screen', Data=res)
             self.send(MsgType=MsgType.Text, Receiver='SpeechSynthesis', Data=res)
 
     def WXSpeech(self, text):
@@ -65,8 +62,7 @@ class Chat(MsgProcess):
         except Exception as e:
             msg = "和腾讯连接失败"
             logging.warning("{}:{}".format(msg, e))
-            if self.isScreen is True:
-                self.send(MsgType=MsgType.Text, Receiver='Screen', Data=msg)
+            self.send(MsgType=MsgType.Text, Receiver='Screen', Data=msg)
             return
         # 判断网络请求成功
         if page.getcode() == 200:
@@ -80,8 +76,6 @@ class Chat(MsgProcess):
                 if res['answer_type'] == 'text':
                     answer = res['answer']
                     logging.info(answer)
-                    if self.isScreen is True:
-                        self.send(MsgType=MsgType.Text, Receiver='Screen', Data=answer)
                     self.say(answer)
 
                     if self.gameTalk:
@@ -119,8 +113,7 @@ class Chat(MsgProcess):
 
                         self.send(MsgType=MsgType.QuitGeekTalk, Receiver='ControlCenter')
                         answer = res['answer']
-                        if self.isScreen is True:
-                            self.send(MsgType=MsgType.Text, Receiver='Screen', Data=answer)
+                        self.send(MsgType=MsgType.Text, Receiver='Screen', Data=answer)
                         self.send(MsgType=MsgType.Text, Receiver='SpeechSynthesis', Data=answer)
 
                         # 歌单格式: songList =[{'songname':name,'songurl':url},{...}...]
@@ -141,8 +134,7 @@ class Chat(MsgProcess):
                     except Exception as e:
                         logging.debug("%s %s" % (news_ans_detail, e))
                         answer = '新闻获取失败'
-                        if self.isScreen is True:
-                            self.send(MsgType=MsgType.Text, Receiver='Screen', Data=answer)
+                        self.send(MsgType=MsgType.Text, Receiver='Screen', Data=answer)
                         self.send(MsgType=MsgType.Text, Receiver='SpeechSynthesis', Data=answer)
                         return
                     titles = ''
@@ -151,8 +143,7 @@ class Chat(MsgProcess):
                         titles += (news['title'] + '\n')
                         text += (news['title'] + ':' + news['abs_s'] + '\n')
                     self.send(MsgType=MsgType.QuitGeekTalk, Receiver='ControlCenter')
-                    if self.isScreen is True:
-                        self.send(MsgType=MsgType.Text, Receiver='Screen', Data=titles)
+                    self.send(MsgType=MsgType.Text, Receiver='Screen', Data=titles)
                     self.send(MsgType=MsgType.Text, Receiver='SpeechSynthesis', Data=text)
                     # logging.debug(text)
 

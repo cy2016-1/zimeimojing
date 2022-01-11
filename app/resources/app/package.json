@@ -1,15 +1,12 @@
 {
     "main": "main.js",
-    "name": "moJing",
+    "name": "zimei",
     "version": "0.2.0",
     "scripts": {
-        "start": "electron .",
-        "pack": "electron-packager ./ moJing --platform=linux --out ../../../../../electron --arch=armv7l --app-version=0.2.0 --electron-version=11.2.1 --icon=./icon.ico"
+        "start": "electron ."
     },
     "author": "16302.com",
     "dependencies": {
-        "nodejs-websocket": "^1.7.2",
-        "qr-image": "^3.2.0",
-        "querystring": "^0.2.0"
+        "websocket": "^1.0.34"
     }
 }

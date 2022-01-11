@@ -54,7 +54,7 @@ LoadModular:
     Screen:
       note: 屏幕显示服务
       radio:
-        true: 启用
+        Start: 启用
         false: 禁用
     Record:
       note: 语音识别服务

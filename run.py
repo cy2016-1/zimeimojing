@@ -14,14 +14,15 @@ def stop(pname):
         print('[\033[31m停止任务 {} 成功！\033[0m]'.format(pname))
         cmd = "sudo pkill -fe {}".format(pname)
         os.system(cmd)
-
+        return 1
+    else:
+        return 0
 
 def processExist(pname):
     ''' 查询pname进程是否存在 是则返回true '''
     query = 'sudo ps ax | grep {} | grep -v grep '.format(pname)
     out = os.popen(query).read()
     return out != ''
-
 
 def init():
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -47,27 +48,35 @@ def init():
     mojing = Mylib.getConfig()["LoadModular"]["Screen"]
     if mojing is False:
         global tasks
-        tasks = tasks[1:]
+        del(tasks[2])
 
 
 tasks = [
-    {"pname": "moJing",                     "cmd": "export DISPLAY=:0.0 & app/moJing", "sleep": 3},    # 前端必须在第一位
-    {"pname": "WebServer.py",               "cmd": "python3 WebServer.py", "sleep": 1},
     {"pname": "ControlCenter.py",           "cmd": "python3 ControlCenter.py", "sleep": 1},
+    {"pname": "WebServer.py",               "cmd": "python3 WebServer.py", "sleep": 1},                 # 前端必须在第一位
+    {"pname": "moJing",                     "cmd": "export DISPLAY=:0.0 & app/moJing", "sleep": 1},
     {"pname": os.path.basename(__file__),   "cmd": __file__, "sleep": 1}]           # 自已必须在最后一位
 
 if __name__ == '__main__':
     args = str(sys.argv[1:]).lower()
     if 'stop' in args:
-        stop('awake')     # 语音唤醒
-        stop('mplayer')
-        stop('mosquitto')
+        stop_i = 0
+        stop_i += stop('awake')     # 语音唤醒
+        stop_i += stop('mplayer')
+        stop_i += stop('mosquitto')
         for task in tasks:
-            stop(task['pname'])
+            stop_i += stop(task['pname'])
+
+        print('=='*40)
+        print( stop_i )
+        print('=='*40)
 
     if 'debug' in args:
-        tasks[0]['cmd'] += " debug"
         tasks[1]['cmd'] += " debug"
+        tasks[2]['cmd'] += " debug"
+
+    if not os.popen('export | grep DISPLAY').read():
+        del(tasks[2])
 
     # 检测自己是否已运行
     isroot = 0

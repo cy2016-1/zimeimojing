@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+    <title>自美教育系统</title>
+    <link rel="stylesheet" type="text/css" href="../Public/css/base.css" />
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+</head>
+
+<body>
+    <div id="loading">
+        <div id="loading-center">
+            <div id="loading-center-absolute">
+                <div class="face">
+                    <div class="circle"></div>
+                </div>
+                <div class="face">
+                    <div class="circle"></div>
+                </div>
+                <div class="font">
+                    <div class="line">走进<br/>智能生活</div>
+                    <svg version="1.1" id="dc-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 10 35 8" preserveAspectRatio="xMinYMin meet">
+				  <text y="16" font-family="Monaco" font-size="5px" style="letter-spacing:0.6" fill="grey">自美教育系统<animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite"/>
+				  </text>
+				</svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid main-body" id="main_body">
+        <div class="show-box">屏幕显示区</div>
+    </div>
+    <script src="/static/jquery/jquery-2.0.3.min.js"></script>
+    <script type="text/javascript" src="../Public/js/public.js"></script>
+    <!--公有-->
+
+    <script type="text/javascript">
+        $(function() {
+
+        });
+        // 加载动画
+        $(window).load(function() { $("#loading").fadeOut(500); });
+    </script>
+</body>
+
+</html>

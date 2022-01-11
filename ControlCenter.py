@@ -282,6 +282,8 @@ class ControlCenter(MsgProcess):
         if pluginName == 'ControlCenter':  # 控制中心无需加载.
             return
 
+        logging.info('加载插件: [%s] ' % pluginName)
+
         # 根据插件名运行插件
         if all(map(lambda p: p.name != pluginName, self.ProcessPool)):  # 如果插件没有运行
             pluginDir = os.path.join(r'plugin', pluginName)
@@ -299,9 +301,13 @@ class ControlCenter(MsgProcess):
                     return
                 if AutoLoader == "Start" or AutoLoader is True:
                     self.send(MsgType=MsgType.Start, Receiver=pluginName)
-                package = r'.' + pluginName + '.' + pluginName
+                package = r'plugin.' + pluginName + '.' + pluginName
                 try:
-                    module = importlib.import_module(package, package='plugin')
+                    if package in sys.modules.keys():
+                        module = sys.modules[package]
+                        importlib.reload(module)
+                    else:
+                        module = importlib.import_module(package)
                 except Exception as e:
                     logging.error('插件[%s]加载失败! %s' % (pluginName, e))
                     return
@@ -317,7 +323,8 @@ class ControlCenter(MsgProcess):
             # 如果是系统插件，将最后运行的插件赋值给他
             if IsSystem:
                 self.lastSystemPlugin = pluginName
-        logging.info('加载插件: [%s] ' % pluginName)
+            return
+        logging.info('插件[%s]已在运行中' % pluginName)
 
 
 if __name__ == "__main__":

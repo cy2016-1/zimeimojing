@@ -17,7 +17,6 @@ class Daemon(MsgProcess):
         super().__init__(msgQueue)
         self.netStatus = False                                          # true为连网 false断网
         self.connectedTime = time.time()                                # 网络连网时间
-        self.isScreen = self.config['LoadModular']['Screen']            # 是否有屏幕
         self.pin_setnet = self.config['GPIO']['setnet_pin']             # 配网控制（引脚定义）
         self.pin_fan_kg = self.config['GPIO']['fan_kg']                 # 降温风扇开关 0 - 为关闭此功能
         self.cputemp_high = self.config['GPIO']['cputemp']['high']      # CPU最高温度
@@ -30,8 +29,8 @@ class Daemon(MsgProcess):
         self.set_time_i = 100                                           # 设置时间计时
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(self.pin_fan_kg, GPIO.OUT)
-        GPIO.setup(self.pin_setnet, GPIO.IN)
+        GPIO.setup(self.pin_fan_kg, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(self.pin_setnet, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
     def detect_setnet(self):
         ''' 检测配网按键 '''
@@ -93,15 +92,13 @@ class Daemon(MsgProcess):
                     self.set_time_i = 0
                 # print( systime )
                 # data = {'type': 'dev', 'data':  {"netstatus": 1}}
-                # if self.isScreen is True:
-                #     self.send(MsgType.Text, Receiver='Screen', Data=data)
+                # self.send(MsgType.Text, Receiver='Screen', Data=data)
                 self.connectedTime = time.time()
                 if not self.netStatus:
                     self.netStatus = True
-                    if self.isScreen is True:
-                        data = {'type': 'dev', 'data':  {"netstatus": 1}}
-                        self.send(MsgType.Text, Receiver='Screen', Data=data)
-                        self.send(MsgType.Text, Receiver='Screen', Data='网络已连接')
+                    data = {'type': 'dev', 'data':  {"netstatus": 1}}
+                    self.send(MsgType.Text, Receiver='Screen', Data=data)
+                    self.send(MsgType.Text, Receiver='Screen', Data='网络已连接')
                     logging.info('网络已连接')
                     if Device.online():                                 # 设备成功上线
                         self.setCity()                                  # 设置默认城市
@@ -120,10 +117,9 @@ class Daemon(MsgProcess):
                 path = 'data/audio/meiyou_wangluo.wav'
                 os.system('aplay -q ' + path)
             self.netStatus = False
-            if self.isScreen is True:
-                data = {'type': 'dev', 'data': {"netstatus": 0}}
-                self.send(MsgType.Text, Receiver='Screen', Data=data)
-                self.send(MsgType.Text, Receiver='Screen', Data='网络断开连接')
+            data = {'type': 'dev', 'data': {"netstatus": 0}}
+            self.send(MsgType.Text, Receiver='Screen', Data=data)
+            self.send(MsgType.Text, Receiver='Screen', Data='网络断开连接')
             logging.warning('网络断开连接')
 
     def detect_cpuwd(self):

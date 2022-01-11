@@ -56,7 +56,7 @@ class Music(MsgProcess):
                 for file in os.listdir(self.music_cache_path):
                     url = os.path.abspath(os.path.join(self.music_cache_path, file))
                     if os.path.isfile(url):
-                        ext = os.path.splitext(file)[1]
+                        ext = os.path.splitext(file)[1].lower()
                         name = os.path.splitext(file)[0]
                         if ext in musicExt:
                             if 1024 <= os.path.getsize(url) <= 200*1024*1024:  # 歌曲大小在1kb~200MB

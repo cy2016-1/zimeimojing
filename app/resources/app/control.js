@@ -1,12 +1,15 @@
 const { BrowserWindow, net, ipcMain } = require("electron");
-const ws = require("nodejs-websocket");
+var WebSocketClient = require('websocket').client;
 
-const html_root = "http://127.0.0.1:8088";
-var view_index = html_root + "/desktop/black.html";
+const server_root = "127.0.0.1";
+const web_server  = "http://"+ server_root +":8088";
+const screen_server = "ws://"+ server_root +":8103"
+var view_index = web_server + "/desktop/black.html";
 
 var control = {
     mainWindow: "", // webview 窗件
     IsDisplayScreen: true,
+    socket_timer: 0,
 
     //导航
     navigat: function (nav_json) {
@@ -37,7 +40,7 @@ var control = {
                 // event ：'open' 弹出窗口
                 var rx = /^https?:\/\//i;
                 var url = nav_json.url;
-                if (!rx.test(url)) url = html_root +'/'+ url;
+                if (!rx.test(url)) url = web_server +'/'+ url;
                 url = url.replace(/\\/g, "/");
 
                 if (nav_json.event == "open") {
@@ -93,7 +96,7 @@ var control = {
         }
     },
 
-    //接收前端消息并转发到Python
+    // 接收前端消息并转发到Python
     relay_to_python: function (client_sock) {
         ipcMain.on("toPython", (event, arg) => {
             if (typeof arg == "string") {
@@ -104,51 +107,70 @@ var control = {
                 }
             }
             arg = JSON.stringify(arg);
-            client_sock.sendText(arg);
+            client_sock.sendUTF(arg.toString());
         });
     },
 
     // 向前端注入通讯接口
     inset_to_python: function () {
-        var inc_js = `if(typeof(ZM)=='undefined')window.ZM={};if(typeof(ZM.send)!='function'){ZM.send=function(data){require('electron').ipcRenderer.send('toPython',data);}}`;
+        var inc_js = `if(typeof(self)=='undefined')self={};if(typeof(self.send)!='function'){const { ipcRenderer } = require('electron');self.send=function(data){ipcRenderer.send('toPython',data);}}`;
         json_str = {type: 'addElement',eletype: 'jscode',data: inc_js};
         control.mainWindow.webContents.send("public", json_str);
     },
 
     //内部通信服务端
     start_websocket: function () {
-        console.log("[JS]:开始建立屏幕通讯连接...");
         var _this = this;
-        var server = ws.createServer((conn) => {
-            conn.on("text", (str) => {
-                // console.log(str);
-                var json_str = JSON.parse(str); //字符串转json
-                if (json_str.type == "nav") {
-                    //如果是导航消息，直接在这里处理
-                    control.navigat(json_str);
-                } else if (json_str.type == "exejs") {
-                    var exec_js = `try{`+ json_str.data +`}catch(err){console.log("[Python]:" + err);}`;
-                    control.mainWindow.webContents.executeJavaScript(exec_js);
-                } else {
-                    control.mainWindow.webContents.send("public", json_str);
+        var client = new WebSocketClient();
+
+        // 绑定连接失败事件
+        client.on('connectFailed', function (error) {
+            // console.log('[JS]连接错误1: ' + error.toString());
+        });
+
+        // 绑定连接成功事件
+        client.on('connect', function (connection) {
+            // console.log('[JS]屏幕显示连接成功');
+            clearInterval(control.socket_timer);
+            connection.on('error', function (error) {
+                console.log("[JS]连接错误2: " + error.toString());
+            });
+            connection.on('close', function () {
+                // console.log('[JS]回送协议连接已关闭');
+                control.socket_timer = setInterval(start_connect, 1500);
+            });
+            connection.on('message', function (message) {
+                if (message.type === 'utf8') {
+                    var str = message.utf8Data;
+                    try {
+                        var json_str = JSON.parse(str); //字符串转json
+                        if (json_str.type == "nav") {
+                            //如果是导航消息，直接在这里处理
+                            control.navigat(json_str.data);
+                        } else if (json_str.type == "exejs") {
+                            var exec_js = `try{`+ json_str.data +`}catch(err){console.log("[JS]:Python:" + err);}`;
+                            control.mainWindow.webContents.executeJavaScript(exec_js);
+                        } else {
+                            control.mainWindow.webContents.send("public", json_str);
+                        }
+                    } catch (err) {
+                        console.log("[JS]:err:" + err);
+                    }
                 }
             });
-            conn.on("close", (code, reason) => {
-                console.log("[JS]:关闭连接");
-            });
-            conn.on("error", (code, reason) => {
-                console.log("[JS]:异常关闭");
-            });
-        }).listen(8103);
-        server.on("connection", (client_sock) => {
-            console.log("[JS]:有服务端接入");
-            _this.relay_to_python(client_sock);
+            _this.relay_to_python(connection);
         });
+
+        start_connect = function(){
+            client.connect(screen_server);
+        };
+
+        control.socket_timer = setInterval(start_connect, 1500);
     },
 
     // 加载插件内的HTML、CSS、JS类代码
     load_plugin_html: function (objtype) {
-        var plugin_hook = html_root + "/api/plugin_hook.py?get=" + objtype;
+        var plugin_hook = web_server + "/api/plugin_hook.py?get=" + objtype;
         const request = net.request(plugin_hook);
         request.on("response", (response) => {
             response.on("data", (chunk) => {

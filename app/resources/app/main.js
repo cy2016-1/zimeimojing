@@ -1,33 +1,25 @@
-const {app,BrowserWindow} = require('electron');
-const control = require('./control');
+const { app, BrowserWindow } = require('electron');
 
 var mainWindow = null;
-
-app.on('window-all-closed', function() {
-	if (process.platform != 'darwin') {
-		app.quit();
-	}
-});
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 app.disableHardwareAcceleration();
 
-app.on('ready', function() {
-	//隐藏菜单栏
-	//electron.Menu.setApplicationMenu(null);
-
-	var shared = {argv: process.argv}
+function createWindow() {
+	var isenv = (process.env.PWD) ? true : false;
+	var argv = process.argv;
 	var options = {}
-	if (shared.argv.length > 1){
+	if (argv.length > 1 && argv[1].toUpperCase() == 'DEBUG') {
 		options = {
 			backgroundColor: '#000000',
 			webPreferences: {
 				webSecurity: false,
-				allowDisplayingInsecureContent:false,
-				nodeIntegration: true
+				allowDisplayingInsecureContent: false,
+				nodeIntegration: true,
+				contextIsolation: false
 			}
 		}
-	}else{
+	} else {
 		options = {
 			backgroundColor: '#000000',
 			width: 1,
@@ -36,19 +28,31 @@ app.on('ready', function() {
 			webPreferences: {
 				devTools: false,
 				webSecurity: false,
-				allowDisplayingInsecureContent:false,
-				nodeIntegration: true
+				allowDisplayingInsecureContent: false,
+				nodeIntegration: true,
+				contextIsolation: false
 			}
 		}
 	}
-
-	// 创建浏览器窗口。
+	// 创建浏览器窗口
 	mainWindow = new BrowserWindow(options);
-	mainWindow.openDevTools();// 打开开发工具
+	if (!options.kiosk && isenv) mainWindow.openDevTools();// 打开开发工具
 
-	// 加载应用
+	const control = require('./control');
 	control.Init(mainWindow);
+}
 
-	// 当mainWindow被关闭，这个事件会被发出
-	mainWindow.on('closed', function() {mainWindow = null;});
-});
+app.whenReady().then(() => {
+	createWindow()
+	app.on('activate', () => {
+		if (BrowserWindow.getAllWindows().length === 0) {
+			createWindow()
+		}
+	})
+})
+
+app.on('window-all-closed', () => {
+	if (process.platform !== 'darwin') {
+		app.quit()
+	}
+})

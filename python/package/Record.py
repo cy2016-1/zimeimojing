@@ -59,7 +59,6 @@ class Record(MsgProcess):
         super().__init__(msgQueue=msgQueue)
         self.vad = webrtcvad.Vad(1)  # 语音检测库
         self.isReset = False
-        self.isScreen = self.config['LoadModular']['Screen']
         self.currentRecThread = None  # 当前录音线程
         self.VoiceRecognition = VoiceRecognition(MsgProcess)
 
@@ -67,8 +66,7 @@ class Record(MsgProcess):
         logging.info('[%s] request Record' % message['Sender'])
         if self.currentRecThread and self.currentRecThread.is_alive():
             self.isReset = True
-            if self.isScreen is True:
-                self.send(MsgType.Text, Receiver='Screen', Data='请说，我正在聆听...')
+            self.send(MsgType.Text, Receiver='Screen', Data='请说，我正在聆听...')
             return
         os.popen('aplay -q data/audio/ding.wav')
         time.sleep(0.4)
@@ -117,18 +115,16 @@ class Record(MsgProcess):
         frames = list()
         record_T = time.time()
 
-        # info = {'type':'mic',      类型：dev 设备
-        #        'state': 'start'}  状态：start / stop / 1 / 0
+        # info = {'type':'mic',     类型：mic 麦
+        #        'data': 'start'}   b状态：start / stop / 1 / 0
 
-        info = {'type': 'mic', 'state': 'start'}
-        if self.isScreen is True:
-            self.send(MsgType=MsgType.Text, Receiver='Screen', Data=info)       # 显示mic
-        info = {'type': 'mic', 'state': 1}
+        info = {'type': 'mic', 'data': 'start'}
+        self.send(MsgType=MsgType.Text, Receiver='Screen', Data=info)       # 显示mic
+        info = {'type': 'mic', 'data': 1}
         # logging.info('开始录音...')
         while (time.time() - record_T < MAXRECLAN):
-            info['state'] = ('1' if info['state'] == '0' else '0')
-            if self.isScreen is True:
-                self.send(MsgType=MsgType.Text, Receiver='Screen', Data=info)   # 前端mic动画
+            info['data'] = ('1' if info['data'] == '0' else '0')
+            self.send(MsgType=MsgType.Text, Receiver='Screen', Data=info)   # 前端mic动画
             if (self.isReset):
                 logging.info('录音重置')
                 frames.clear()
@@ -153,9 +149,8 @@ class Record(MsgProcess):
                     Speech_CHUNK_Counter = 0
                     frames.clear()
 
-        info = {'type': 'mic', 'state': 'stop'}
-        if self.isScreen is True:
-            self.send(MsgType=MsgType.Text, Receiver='Screen', Data=info)  # 不显示mic
+        info = {'type': 'mic', 'data': 'stop'}
+        self.send(MsgType=MsgType.Text, Receiver='Screen', Data=info)  # 不显示mic
         stream.close()
         logging.info('录音结束')
 
@@ -165,16 +160,14 @@ class Record(MsgProcess):
             frames = b"".join(frames)
             text = self.VoiceRecognition.Start(frames)
             if text:
-                if self.isScreen is True:
-                    self.send(MsgType.Text, Receiver='Screen', Data=text)
+                self.send(MsgType.Text, Receiver='Screen', Data=text)
                 self.send(MsgType=MsgType.Text, Receiver=message['Sender'], Data=text)
                 self.saveRec(frames, text)
                 logging.info(text)
                 return
         logging.info('无语音数据')
         self.send(MsgType.JobFailed, Receiver=message['Sender'])
-        if self.isScreen is True:
-            self.send(MsgType.Text, Receiver='Screen', Data='无语音数据')
+        self.send(MsgType.Text, Receiver='Screen', Data='无语音数据')
         self.send(MsgType.QuitGeekTalk, Receiver='ControlCenter')
 
     def saveRec(self, frames, text):

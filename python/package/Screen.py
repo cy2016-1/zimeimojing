@@ -15,52 +15,55 @@ from MsgProcess import MsgProcess, MsgType
 class Screen(MsgProcess):
     def __init__(self, msgQueue):
         super().__init__(msgQueue)
-        self.StartServer()
+        self.sw = SocketScreen()
 
     # 收到消息回调
-    def on_message(self, ws):
-        while True:
-            try:
-                response = ws.recv()
-                mess = json.loads(response)
-                if type(mess) is dict:
-                    if 'MsgType' not in mess.keys():
-                        mess['MsgType'] = 'Text'
-                    mess['MsgType'] = re.sub(r'MsgType\.','', mess['MsgType'])
-                    if not hasattr(MsgType, str(mess['MsgType'])):
-                        mess['MsgType'] = 'Text'
-                    new_msgtype = MsgType[ mess['MsgType'] ]
-                    self.send(MsgType = new_msgtype, Receiver = mess['Receiver'], Data = mess['Data'])
-            except json.JSONDecodeError:
-                continue
-            except:
-                self.re_connection()
-                break
-        exit()
+    def on_message(self, client, server, message):
+        try:
+            mess = json.loads(message)
+            if type(mess) is dict:
+                if 'MsgType' not in mess.keys():
+                    mess['MsgType'] = 'Text'
+                mess['MsgType'] = re.sub(r'MsgType\.','', mess['MsgType'])
+                if not hasattr(MsgType, str(mess['MsgType'])):
+                    mess['MsgType'] = 'Text'
+                new_msgtype = MsgType[ mess['MsgType'] ]
+                self.send(MsgType = new_msgtype, Receiver = mess['Receiver'], Data = mess['Data'])
+        except json.JSONDecodeError:
+            self.send(MsgType = MsgType.Text, Receiver = 'ControlCenter', Data = message)
+        except:
+            pass
 
-    # 重连前端，如果连接成功则重启屏幕模块
-    def re_connection(self):
-        is_succ = self.sw.connection()
-        if is_succ is True:
-            self.send(MsgType.Start, Receiver='ControlCenter', Data='Screen')
-            return True
+    # 有新的前端屏幕接入
+    def client_access(self, client, server):
+        self.open_default()
 
-        time.sleep(2)
-        self.re_connection()
+    def client_disconnect(self, client, server):
+        logging.info("屏幕%s已断开" % client['id'])
 
     # 启用屏幕通讯服务器
     def StartServer(self):
-        self.sw = SocketScreen(self.config['VIEW']['host'])
-        self.sw.connection()
-        self.openindex()
-        p = Thread(target=self.on_message, args=(self.sw.sock,))
+        self.sw.message_received = self.on_message
+        self.sw.client_access = self.client_access
+        self.sw.client_disconnect = self.client_disconnect
+        p = Thread(target=self.sw.run)
         p.start()
 
     # 打开默认首页
-    def openindex(self):
+    def open_default(self):
         index_url = self.config['VIEW']['path'] + self.config['VIEW']['index']
-        nav_json = {"event": "index", "url": index_url}
-        self.sw.send_nav(nav_json)
+        nav_json = {
+            'type': 'nav',
+            'data': {
+                "event": "index",
+                "url": index_url
+            }
+        }
+        self.send_data(nav_json)
+
+    # 开启屏幕通信服务
+    def Start(self, message):
+        self.StartServer()
 
     # 处理文本消息
     def Text(self, message):
@@ -70,42 +73,31 @@ class Screen(MsgProcess):
         if isinstance(Data, str):
             info = {
                 'type': 'text',
-                'init': 0,           # 是否为初始化唤醒
-                'obj': 'mojing',     # 对象： zhuren / mojing  主人/魔镜
-                'emot': '',          # 情感：
-                'msg': Data          # 消息内容
+                'data': {
+                    'init': 0,           # 是否为初始化唤醒
+                    'obj': 'mojing',     # 对象： zhuren / mojing  主人/魔镜
+                    'emot': '',          # 情感：
+                    'msg': Data          # 消息内容
+                }
             }
-
             if message['Sender'] == 'Record':  # 主人
-                info['obj'] = 'zhuren'
+                info['data']['obj'] = 'zhuren'
 
-            self.sw.on_send(info)
+            self.send_data(info)
             return
 
         # 对Data词典解析
-        if isinstance(Data, dict) and 'type' in Data.keys():
-            if Data['type'] == 'text':
-                self.Text(Data['msg'])
-                return
+        if isinstance(Data, dict):
+            self.send_data(Data)              # 用户自定义数据 直接发给前端
 
-            if Data['type'] == 'mic':
-                self.sw.on_send(Data)
-                return
-
-            if Data['type'] == 'nav':       # 导航
-                self.sw.send_nav(Data['data'])
-                return
-
-            if Data['type'] == 'dev':       # 网络状态图标
-                self.sw.send_dev(Data['data'])
-                return
-
-            if Data['type'] == 'exejs':     # 执行前端JS代码
-                self.sw.on_send(Data)
-                return
-
-            self.sw.on_send(Data)              # 用户自定义数据 直接发给前端
-            logging.warning('未知格式，直接发送: %s ' % Data['data'])
+    #发送屏幕文字
+    def send_data(self, Data):
+        try:
+            self.sw.on_send( json.dumps(Data) )
+        except json.JSONDecodeError:
+            logging.error('发送消息格式错误')
+        except:
+            pass
 
     def Stop(self, message=None):
         super().Stop(message)

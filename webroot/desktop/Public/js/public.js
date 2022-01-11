@@ -1,7 +1,8 @@
 /**
  * 全局JS，网络状态，显示提示文字
  **/
-const { ipcRenderer } = window.require('electron');
+const require = parent.window.require;
+const { ipcRenderer } = require('electron');
 
 var html = '<div class="top_status" id="statusbar"><span class="iconfont" id="network"></span></div><div id="tishiText"></div>';
 $(function() {
@@ -12,6 +13,13 @@ $(function() {
     //==================麦的状态动画=========================
     var mic_state = {
         Init: function() {
+            var michtml = `<canvas id="canvas" style="display:block;position: absolute;"></canvas><svg t="1561126448931" style="position: absolute;top:24px;left:24px;width:32px;height:32px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5437" xmlns:xlink="http://www.w3.org/1999/xlink"><defs></defs><path d="M698.624 501.376a170.112 170.112 0 0 1-170.112 170.112h-58.496a170.112 170.112 0 0 1-170.112-170.112V250.048a170.048 170.048 0 0 1 170.112-170.112h58.496a170.112 170.112 0 0 1 170.112 170.112v251.328z" fill="#979FCB" p-id="5438"></path><path d="M725.76 410.624v104.512c0 104.448-87.68 189.12-195.904 189.12H462.464c-108.224 0-195.968-84.672-195.968-189.12V410.624h-31.808v123.904c0 118.912 99.904 215.296 223.04 215.296h76.736c123.264 0 223.104-96.384 223.104-215.296V410.624h-31.808z" fill="#394B97" p-id="5439"></path><path d="M453.184 719.104h92.16v162.944h-92.16z" fill="#394B97" p-id="5440"></path><path d="M734.656 944v-12.224c0-40.896-38.976-74.048-87.232-74.048h-296.32c-48.128 0-87.232 33.216-87.232 74.048v12.224h470.784z" fill="#394B97" p-id="5441"></path><path d="M520.896 225.088h174.464v41.152H520.896zM298.944 225.088h174.464v41.152H298.944zM520.896 297.536h174.464v41.152H520.896zM298.944 297.536h174.464v41.152H298.944zM520.896 375.68h174.464v41.216H520.896zM298.944 375.68h174.464v41.216H298.944zM520.896 448.256h174.464v41.088H520.896zM298.944 448.256h174.464v41.088H298.944z" fill="#5161A4" p-id="5442"></path></svg>`;
+            var divobj = document.createElement("div");
+            divobj.setAttribute("style", "position: fixed;bottom:85px;left:47%;display: none;");
+            divobj.setAttribute("id", "micro");
+            divobj.innerHTML = michtml;
+            document.body.appendChild(divobj);
+
             this.canvas = document.getElementById('canvas');
             this.ctx = canvas.getContext('2d');
             this.canvas.width = 80;
@@ -71,16 +79,18 @@ $(function() {
     ipcRenderer.on('public', function(event, json) {
         //麦的状态
         if (json.type == 'mic') {
-            if (json.state == 'start') { $('#micro').show(); }
-            if (json.state == 'stop') { $('#micro').hide(); }
-            if (json.state == '1' || json.state == '0') {
-                micstate.main(json.state);
+            var data = json.data;
+            if (data == 'start') { $('#micro').show(); }
+            if (data == 'stop') { $('#micro').hide(); }
+            if (data == '1' || data == '0') {
+                micstate.main(data);
             }
         }
 
         //设备状态
         if (json.type == 'dev') {
-            if (json.netstatus == 1) {
+            var data = json.data
+            if (data.netstatus == 1) {
                 network.html('&#xe6ae;');
             } else {
                 network.html('&#xe726;');
@@ -89,7 +99,7 @@ $(function() {
 
         //语音消息提示
         if (json.type == 'text') {
-            var json_obj = json; //JSON.parse(json.tishitext);
+            var json_obj = json.data;
 
             var msg = json_obj.msg;
             var timer = json_obj.timer * 1000;
@@ -98,10 +108,10 @@ $(function() {
 
             var ts_arr = $('#tishiText div');
 
-            if (ts_arr.length >= 4) {
-                ts_arr.first().remove();
-                $('#tishiText div').eq(0).css({ 'opacity': '0.1' });
-                $('#tishiText div').eq(1).css({ 'opacity': '0.3' });
+            if (ts_arr.length >2) {
+                if (ts_arr.length >= 4) ts_arr.first().remove();
+                $('#tishiText div').eq(0).css({ 'opacity': '0.2' });
+                $('#tishiText div').eq(1).css({ 'opacity': '0.4' });
             }
 
             var duihua = '<div class="' + json_obj.obj + '">' + msg + '</div>';
@@ -159,6 +169,3 @@ $(function() {
         }
     });
 });
-
-// 加载动画
-$(window).load(function() { $("#loading").fadeOut(500); });

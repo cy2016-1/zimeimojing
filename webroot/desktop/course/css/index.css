@@ -1,0 +1,12 @@
+/* html,body{height: 100%;overflow: hidden;} */
+
+body{background-color: #aeb5b7;}
+.show-box{
+    font-size: 62px;
+    width: 324px;
+    line-height: 40px;
+    margin: 29% auto;
+    color: rgb(255 255 255 / 50%);
+    font-weight: 500;
+    text-align: center;
+}

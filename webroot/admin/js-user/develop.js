@@ -1,7 +1,7 @@
 $.extend({
     // 加载开发者基本信息
     ajax_develop: function (fn) {
-        var urlapi = '/api/develop_user.py?op=getaccount&r=' + Math.random()
+        var urlapi = '../../py/develop_user.py?op=getaccount&r=' + Math.random()
         $.ajax({
             type: "GET",
             url: urlapi,
@@ -19,7 +19,7 @@ $.extend({
 
     // 加载开发者详细信息
     ajax_developInfo: function (userid, fn) {
-        var urlapi = '/api/develop_user.py?op=getaccountinfo&userid='+userid+'&r=' + Math.random();
+        var urlapi = '../../py/develop_user.py?op=getaccountinfo&userid='+userid+'&r=' + Math.random();
         $.ajax({
             type: "GET",
             url: urlapi,
@@ -36,7 +36,7 @@ $.extend({
 
     // 加载开发者已发布的插件列表
     ajax_developPlugin: function (userid, fn) {
-        var urlapi = '/api/develop_user.py?op=getaccplugin&userid='+userid+'&r=' + Math.random();
+        var urlapi = '../../py/develop_user.py?op=getaccplugin&userid='+userid+'&r=' + Math.random();
         $.ajax({
             type: "GET",
             url: urlapi,
@@ -53,7 +53,7 @@ $.extend({
 
     // 退出登录
     logout_develop: function (fn) {
-        var urlapi = '/api/develop_user.py?op=exitaccount&r=' + Math.random()
+        var urlapi = '../../py/develop_user.py?op=exitaccount&r=' + Math.random()
         $.ajax({
             type: "GET",
             url: urlapi,

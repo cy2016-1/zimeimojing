@@ -2,10 +2,10 @@ import json
 import os
 import copy
 
-from .ApiBase import ApiBase
+from WebServer import RequestInit
 from python.package.Mylib import Mylib
 
-class plugin_hook(ApiBase):
+class plugin_hook(RequestInit):
     '''
     插件WebApi钩子
     '''
@@ -39,13 +39,13 @@ class plugin_hook(ApiBase):
 
     def main(self):
         # 获取所有插件中HTML代码
-        if self.query['get']=='html':
+        if self._GET['get']=='html':
             return self.__load_pugin_html('.html')
 
         # 获取所有插件中CSS样式代码
-        if self.query['get']=='css':
+        if self._GET['get']=='css':
             return self.__load_pugin_html('.css')
 
         # 获取所有插件中JS代码
-        if self.query['get']=='js':
+        if self._GET['get']=='js':
             return self.__load_pugin_html('.js')

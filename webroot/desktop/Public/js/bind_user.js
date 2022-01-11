@@ -1,1 +1,0 @@
-const qr = require('../../my_modules/qr-image');
